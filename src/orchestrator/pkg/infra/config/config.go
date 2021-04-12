@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strings"
 )
 
 // Configuration loads up all the values that are used to configure
@@ -35,6 +36,19 @@ type Configuration struct {
 	MaxRetries             string `json:"max-retries"`
 	BackOff                int    `json:"db-schema-backoff"`
 	MaxBackOff             int    `json:"db-schema-max-backoff"`
+
+	// EMCO-internal communication
+	//    wait time for a grpc connection to become ready, in milliseconds
+	GrpcConnReadyTime int `json:"grpc-conn-ready-time"`
+	//    wait time to declare a grpc conn as failed, in milliseconds
+	GrpcConnTimeout int `json:"grpc-conn-timeout"`
+	//    RPC call timeout, in milliseconds
+	//    gRPC call deadline may vary across controllers. We could have each
+	//    controller register with orch with a timeout value, in the future.
+	//    For now, we use a fixed timeout for all.
+	GrpcCallTimeout int `json:"grpc-call-timeout"`
+
+	// TODO: EMCO-K8s communication: Create similar time/timeout params
 }
 
 // Config is the structure that stores the configuration
@@ -93,7 +107,31 @@ func defaultConfiguration() *Configuration {
 		MaxRetries:             "",     // rsync
 		BackOff:                5,      // default backoff time interval for ref schema
 		MaxBackOff:             60,     // max backoff time interval for ref schema
+		GrpcConnReadyTime:      1000,   // 1 second in milliseconds
+		GrpcConnTimeout:        1000,   // 1 second
+		GrpcCallTimeout:        10000,  // 10 seconds
 	}
+}
+
+func isValidConfig(cfg *Configuration) bool {
+	valid := true
+	members := reflect.ValueOf(cfg).Elem()
+
+	// If a config param has "Time" in its name, and is type int,
+	// ensure its value is positive.
+	for i := 0; i < members.NumField(); i++ {
+		varName := members.Type().Field(i).Name
+		varValue := members.Field(i).Interface()
+		if strings.Contains(varName, "Time") {
+			intValue, ok := varValue.(int)
+			if ok && intValue <= 0 {
+				log.Printf("%s must be positive, not %d.\n",
+					varName, intValue)
+				valid = false
+			}
+		}
+	}
+	return valid
 }
 
 // GetConfiguration returns the configuration for the app.
@@ -106,6 +144,11 @@ func GetConfiguration() *Configuration {
 			log.Println("Using defaults...")
 		}
 		gConfig = conf
+
+		if !isValidConfig(gConfig) {
+			log.Fatalln("Bad data in config. Exiting.")
+			return nil
+		}
 	}
 
 	return gConfig

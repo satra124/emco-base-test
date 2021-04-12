@@ -10,6 +10,7 @@ import (
 	contextpb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/contextupdate"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	pkgerrors "github.com/pkg/errors"
 )
 
@@ -20,7 +21,9 @@ func InvokeContextUpdate(controllerName, intentName, appContextId string) error 
 	var err error
 	var rpcClient contextpb.ContextupdateClient
 	var updateRes *contextpb.ContextUpdateResponse
-	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
+
+	timeout := time.Duration(config.GetConfiguration().GrpcCallTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout*time.Millisecond)
 	defer cancel()
 
 	conn := rpc.GetRpcConn(controllerName)

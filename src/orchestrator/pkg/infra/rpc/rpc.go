@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/testdata"
 )
 
@@ -184,18 +185,12 @@ func RemoveRpcConn(name string) {
 
 // createConn creates the Rpc Client Connection
 func createClientConn(Host string, Port int) (*grpc.ClientConn, error) {
-	var err error
-	var tls bool
 	var opts []grpc.DialOption
 
 	serverAddr := Host + ":" + strconv.Itoa(Port)
 	serverNameOverride := config.GetConfiguration().GrpcServerNameOverride
 
-	if strings.Contains(config.GetConfiguration().GrpcEnableTLS, "enable") {
-		tls = true
-	} else {
-		tls = false
-	}
+	tls := strings.Contains(config.GetConfiguration().GrpcEnableTLS, "enable")
 
 	caFile := config.GetConfiguration().GrpcCAFile
 
@@ -216,10 +211,33 @@ func createClientConn(Host string, Port int) (*grpc.ClientConn, error) {
 		opts = append(opts, grpc.WithInsecure())
 	}
 
+	dialOpts := getGrpcDialOpts()
+	opts = append(opts, dialOpts...)
 	conn, err := grpc.Dial(serverAddr, opts...)
 	if err != nil {
-		pkgerrors.Wrap(err, "Grpc Client Initialization failed with error")
+		pkgerrors.Wrap(err, "Grpc Connection Initialization failed with error")
 	}
 
 	return conn, err
+}
+
+func getGrpcDialOpts() []grpc.DialOption {
+	// ConnTimeout is used for both ping period and ping timeout because
+	// both relate to ready -> not-ready transition.
+	pingTime := time.Duration(config.GetConfiguration().GrpcConnTimeout)
+	pingTimeout := time.Duration(config.GetConfiguration().GrpcConnTimeout)
+
+	// Add keepalive pings with timeout
+	keepaliveParams := keepalive.ClientParameters{
+		Time:    pingTime * time.Millisecond,
+		Timeout: pingTimeout * time.Millisecond,
+		// no pings without in-flight calls
+		PermitWithoutStream: false, // default=false but we make it explicit
+	}
+
+	opts := []grpc.DialOption{
+		grpc.WithKeepaliveParams(keepaliveParams),
+	}
+
+	return opts
 }

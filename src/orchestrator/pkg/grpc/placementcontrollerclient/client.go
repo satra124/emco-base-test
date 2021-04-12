@@ -10,6 +10,7 @@ import (
 	plsctrlclientpb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/placementcontroller"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
 	pkgerrors "github.com/pkg/errors"
 )
@@ -21,7 +22,9 @@ func InvokeFilterClusters(plsCtrl controller.Controller, appContextId string) er
 	var err error
 	var rpcClient plsctrlclientpb.PlacementControllerClient
 	var ctrlRes *plsctrlclientpb.ResourceResponse
-	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
+
+	timeout := time.Duration(config.GetConfiguration().GrpcCallTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout*time.Millisecond)
 	defer cancel()
 
 	// Fetch Grpc Connection handle
