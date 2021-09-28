@@ -107,6 +107,10 @@ resources:
 #emco-sfc
   - name: sfcIntent
     parent: deploymentIntentGroup
+  - name: sfcLink
+    parent: sfcIntent
+    references:
+      - name: app
   - name: sfcClientSelector
     parent: sfcIntent
   - name: sfcProviderNetwork

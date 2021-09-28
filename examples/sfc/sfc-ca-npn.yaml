@@ -224,6 +224,21 @@ version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcCompositeApp}}/v1/deployment-intent-groups/{{.SfcDeploymentIntentGroup}}/network-chains/{{.SfcIntent}}/client-selectors
 metadata :
+  name: leftclient2
+spec:
+  chainEnd: left
+  podSelector:
+    matchLabels:
+      sfc: head2
+  namespaceSelector:
+    matchLabels:
+      sfc: head2
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcCompositeApp}}/v1/deployment-intent-groups/{{.SfcDeploymentIntentGroup}}/network-chains/{{.SfcIntent}}/client-selectors
+metadata :
   name: {{.SfcLeftClientSelectorIntent}}
 spec:
   chainEnd: left
@@ -252,26 +267,17 @@ spec:
 ---
 version: emco/v2
 resourceContext:
-  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcCompositeApp}}/v1/deployment-intent-groups/{{.SfcDeploymentIntentGroup}}/network-chains/{{.SfcIntent}}/provider-networks
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcCompositeApp}}/v1/deployment-intent-groups/{{.SfcDeploymentIntentGroup}}/network-chains/{{.SfcIntent}}/client-selectors
 metadata :
-  name: {{.SfcLeftProviderNetworkIntent}}
-spec:
-  chainEnd: left
-  providerNetwork: left-pnetwork
-  gatewayIp: 172.30.10.2
-  subnet: 172.30.10.0/24
-
----
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcCompositeApp}}/v1/deployment-intent-groups/{{.SfcDeploymentIntentGroup}}/network-chains/{{.SfcIntent}}/provider-networks
-metadata :
-  name: {{.SfcRightProviderNetworkIntent}}
+  name: rightclient2
 spec:
   chainEnd: right
-  providerNetwork: right-pnetwork
-  gatewayIp: 172.30.20.2
-  subnet: 172.30.20.0/24
+  podSelector:
+    matchLabels:
+      sfc: tail2
+  namespaceSelector:
+    matchLabels:
+      sfc: tail2
 
 ---
 version: emco/v2
