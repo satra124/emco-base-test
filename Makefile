@@ -55,9 +55,10 @@ pre-compile: clean
 	@echo "Setting up pre-requisites"
 	@for m in $(MODS); do \
 	    mkdir -p bin/$$m;  \
-	    ARGS=""; CJ="src/$$m/config.json"; JS="src/$$m/json-schemas"; \
+	    ARGS=""; CJ="src/$$m/config.json"; JS="src/$$m/json-schemas"; RS="src/$$m/ref-schemas"; \
 	    [ -f $$CJ ] && ARGS="$$ARGS $$CJ"; \
 	    [ -d $$JS ] && ARGS="$$ARGS $$JS"; \
+	    [ -d $$RS ] && ARGS="$$ARGS $$RS"; \
 	    [ -z "$$ARGS" ] || cp -r $$ARGS bin/$$m; \
 	 done
 	@echo "    Done."

@@ -1,3 +1,5 @@
+name: emco-sfc
+resources:
   - name: sfcIntent
     parent: deploymentIntentGroup
   - name: sfcClientSelector

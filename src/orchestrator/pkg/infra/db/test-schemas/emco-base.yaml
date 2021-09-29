@@ -1,3 +1,6 @@
+name: emco-base
+resources:
+#emco-clm
   - name: clusterProvider
   - name: cluster
     parent: clusterProvider

@@ -452,73 +452,87 @@ Currently, the `cloudConfig` resource is not represented in the referential sche
 
 Also, the `level` and `namespace` elements of the `cloudConfig` key do not represent resource instances like almost all other key elements do.
 
-# Sample Complete EMCO Referential Schema
-
-A comment on the right show which EMCO microservice defines each schema resource.
+# Sample EMCO Referential Schema
 
 ```
+    name: emco-clm
     resources:
-      - name: clusterProvider                          # clm
-      - name: cluster                                  # clm
+      - name: clusterProvider                          
+      - name: cluster                                  
         parent: clusterProvider
-      - name: clusterLabel                             # clm
+      - name: clusterLabel                             
         parent: cluster
-      - name: clusterKv                                # clm
+      - name: clusterKv                                
         parent: cluster
-      - name: logicalCloud                             # dcm
+
+    name: emco-dcm
+    resources:  
+      - name: logicalCloud                             
         parent: project
-      - name: clusterReference                         # dcm
+      - name: clusterReference                         
         parent: logicalCloud
         references:
           - name: cluster
-      - name: clusterQuota                             # dcm
+      - name: clusterQuota                             
         parent: logicalCloud
-      - name: logicalCloudKv                           # dcm
+      - name: logicalCloudKv                           
         parent: logicalCloud
-      - name: userPermission                           # dcm
+      - name: userPermission                           
         parent: logicalCloud
-      - name: trafficGroupIntent                       # dtc
+
+    name: emco-dtc
+    resources:
+      - name: trafficGroupIntent                       
         parent: deploymentIntentGroup
-      - name: inboundServerIntent                      # dtc
+      - name: inboundServerIntent                      
         parent: trafficGroupIntent
         references:
           - name: app
-      - name: inboundClientsIntent                     # dtc
+      - name: inboundClientsIntent                     
         parent: inboundServerIntent
         references:
           - name: app
-      - name: genericK8sIntent                         # gac
+
+    name: emco-gac
+    resources:
+      - name: genericK8sIntent                         
         parent: deploymentIntentGroup
-      - name: genericResource                          # gac
+      - name: genericResource                          
         parent: genericK8sIntent
         references:
           - name: app
-      - name: customization                            # gac
+      - name: customization                            
         parent: genericResource
         references:
           - name: cluster
-      - name: providerNetwork                          # ncm
+
+    name: emco-ncm
+    resources:
+      - name: providerNetwork                          
         parent: cluster
-      - name: network                                  # ncm
+      - name: network                                  
         parent: cluster
-      - name: controllerGroup.controller               # orchestrator
-      - name: project                                  # orchestrator
-      - name: compositeApp.compositeAppVersion         # orchestrator
+
+    name: emco-orchestrator
+    resources:
+      - name: controllerGroup.controller               
+      - name: project                                  
+      - name: compositeApp.compositeAppVersion         
         parent: project
-      - name: app                                      # orchestrator
+      - name: app                                      
         parent: compositeAppVersion
-      - name: compositeProfile                         # orchestrator
+      - name: compositeProfile                         
         parent: compositeAppVersion
-      - name: appProfile                               # orchestrator
+      - name: appProfile                               
         parent: compositeProfile
         references:
           - name: app
-      - name: deploymentIntentGroup                    # orchestrator
+      - name: deploymentIntentGroup                    
         parent: compositeAppVersion
         references:
           - name: logicalCloud
           - name: compositeProfile
-      - name: groupIntent                              # orchestrator
+      - name: groupIntent                              
         parent: deploymentIntentGroup
         references:
           - name: controller
@@ -528,29 +542,38 @@ A comment on the right show which EMCO microservice defines each schema resource
               controllerGroup: orchestrator
             filterKeys:
               - genericPlacementIntent
-      - name: genericPlacementIntent                   # orchestrator
+      - name: genericPlacementIntent                   
         parent: deploymentIntentGroup
-      - name: genericAppPlacementIntent                # orchestrator
+      - name: genericAppPlacementIntent                
         parent: genericPlacementIntent
         references:
           - name: app
           - name: cluster
             type: many
-      - name: netControllerIntent                      # ovnaction
+
+    name: emco-ovnaction
+    resources:
+      - name: netControllerIntent                      
         parent: deploymentIntentGroup
-      - name: workloadIntent                           # ovnaction
+      - name: workloadIntent                           
         parent: netControllerIntent
         references:
           - name: app
-      - name: interfaceIntent                          # ovnaction
+      - name: interfaceIntent                          
         parent: workloadIntent
-      - name: sfcIntent                                # sfc
+
+    name: emco-sfc
+    resources:    
+      - name: sfcIntent                                
         parent: deploymentIntentGroup
-      - name: sfcClientSelector                        # sfc
+      - name: sfcClientSelector                        
         parent: sfcIntent
-      - name: sfcProviderNetwork                       # sfc
+      - name: sfcProviderNetwork                       
         parent: sfcIntent
-      - name: sfcClientIntent                          # sfcclient
+
+    name: emco-sfcclient
+    resources: 
+      - name: sfcClientIntent                           
         parent: netControllerIntent
         references:
           - name: sfcIntent
@@ -565,3 +588,5 @@ A comment on the right show which EMCO microservice defines each schema resource
       - name: hpaResource
         parent: hpaConsumer
 ```
+
+See [Extending the referential schema](Extending_the_referential_schema.md).
