@@ -1,0 +1,10 @@
+  - name: genericK8sIntent
+    parent: deploymentIntentGroup
+  - name: genericResource
+    parent: genericK8sIntent
+    references:
+      - name: app
+  - name: customization
+    parent: genericResource
+    references:
+      - name: cluster

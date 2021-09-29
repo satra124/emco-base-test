@@ -1,0 +1,132 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2021 Intel Corporation
+
+---
+#creating SFC composite app entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps
+metadata :
+  name: tm2-nginx
+spec:
+  compositeAppVersion: v1
+
+---
+#adding ngfw app to the composite app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/tm2-nginx/v1/apps
+metadata :
+  name: tm2-nginx
+file:
+  output/tm2-nginx.tar.gz
+
+---
+#creating sfc client composite profile entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/tm2-nginx/v1/composite-profiles
+metadata :
+  name: tm2-nginx
+
+---
+#adding Ngfw app profiles to the composite profile
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/tm2-nginx/v1/composite-profiles/tm2-nginx/profiles
+metadata :
+  name: tm2-nginx
+spec:
+  app: tm2-nginx
+file:
+  output/profile.tar.gz
+
+---
+#create deployment intent group
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/tm2-nginx/v1/deployment-intent-groups
+metadata :
+  name: tm2-nginx
+spec:
+  compositeProfile: tm2-nginx
+  version: r1
+  logicalCloud: {{.AdminCloud}}
+  overrideValues:
+  - app: tm2-nginx
+    values:
+      ".Values.replicaCount": '1'
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/tm2-nginx/v1/deployment-intent-groups/tm2-nginx/intents
+metadata :
+  name: tm2-nginx
+spec:
+  intent:
+    genericPlacementIntent: tm2-nginx
+    ovnaction: tm2-nginx
+
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/tm2-nginx/v1/deployment-intent-groups/tm2-nginx/generic-placement-intents
+metadata :
+  name: tm2-nginx
+
+---
+#add the client nginx app placement intent to the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/tm2-nginx/v1/deployment-intent-groups/tm2-nginx/generic-placement-intents/tm2-nginx/app-intents
+metadata:
+  name: tm2-nginx
+spec:
+  app: tm2-nginx
+  intent:
+    allOf:
+    - clusterProvider: {{.ClusterProvider}}
+      cluster: {{.Cluster1}}
+
+---
+#creating network intents
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/tm2-nginx/v1/deployment-intent-groups/tm2-nginx/network-controller-intent
+metadata :
+  name: tm2-nginx
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/tm2-nginx/v1/deployment-intent-groups/tm2-nginx/network-controller-intent/tm2-nginx/workload-intents
+metadata :
+  name: tm2-nginx
+spec:
+  app: tm2-nginx
+  workloadResource: tm2-nginx
+  type: Deployment
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/tm2-nginx/v1/deployment-intent-groups/tm2-nginx/network-controller-intent/tm2-nginx/workload-intents/tm2-nginx/interfaces
+metadata :
+  name: tm2-nginx
+spec:
+  interface: eth1
+  name: right-pnetwork
+  ipAddress: 172.30.20.120
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/tm2-nginx/v1/deployment-intent-groups/tm2-nginx/approve
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/tm2-nginx/v1/deployment-intent-groups/tm2-nginx/instantiate
+

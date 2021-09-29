@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2021 Intel Corporation
+
+---
+#create project
+version: emco/v2
+resourceContext:
+  anchor: projects
+metadata :
+   name: {{.ProjectName}}
+---
+#creating controller entries
+version: emco/v2
+resourceContext:
+  anchor: controllers
+metadata :
+   name: rsync
+spec:
+  host:  rsync
+  port: {{.RsyncPort}}
+
+---
+#creating controller entries
+version: emco/v2
+resourceContext:
+  anchor: controllers
+metadata :
+  name: ovnaction
+spec:
+  host: ovnaction
+  port: {{.OvnPort}}
+  type: "action"
+  priority: 1
+
+---
+#creating controller entries
+version: emco/v2
+resourceContext:
+  anchor: controllers
+metadata :
+  name: sfc
+spec:
+  host: sfc
+  port: {{.SfcPort}}
+  type: "action"
+  priority: 2
+
+---
+#creating controller entries
+version: emco/v2
+resourceContext:
+  anchor: controllers
+metadata :
+  name: sfcclient
+spec:
+  host: sfcclient
+  port: {{.SfcClientPort}}
+  type: "action"
+  priority: 2
+
+---
+#creating cluster provider
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers
+metadata :
+   name: {{.ClusterProvider}}
+
+---
+#creating cluster
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters
+metadata :
+   name: {{.Cluster1}}
+file:
+  {{.KubeConfig}}
+

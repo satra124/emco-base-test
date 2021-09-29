@@ -1,0 +1,119 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2021 Intel Corporation
+
+---
+#creating SFC composite app entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps
+metadata :
+  name: {{.SfcRightClientCA}}
+spec:
+  compositeAppVersion: v1
+
+---
+#adding ngfw app to the composite app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcRightClientCA}}/v1/apps
+metadata :
+  name: {{.RightNginx}}
+file:
+  {{.HelmAppRightNginx}}
+
+---
+#creating sfc client composite profile entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcRightClientCA}}/v1/composite-profiles
+metadata :
+  name: {{.SfcClientCompositeProfile}}
+
+---
+#adding Ngfw app profiles to the composite profile
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcRightClientCA}}/v1/composite-profiles/{{.SfcClientCompositeProfile}}/profiles
+metadata :
+  name: {{.RightNginx}}
+spec:
+  app: {{.RightNginx}}
+file:
+  {{.ProfileNginx}}
+
+---
+#create deployment intent group
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcRightClientCA}}/v1/deployment-intent-groups
+metadata :
+  name: {{.SfcRightDig}}
+spec:
+  compositeProfile: {{.SfcClientCompositeProfile}}
+  version: r1
+  logicalCloud: {{.RightCloud}}
+  overrideValues:
+  - app: {{.RightNginx}}
+    values:
+      ".Values.Namespace": "{{.RightNamespace}}"
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcRightClientCA}}/v1/deployment-intent-groups/{{.SfcRightDig}}/intents
+metadata :
+  name: {{.SfcRightDig}}
+spec:
+  intent:
+    genericPlacementIntent: {{.SfcClientGenericPlacementIntent}}
+    sfcclient: {{.OvnactionSfcClient}}
+
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcRightClientCA}}/v1/deployment-intent-groups/{{.SfcRightDig}}/generic-placement-intents
+metadata :
+  name: {{.SfcClientGenericPlacementIntent}}
+
+---
+#add the client nginx app placement intent to the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcRightClientCA}}/v1/deployment-intent-groups/{{.SfcRightDig}}/generic-placement-intents/{{.SfcClientGenericPlacementIntent}}/app-intents
+metadata:
+  name: {{.RightNginxPlacementIntent}}
+spec:
+  app: {{.RightNginx}}
+  intent:
+    allOf:
+    - clusterProvider: {{.ClusterProvider}}
+      cluster: {{.Cluster1}}
+
+---
+#creating sfc client intents
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcRightClientCA}}/v1/deployment-intent-groups/{{.SfcRightDig}}/sfc-clients
+metadata :
+  name: {{.SfcRightClientIntent}}
+spec:
+  chainEnd: right
+  sfcIntent: {{.SfcIntent}}
+  compositeApp: {{.SfcCompositeApp}}
+  compositeAppVersion: v1
+  deploymentIntentGroup: {{.SfcDeploymentIntentGroup}}
+  app: {{.RightNginx}}
+  workloadResource: {{.RightNginx}}
+  resourceType: Deployment
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcRightClientCA}}/v1/deployment-intent-groups/{{.SfcRightDig}}/approve
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcRightClientCA}}/v1/deployment-intent-groups/{{.SfcRightDig}}/instantiate
+

@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2021 Intel Corporation
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.serviceName }}
+  namespace: {{ include "common.namespace" . }}
+  labels:
+    app: {{ include "common.fullname" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.serviceInternal.type }}
+  ports:
+  - name: {{ .Values.serviceInternal.portName }}
+    {{if eq .Values.serviceInternal.type "NodePort" -}}
+    port: {{ .Values.serviceInternal.internalPort }}
+    nodePort: {{ .Values.global.nodePortPrefixExt | default "302" }}{{ .Values.serviceInternal.nodePort }}
+    {{- else -}}
+    port: {{ .Values.serviceInternal.externalPort }}
+    targetPort: {{ .Values.serviceInternal.internalPort }}
+    {{- end}}
+    protocol: TCP
+  selector:
+    app: {{ include "common.name" . }}
+    release: {{ .Release.Name }}

@@ -1,0 +1,6 @@
+  - name: sfcIntent
+    parent: deploymentIntentGroup
+  - name: sfcClientSelector
+    parent: sfcIntent
+  - name: sfcProviderNetwork
+    parent: sfcIntent

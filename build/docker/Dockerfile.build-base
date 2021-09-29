@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2020 Intel Corporation
+
+ARG EMCODOCKERREPO
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+FROM ${EMCODOCKERREPO}golang:1.14.1-alpine
+
+ENV HTTP_PROXY=${HTTP_PROXY}
+ENV HTTPS_PROXY=${HTTPS_PROXY}
+
+# Install some run-time build tools in the container.
+RUN apk update \
+    &&  apk add --no-cache make
+RUN apk add curl
+RUN apk add --no-cache ca-certificates git
+ARG HELM_VERSION="v3.5.2"
+RUN curl -fssL -o  helm-${HELM_VERSION}-linux-amd64.tar.gz https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz
+RUN tar -zxvf helm-${HELM_VERSION}-linux-amd64.tar.gz
+RUN mv linux-amd64/helm /usr/local/bin/helm

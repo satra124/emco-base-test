@@ -1,0 +1,390 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2021 Intel Corporation
+
+#creating vfw composite app entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps
+metadata :
+  name: {{.VfwCompositeApp}}
+spec:
+  compositeAppVersion: v1
+
+---
+#adding packetgen app to the composite app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/apps
+metadata :
+  name: {{.VfwPacketGen}}
+file:
+  {{.VfwPacketgenHelmApp}}
+
+---
+#adding firewall app to the composite app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/apps
+metadata :
+  name: {{.VfwFirewall}}
+file:
+  {{.VfwFirewallHelmApp}}
+
+---
+#adding sink app to the composite app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/apps
+metadata :
+  name: {{.VfwSink}}
+file:
+  {{.VfwSinkHelmApp}}
+
+---
+#creating vfw composite profile entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/composite-profiles
+metadata :
+  name: {{.VfwCompositeProfile}}
+
+---
+#adding packetgen app profiles to the composite profile
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/composite-profiles/{{.VfwCompositeProfile}}/profiles
+metadata :
+  name: {{.VfwPacketGen}}
+spec:
+  app: {{.VfwPacketGen}}
+file:
+  {{.VfwPacketgenProfile}}
+
+---
+#adding firewall app profiles to the composite profile
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/composite-profiles/{{.VfwCompositeProfile}}/profiles
+metadata :
+  name: {{.VfwFirewall}}
+spec:
+  app: {{.VfwFirewall}}
+file:
+  {{.VfwFirewallProfile}}
+
+---
+#adding sink app profiles to the composite profile
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/composite-profiles/{{.VfwCompositeProfile}}/profiles
+metadata :
+  name: {{.VfwSink}}
+spec:
+  app: {{.VfwSink}}
+file:
+  {{.VfwSinkProfile}}
+
+---
+#create deployment intent group
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups
+metadata :
+  name: {{.VfwDeploymentIntentGroup}}
+spec:
+  compositeProfile: {{.VfwCompositeProfile}}
+  version: r1
+  logicalCloud: {{.AdminCloud}}
+  overrideValues:
+  - app: {{.VfwPacketGen}}
+    values:
+      ".Values.service.ports.nodePort": '30888'
+  - app: {{.VfwFirewall}}
+    values:
+      ".Values.global.dcaeCollectorIp": 1.2.3.4
+      ".Values.global.dcaeCollectorPort": '8888'
+  - app: {{.VfwSink}}
+    values:
+      ".Values.service.ports.nodePort": '30677'
+
+---
+
+#create intent in deployment intent group
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/intents
+metadata :
+  name: {{.VfwDeploymentIntentGroup}}
+spec:
+  intent:
+    genericPlacementIntent: {{.VfwGenericPlacementIntent}}
+    {{.HpaActionControllerName}}: {{.VfwHpaActionIntent}}
+    {{.HpaPlacementControllerName}}: {{.VfwHpaPlacementIntent}}
+    ovnaction: {{.VfwNetworkIntent}}
+
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/generic-placement-intents
+metadata :
+  name: {{.VfwGenericPlacementIntent}}
+
+---
+#add the packetgen app placement intent to the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/generic-placement-intents/{{.VfwGenericPlacementIntent}}/app-intents
+metadata:
+  name: {{.PacketgenPlacementIntent}}
+spec:
+  app: {{.VfwPacketGen}}
+  intent:
+    anyOf:
+      - clusterProvider: {{.ClusterProvider}}
+        clusterLabel: {{.ClusterLabel1}}
+      - clusterProvider: {{.ClusterProvider}}
+        clusterLabel: {{.ClusterLabel2}}
+
+---
+#add the firewall app placement intent to the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/generic-placement-intents/{{.VfwGenericPlacementIntent}}/app-intents
+metadata:
+  name: {{.FirewallPlacementIntent}}
+spec:
+  app: {{.VfwFirewall}}
+  intent:
+    anyOf:
+    - clusterProvider: {{.ClusterProvider}}
+      clusterLabel: {{.ClusterLabel1}}
+    - clusterProvider: {{.ClusterProvider}}
+      clusterLabel: {{.ClusterLabel2}}
+
+---
+#add the sink app placement intent to the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/generic-placement-intents/{{.VfwGenericPlacementIntent}}/app-intents
+metadata:
+  name: {{.SinkPlacementIntent}}
+spec:
+  app: {{.VfwSink}}
+  intent:
+    allOf:
+    - clusterProvider: {{.ClusterProvider}}
+      clusterLabel: {{.ClusterLabel1}}
+    - clusterProvider: {{.ClusterProvider}}
+      clusterLabel: {{.ClusterLabel2}}
+
+---
+#create app hpa placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/hpa-intents
+metadata:
+  name: {{.HpaPlacementIntentPacketgen}}
+spec:
+  app: {{.VfwPacketGen}}
+
+---
+#add consumer to app hpa placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/hpa-intents/{{.HpaPlacementIntentPacketgen}}/hpa-resource-consumers
+metadata:
+  name: {{.HpaHugepages}}
+spec:
+  apiVersion : v19
+  kind : Deployment
+  name : {{.ResourcePacketgen}}
+  container : {{.VfwPacketGen}}
+
+---
+#add non-allocatable-resource to app hpa placement consumer
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/hpa-intents/{{.HpaPlacementIntentPacketgen}}/hpa-resource-consumers/{{.HpaHugepages}}/resource-requirements
+metadata:
+  name: {{.HpaHugepages}}
+spec:
+    allocatable: false
+    mandatory: true
+    weight: 1
+    resource: {"key":"feature.node.kubernetes.io/hugepages", "value":"true"}
+    # resource: {"key":"kubernetes.io/hostname", "value":"localhost"}
+---
+#create app hpa placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/hpa-intents
+metadata:
+  name: {{.HpaPlacementIntentFirewall}}
+spec:
+  app: {{.VfwFirewall}}
+
+---
+#add consumer to app hpa placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/hpa-intents/{{.HpaPlacementIntentFirewall}}/hpa-resource-consumers
+metadata:
+  name: {{.HpaHugepages}}
+spec:
+  apiVersion : v19
+  kind : Deployment
+  name : {{.ResourceFirewall}}
+  container: {{.VfwFirewall}}
+
+---
+#add non-allocatable-resource to app hpa placement consumer
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/hpa-intents/{{.HpaPlacementIntentFirewall}}/hpa-resource-consumers/{{.HpaHugepages}}/resource-requirements
+metadata:
+  name: {{.HpaHugepages}}
+spec:
+    allocatable: false
+    mandatory: true
+    weight: 1
+    resource: {"key":"feature.node.kubernetes.io/hugepages", "value":"true"}
+    # resource: {"key":"kubernetes.io/hostname", "value":"localhost"}
+
+---
+#Creating network intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/network-controller-intent
+metadata:
+  name: {{.VfwNetworkIntent}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/network-controller-intent/{{.VfwNetworkIntent}}/workload-intents
+metadata :
+  name: {{.VfwPacketGen}}
+spec:
+  app: {{.VfwPacketGen}}
+  workloadResource: {{.ResourcePacketgen}}
+  type: Deployment
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/network-controller-intent/{{.VfwNetworkIntent}}/workload-intents
+metadata :
+  name: {{.VfwFirewall}}
+spec:
+  app: {{.VfwFirewall}}
+  workloadResource: {{.ResourceFirewall}}
+  type: Deployment
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/network-controller-intent/{{.VfwNetworkIntent}}/workload-intents
+metadata :
+  name: {{.VfwSink}}
+spec:
+  app: {{.VfwSink}}
+  workloadResource: {{.ResourceSink}}
+  type: Deployment
+
+---
+#Adding network interfaces to the workloads
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/network-controller-intent/{{.VfwNetworkIntent}}/workload-intents/{{.VfwPacketGen}}/interfaces
+metadata :
+  name: {{.UnprotectedPrivateNet}}
+spec:
+  interface: {{.PacketgenUnprotectedIF}}
+  name: {{.UnprotectedPrivateNet}}
+  defaultGateway: "{{.PacketgenUnprotectedDefaultGW}}"
+  ipAddress: {{.PacketgenUnprotectedIPAddr}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/network-controller-intent/{{.VfwNetworkIntent}}/workload-intents/{{.VfwPacketGen}}/interfaces
+metadata :
+  name: {{.EmcoPrivateNet}}
+spec:
+  interface: {{.PacketgenEmcoIF}}
+  name: {{.EmcoPrivateNet}}
+  defaultGateway: "{{.PacketgenEmcoDefaultGW}}"
+  ipAddress: {{.PacketgenEmcoIPAddr}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/network-controller-intent/{{.VfwNetworkIntent}}/workload-intents/{{.VfwFirewall}}/interfaces
+metadata :
+  name: {{.EmcoPrivateNet}}
+spec:
+  interface: {{.FirewallEmcoIF}}
+  name: {{.EmcoPrivateNet}}
+  defaultGateway: "{{.FirewallEmcoDefaultGW}}"
+  ipAddress: {{.FirewallEmcoIPAddr}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/network-controller-intent/{{.VfwNetworkIntent}}/workload-intents/{{.VfwFirewall}}/interfaces
+metadata :
+  name: {{.UnprotectedPrivateNet}}
+spec:
+  interface: {{.FirewallUnprotectedIF}}
+  name: {{.UnprotectedPrivateNet}}
+  defaultGateway: "{{.FirewallUnprotectedDefaultGW}}"
+  ipAddress: {{.FirewallUnprotectedIPAddr}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/network-controller-intent/{{.VfwNetworkIntent}}/workload-intents/{{.VfwFirewall}}/interfaces
+metadata :
+  name: {{.ProtectedPrivateNet}}
+spec:
+  interface: {{.FirewallProtectedIF}}
+  name: {{.ProtectedPrivateNet}}
+  defaultGateway: "{{.FirewallProtectedDefaultGW}}"
+  ipAddress: {{.FirewallProtectedIPAddr}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/network-controller-intent/{{.VfwNetworkIntent}}/workload-intents/{{.VfwSink}}/interfaces
+metadata :
+  name: {{.ProtectedPrivateNet}}
+spec:
+  interface: {{.SinkProtectedIF}}
+  name: {{.ProtectedPrivateNet}}
+  defaultGateway: "{{.SinkProtectedDefaultGW}}"
+  ipAddress: {{.SinkProtectedIPAddr}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/network-controller-intent/{{.VfwNetworkIntent}}/workload-intents/{{.VfwSink}}/interfaces
+metadata :
+  name: {{.EmcoPrivateNet}}
+spec:
+  interface: {{.SinkEmcoIF}}
+  name: {{.EmcoPrivateNet}}
+  defaultGateway: "{{.SinkEmcoDefaultGW}}"
+  ipAddress: {{.SinkEmcoIPAddr}}
+
+---
+#Approve
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/approve
+
+---
+#Instantiate
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.VfwCompositeApp}}/v1/deployment-intent-groups/{{.VfwDeploymentIntentGroup}}/instantiate

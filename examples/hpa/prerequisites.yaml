@@ -1,0 +1,189 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2021 Intel Corporation
+
+---
+#creating controller entries
+version: emco/v2
+resourceContext:
+  anchor: controllers
+metadata :
+  name: rsync
+spec:
+  host:  rsync
+  port: {{.RsyncPort}}
+
+---
+#creating hpa placement controller entries
+version: emco/v2
+resourceContext:
+  anchor: controllers
+metadata :
+  name: {{.HpaPlacementControllerName}}
+spec:
+  host: hpaplacement
+  port: {{.HpaPlacementPort}}
+  type: placement
+
+---
+#creating ovnaction controller entries
+version: emco/v2
+resourceContext:
+  anchor: controllers
+metadata :
+   name: ovnaction
+spec:
+  host: ovnaction
+  port: {{.OvnActionPort}}
+  type: "action"
+  priority: 1
+
+---
+#creating hpa action controller entries
+version: emco/v2
+resourceContext:
+  anchor: controllers
+metadata :
+  name: {{.HpaActionControllerName}}
+spec:
+  host: hpaaction
+  port: {{.HpaActionPort}}
+  type: "action"
+  priority: 1
+
+---
+#creating clm controller entries
+version: emco/v2
+resourceContext:
+  anchor: clm-controllers
+metadata :
+  name: {{.HpaPlacementControllerName}}
+spec:
+  host: hpaplacement
+  port: {{.HpaPlacementPort}}
+  priority: 1
+
+---
+#creating cluster provider
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers
+metadata :
+  name: {{.ClusterProvider}}
+
+---
+#create project
+version: emco/v2
+resourceContext:
+  anchor: projects
+metadata :
+  name: {{.ProjectName}}
+
+---
+#creating edge cluster 1
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters
+metadata :
+  name: {{.Cluster1}}
+file:
+  {{.KubeConfig1}}
+
+---
+#Add label cluster 1
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/labels
+clusterLabel: {{.ClusterLabel1}}
+
+---
+#creating edge cluster 2
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters
+metadata :
+  name: {{.Cluster2}}
+file:
+  {{.KubeConfig2}}
+
+---
+#Add label cluster 2
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster2}}/labels
+clusterLabel: {{.ClusterLabel2}}
+
+#---
+#creating edge cluster 3
+#version: emco/v2
+#resourceContext:
+#  anchor: cluster-providers/{{.ClusterProvider}}/clusters
+#metadata :
+#  name: {{.Cluster3}}
+#file:
+#  {{.KubeConfig3}}
+
+#---
+#Add label cluster 3
+#version: emco/v2
+#resourceContext:
+#  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster3}}/labels
+#label-name: {{.ClusterLabel3}}
+
+#---
+#creating edge cluster 4
+#version: emco/v2
+#resourceContext:
+#  anchor: cluster-providers/{{.ClusterProvider}}/clusters
+#metadata :
+#  name: {{.Cluster4}}
+#file:
+#  {{.KubeConfig4}}
+
+#---
+#Add label cluster 4
+#version: emco/v2
+#resourceContext:
+#  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster4}}/labels
+#label-name: {{.ClusterLabel4}}
+
+
+---
+#create default logical cloud with admin permissions
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/logical-clouds
+metadata:
+  name: {{.AdminCloud}}
+spec:
+  level: "0"
+
+---
+#add cluster 1 reference to logical cloud
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/logical-clouds/{{.AdminCloud}}/cluster-references
+metadata:
+  name: {{.Cluster1Ref}}
+spec:
+  clusterProvider: {{.ClusterProvider}}
+  cluster: {{.Cluster1}}
+  loadbalancerIp: "0.0.0.0"
+
+---
+#add cluster 2 reference to logical cloud
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/logical-clouds/{{.AdminCloud}}/cluster-references
+metadata:
+  name: {{.Cluster2Ref}}
+spec:
+  clusterProvider: {{.ClusterProvider}}
+  cluster: {{.Cluster2}}
+  loadbalancerIp: "0.0.0.0"
+
+---
+#instantiate logical cloud
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/logical-clouds/{{.AdminCloud}}/instantiate
+

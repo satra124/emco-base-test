@@ -1,0 +1,23 @@
+image: golang:latest
+
+variables:
+  REPO_NAME: gitlab.com/project-emco/core/emco-base
+  EMCODOCKERREPO: registry.gitlab.com/project-emco/core/emco-base/
+
+before_script:
+  - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
+  - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
+  - cd $GOPATH/src/$REPO_NAME
+
+stages:
+  - all
+
+test:
+  stage: all
+  script:
+    - make test
+
+compile-container:
+  stage: all
+  script:
+    - make compile-container

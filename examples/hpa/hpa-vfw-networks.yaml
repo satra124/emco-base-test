@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2021 Intel Corporation
+
+---
+#Add ovn4nfv networks to cluster 1
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/networks
+metadata:
+  name: {{.EmcoPrivateNet}}
+spec:
+  cniType: ovn4nfv
+  ipv4Subnets:
+  - subnet: {{.EmcoPrivateSubnet}}
+    name: {{.EmcoPrivateSubnetName}}
+    gateway: {{.EmcoPrivateGateway}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/networks
+metadata:
+  name: {{.UnprotectedPrivateNet}}
+spec:
+  cniType: ovn4nfv
+  ipv4Subnets:
+  - subnet: {{.UnprotectedPrivateSubnet}}
+    name: {{.UnprotectedPrivateSubnetName}}
+    gateway: {{.UnprotectedPrivateGateway}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/networks
+metadata:
+  name: {{.ProtectedPrivateNet}}
+spec:
+  cniType: ovn4nfv
+  ipv4Subnets:
+  - subnet: {{.ProtectedPrivateSubnet}}
+    name: {{.ProtectedPrivateSubnetName}}
+    gateway: {{.ProtectedPrivateGateway}}
+
+---
+#Add ovn4nfv networks to cluster 2
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster2}}/networks
+metadata:
+  name: {{.EmcoPrivateNet}}
+spec:
+  cniType: ovn4nfv
+  ipv4Subnets:
+  - subnet: {{.EmcoPrivateSubnet}}
+    name: {{.EmcoPrivateSubnetName}}
+    gateway: {{.EmcoPrivateGateway}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster2}}/networks
+metadata:
+  name: {{.UnprotectedPrivateNet}}
+spec:
+  cniType: ovn4nfv
+  ipv4Subnets:
+  - subnet: {{.UnprotectedPrivateSubnet}}
+    name: {{.UnprotectedPrivateSubnetName}}
+    gateway: {{.UnprotectedPrivateGateway}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster2}}/networks
+metadata:
+  name: {{.ProtectedPrivateNet}}
+spec:
+  cniType: ovn4nfv
+  ipv4Subnets:
+  - subnet: {{.ProtectedPrivateSubnet}}
+    name: {{.ProtectedPrivateSubnetName}}
+    gateway: {{.ProtectedPrivateGateway}}
+
+---
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/apply
+
+---
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster2}}/apply

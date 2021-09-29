@@ -1,0 +1,22 @@
+{{ if .Values.persistence.enabled }}
+{{- $root := . -}}
+{{ range $i, $e := until (int $root.Values.statefulset.replicaCount) }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: data-{{ include "common.fullname" $root }}-{{ $i }}
+  labels: {{- include "etcd.labels" $root | nindent 4 }}
+spec:
+  capacity:
+    storage: {{ $root.Values.persistence.size | quote }}
+  accessModes:
+  {{- range $root.Values.persistence.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  {{ include "etcd.storageClass" $root }}
+  hostPath:
+    path: {{ $root.Values.persistence.mountPath }}/{{ $root.Release.Name }}/{{ $root.Values.persistence.mountSubPath }}-{{ $i }}
+  persistentVolumeReclaimPolicy: {{ $root.Values.persistence.volumeReclaimPolicy }}
+{{ end }}
+{{ end }}

@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2021 Intel Corporation
+
+---
+#creating SFC composite app entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps
+metadata :
+  name: {{.NetsCompositeApp}}
+spec:
+  compositeAppVersion: v1
+
+---
+#adding ngfw app to the composite app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.NetsCompositeApp}}/v1/apps
+metadata :
+  name: {{.AppNets}}
+file:
+  {{.HelmNets}}
+
+---
+#creating sfc composite profile entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.NetsCompositeApp}}/v1/composite-profiles
+metadata :
+  name: {{.NetsCompositeProfile}}
+
+---
+#adding Netsomposite profile
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.NetsCompositeApp}}/v1/composite-profiles/{{.NetsCompositeProfile}}/profiles
+metadata :
+  name: {{.AppNets}}
+spec:
+  app: {{.AppNets}}
+file:
+  {{.ProfileNets}}
+
+---
+#create deployment intent group
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.NetsCompositeApp}}/v1/deployment-intent-groups
+metadata :
+  name: {{.NetsDeploymentIntentGroup}}
+spec:
+  compositeProfile: {{.NetsCompositeProfile}}
+  version: r1
+  logicalCloud: {{.AdminCloud}}
+  overrideValues:
+  - app: {{.AppNets}}
+    values:
+      ".Values.replicaCount": '1'
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.NetsCompositeApp}}/v1/deployment-intent-groups/{{.NetsDeploymentIntentGroup}}/intents
+metadata :
+  name: {{.NetsDeploymentIntentGroup}}
+spec:
+  intent:
+    genericPlacementIntent: {{.NetsGenericPlacementIntent}}
+
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.NetsCompositeApp}}/v1/deployment-intent-groups/{{.NetsDeploymentIntentGroup}}/generic-placement-intents
+metadata :
+  name: {{.NetsGenericPlacementIntent}}
+
+---
+#add the ngfw app placement intent to the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.NetsCompositeApp}}/v1/deployment-intent-groups/{{.NetsDeploymentIntentGroup}}/generic-placement-intents/{{.NetsGenericPlacementIntent}}/app-intents
+metadata:
+  name: {{.NetsPlacementIntent}}
+spec:
+  app: {{.AppNets}}
+  intent:
+    allOf:
+    - clusterProvider: {{.ClusterProvider}}
+      cluster: {{.Cluster1}}
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.NetsCompositeApp}}/v1/deployment-intent-groups/{{.NetsDeploymentIntentGroup}}/approve
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.NetsCompositeApp}}/v1/deployment-intent-groups/{{.NetsDeploymentIntentGroup}}/instantiate
+

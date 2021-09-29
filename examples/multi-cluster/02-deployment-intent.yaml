@@ -1,0 +1,111 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2020 Intel Corporation
+
+---
+#creating composite app entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ .ProjectName }}/composite-apps
+metadata :
+  name: {{ .CompositeApp }}
+spec:
+  version: v1
+
+{{- range $index, $app := .Applist }}
+---
+#adding app to the composite app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $.CompositeApp }}/v1/apps
+metadata :
+  name: {{ $app.Name }}
+file:
+  {{ $.PackagesPath }}/{{ $app.Name }}.tar.gz
+{{- end }}
+
+---
+#creating composite profile entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ .ProjectName }}/composite-apps/{{ .CompositeApp }}/v1/composite-profiles
+metadata :
+  name: {{ .CompositeProfile }}
+
+{{- range $index, $app := .Applist }}
+---
+#adding app profiles to the composite profile
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $.CompositeApp }}/v1/composite-profiles/{{ $.CompositeProfile }}/profiles
+metadata :
+  name: {{ $app.Name }}-profile
+spec:
+  app-name: {{ $app.Name }}
+file:
+  {{ $.PackagesPath }}/{{ $app.Name }}_profile.tar.gz
+{{- end }}
+
+---
+#create deployment intent group
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ .ProjectName }}/composite-apps/{{ .CompositeApp }}/v1/deployment-intent-groups
+metadata :
+  name: {{ .DeploymentIntent }}
+  description: "description"
+spec:
+  profile: {{ .CompositeProfile }}
+  version: r1
+  logical-cloud: {{ .AdminCloud }}
+  override-values: []
+
+---
+#create intent in deployment intent group
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ .ProjectName }}/composite-apps/{{ .CompositeApp }}/v1/deployment-intent-groups/{{ .DeploymentIntent }}/intents
+metadata :
+  name: {{ .Intent }}
+spec:
+  intent:
+    genericPlacementIntent: {{ .GenericPlacementIntent }}
+
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ .ProjectName }}/composite-apps/{{ .CompositeApp }}/v1/deployment-intent-groups/{{ .DeploymentIntent }}/generic-placement-intents
+metadata :
+  name: {{ .GenericPlacementIntent }}
+spec:
+  logical-cloud: {{ .AdminCloud }}
+
+{{- range $index, $app := .Applist }}
+---
+#add the app placement intent to the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $.CompositeApp }}/v1/deployment-intent-groups/{{ $.DeploymentIntent }}/generic-placement-intents/{{ $.GenericPlacementIntent }}/app-intents
+metadata:
+  name: {{ $app.Name }}-placement-intent
+spec:
+  app-name: {{ $app.Name }}
+  intent:
+    allOf:
+    {{- range $index1, $cluster := $app.Cluster }}
+    - provider-name: {{ $.ClusterProvider }}
+      cluster-name: {{ $cluster }}
+    {{- end }}
+{{- end }}
+
+---
+#Approve
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ .ProjectName }}/composite-apps/{{ .CompositeApp }}/v1/deployment-intent-groups/{{ .DeploymentIntent }}/approve
+
+---
+#Instantiate
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ .ProjectName }}/composite-apps/{{ .CompositeApp }}/v1/deployment-intent-groups/{{ .DeploymentIntent }}/instantiate
