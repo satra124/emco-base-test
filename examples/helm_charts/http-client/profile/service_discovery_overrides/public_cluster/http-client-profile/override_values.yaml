@@ -7,10 +7,10 @@ image:
     pullPolicy: Always
   
 server:
-    domain: "http://http-service:30080"
+    domain: "http://http-service:30083"
 
 proxy:
-    http: "http://proxy-us.intel.com:911"
+    http: <proxy server address>
 
 service:
     type: ClusterIP

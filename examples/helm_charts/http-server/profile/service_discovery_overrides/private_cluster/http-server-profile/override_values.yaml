@@ -9,7 +9,7 @@ image:
 service:
     name: http-service
     type: NodePort
-    tcpPort: 30080
+    tcpPort: 30083
     nameOfPort: webPort
     annotations: {}
     labels: {}
