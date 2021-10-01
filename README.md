@@ -127,6 +127,6 @@ Do the following steps:
    ```make deploy```
 
 ### Deploy sample test cases with EMCO
-See [this Readme](kud/emcoctl-tests/Readme.md) on how to setup environment and running few test cases with EMCO.
+See [this Readme](examples/single-cluster/Readme.md) on how to setup an environment and run a few test cases with EMCO.
 
-See [this tutorial](docs/user/Tutorial_Helm.md) for further details.
+See [this tutorial](docs/user/install/Tutorial_Helm.md) for further details.

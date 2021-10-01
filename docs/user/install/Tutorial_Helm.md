@@ -18,8 +18,8 @@ This document describes how to efficiently get started with EMCO install using H
 - helm (v3.3.4 or later)
 - kubectl (v1.19.0 or later)
 
-## Login to the EMCO Harbor registry
-Remember to login to the EMCO Harbor registry by running `docker login <docker repo>` on the build machine and all cluster nodes.
+## Login to a container registry
+Remember to login to a container registry by running `docker login <docker repo>` on the build machine and all cluster nodes.
 
 Sometimes, the login fails on some Linux distributions with `Login did not succeed, error: Error response from daemon: Get <docker repo>: x509: certificate signed by unknown authority`.
 
@@ -322,10 +322,10 @@ persistentvolume "emco-db-emco-mongo-data" deleted
 Done
 ```
 
-### Pushing EMCO images to Harbor
-It is often required to use developer tags for locally built EMCO images, push to Harbor and reference these custom images in helmcharts for developer testing.
+### Pushing EMCO images to container registry
+It is often required to use developer tags for locally built EMCO images, push to a container registry and reference these custom images in helmcharts for developer testing.
 
-To enable these features, run `export BUILD_CAUSE=DEV_TEST` prior to running `make deploy`. This will tag locally built images as `<username>-latest`, push to Harbor and reference these images in the generated helmcharts.
+To enable these features, run `export BUILD_CAUSE=DEV_TEST` prior to running `make deploy`. This will tag locally built images as `<username>-latest`, push to a container registry and reference these images in the generated helmcharts.
 
 Developers can then use the ```emco-base-helm-install.sh``` script from the above sections to install these custom images on their cluster.
 

@@ -15,8 +15,8 @@ This document describes how to efficiently get started with EMCO install locally
 - docker-compose (v1.26.2 or later)
 - kubectl (v1.19.0 or later)
 
-## Login to the EMCO Harbor registry
-Remember to login to the EMCO Harbor registry by running `docker login <docker repo>` on the build machine and all cluster nodes.
+## Login to a container registry
+Remember to login to a container registry by running `docker login <docker repo>` on the build machine and all cluster nodes.
 
 Sometimes, the login fails on some Linux distributions with `Login did not succeed, error: Error response from daemon: Get <docker repo>: x509: certificate signed by unknown authority`.
 

@@ -1,1 +1,1 @@
-../../docs/user/Tutorial_Helm.md
+../../docs/user/install/Tutorial_Helm.md

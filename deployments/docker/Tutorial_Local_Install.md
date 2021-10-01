@@ -1,1 +1,1 @@
-../../docs/user/Tutorial_Local_Install.md
+../../docs/user/install/Tutorial_Local_Install.md
