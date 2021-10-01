@@ -14,10 +14,14 @@ stages:
 
 test:
   stage: all
+  only:
+    - merge_requests
   script:
     - make test
 
 compile-container:
   stage: all
+  only:
+    - merge_requests
   script:
     - make compile-container
