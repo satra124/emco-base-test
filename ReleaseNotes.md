@@ -7,11 +7,21 @@ This document provides high level features, fixes, and known issues and limitati
 
 # Release History
 
+1. EMCO - Seed Code
 1. EMCO - 21.03.05
 1. EMCO - 21.03
 1. EMCO - 20.12
 
 # Features for Release
+
+1. **EMCO - Seed Code**
+	- Updates to the code required to move repository from [OpenNess] (https://github.com/smart-edge-open/EMCO) to gitlab.
+	- Introduced HPA (Hardware Platform Aware) placement and action controllers.
+	- The EMCO APIs have been modified to use camel case naming of attributes.  For example, the an attribute named 'cluster-provider' changes to 'clusterProvider'.  Also, in support of referential integrity, attribute names have been renamed in some cases to be consistent across all usages.  For example, 'appname', 'app-name', 'appName' all become 'app'.  See [JSON tag changes](JsonTagChanges.md) for a list of attributes names that have changed from earlier releases of EMCO.
+	- The database referential integrity feature has been added to identify referenced resources when an EMCO resource is created.  On creation, the parent resource is verified to exist and a list of other references are saved in the resource.  On delete, the EMCO database interface will prevent deletion of resources that are referenced by other resources.  See [Referential Integrity](src/orchestrator/pkg/infra/db/ReferentialIntegrity.md) for more information.
+	- Fix for issue DIG status API does not return complete info about clusters.
+	- Adds Get Arrays of Cluster with Labels query.
+	- Misc. document and small bug fixes.
 
 1. **EMCO - 21.03.05**
 	- Support for Application Update added in this release
@@ -82,6 +92,50 @@ This document provides high level features, fixes, and known issues and limitati
 
 # Known Issues and Limitations
 
+- **EMCO Seed Code**
+	- EMCO API's: Put API's are missing in some cases.
+
+	- EMCO API's: Inconsistency in error codes for EMCO API's can exist between the API doc and the actual code returned.
+
+	- General: Unit test cases are missing for some EMCO modules/controllers and test case coverage is low in some cases.
+
+	- Rsync not cleaning up state for AppContext after all processing is completed. This includes the kubeconfig files read from database and in memory data structures.
+
+	- The status of the application on termination is not tracked by rsync correctly.
+
+	- Monitor: Monitor currently supports the resources of the following type only:  corev1.Pod, corev1.Service, v1.Job, corev1.ConfigMap, corev1.Secret, appsv1.Deployment, appsv1.DaemonSet, appsv1.StatefulSet, v1beta1.CSR, v1beta1.Ingress
+
+	- Monitor Bug: Monitor is not tracking the termination status correctly.
+
+	- Emcoctl: Supports http only currently.
+
+	- Emcoctl: Add controller URL's to config file. Currently those are hardcoded in the code.
+
+	- General: EMCO is currently not able to recover when the external controllers crash or on lose of connectivity. Use grpc keepalives and timeouts will help in detecting the loss of connectivity.
+
+	- Monitor: Large applications cause " etcdserver: request is too large" error and monitor is not able to provide status of those applications.
+
+	- Rsync,Monitor: The update of cluster status (via 'monitor' and 'rsync') appears to stop working some times.  This has been observed when it was observed that standard logical clouds were not getting fully created (because the status info from the cluster was not updated).  Similar sightings in other scenarios have been reported.  The reproduction sequence is not known.
+
+	- SFC: Service Function Chaining currently expects the labels identifying the functions in a network chain to be of the form:  "app=<app name>" where the value matches an "app" name in the composite application.
+
+	- SFC: Deploying composite apps which will attach to service function chains using an SFC client intent require a namespace label match.  The labeling of the namespace in the target edge cluster(s) needs to be provided by manual or other means.  The plan is to enhance logical cloud creation to label namespaces.
+
+	- SFC: Service Function Chaining intent currently requires both a provider network intent and client selector intent for each end of the chain.  Only one of each of these intents is used (in the event more than one is created).
+
+	- General: There is no project-scoped control of privileges, even though DCM can deploy logical clouds of different privilege levels
+
+	- General: EMCO currently assumes that the namespace to access each cluster before the creation of any logical cloud is "default". However, there should a way to specify this.
+
+	- General: There is no way to modify an instantiated logical cloud (in the sense of augmenting or shrinking it, or updated quotas) - it has to be terminated and then re-instantiated.
+
+	- DCM: no status query support yet
+
+	- DCM: no JSON validation
+
+	- ovnaction:  Assumes that edge clusters will have a network-attachment-definition installed that matches: https://github.com/onap/multicloud-k8s/blob/master/kud/deployment_infra/helm/ovn4nfv-network/templates/ovnnetwork.yaml
+
+
 - **EMCO 21.03.05**
 	- A delay for deploying SFC CRs is explicitly performed.  This will be replaced with a more generic app / resource dependency mechanism.
 
@@ -98,7 +152,7 @@ This document provides high level features, fixes, and known issues and limitati
 	- Many of the EMCO microservice REST APIs do not support the PUT API for providing modifications to resources after initial creation.
 	- The `emcoctl` command line tool does not support a `put` operation at all.
 	- In some cases, EMCO does not prevent deletion of API resources which are depended on by other resources.  For example, a Cluster resource might be deleted while a Deployment Intent Group is instantiated and has resources deployed to the Cluster.  Until this issue is addressed in the next release, the best method is to ensure that resources are deleted in the reverse order from their creation.
-	- EMCO does not provide for encryption-at-rest for the database storage of the Mongo and etcd databases. EMCO plans to provide support for encryption of critical database resources in an upcoming release. 
+	- EMCO does not provide for encryption-at-rest for the database storage of the Mongo and etcd databases. EMCO plans to provide support for encryption of critical database resources in an upcoming release.
 	- The example virtual firewall composite application needs to be deployed to a Kubernetes cluster which has Multus, OVN4K8S CNI and virtlet support installed.  Refer to [KUD](https://github.com/onap/multicloud-k8s/tree/master/kud) for an example cluster that which supports the requirement needed by the virtual firewall example.
 	- The monitor microservice is only able to monitor the status of a limited set of Kubernetes resource Kinds:  pod, service, configmap, deployment, secret, deamonset, ingress, jobs, statefulset, csrstatus
 	- Emcoctl get with token doesn't work. That is because of a bug in the code. Solution to the issue is to remove line 25 from the EMCO/src/emcoctl/cmd/get.go and rebuild emcoctl code.
