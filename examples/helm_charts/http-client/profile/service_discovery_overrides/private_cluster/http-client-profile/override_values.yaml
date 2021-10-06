@@ -2,7 +2,7 @@
 # Copyright (c) 2021 Intel Corporation
 image:
     repository: <myrepository.example.com>/app/my-custom-httptest-client
-    tag: "1.9"
+    tag: "1.1"
     pullPolicy: Always
 
 server:

@@ -3,7 +3,7 @@
 
 image:
     repository: <myrepository.example.com>/app/my-custom-httptest-client-proxy
-    tag: "1.10"
+    tag: "1.1"
     pullPolicy: Always
   
 server:
