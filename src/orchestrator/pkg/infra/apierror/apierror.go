@@ -16,13 +16,6 @@ type APIError struct {
 	Status  int
 }
 
-var apiErrors = []APIError{
-	{ID: "Error Unmarshalling bson data", Message: "Unmarshalling Error. Unexpected element in the bson data", Status: http.StatusInternalServerError},
-	{ID: "Unknown Error", Message: "Unknown Error", Status: http.StatusInternalServerError},
-	{ID: "not found", Message: "Requested resource not found.", Status: http.StatusNotFound},          // to handle the generic "resource not found" errors
-	{ID: "already exists", Message: "Requested resource already exist.", Status: http.StatusConflict}, // to handle the generic "resource already exist" errors
-}
-
 var dbErrors = []APIError{
 	{ID: "db Find error", Message: "Error finding referencing resources", Status: http.StatusInternalServerError},
 	{ID: "db Remove error", Message: "Error removing referencing resources", Status: http.StatusInternalServerError},
@@ -48,13 +41,6 @@ func HandleErrors(params map[string]string, err error, mod interface{}, apiErr [
 
 	// api specific errors
 	for _, e := range apiErr {
-		if strings.Contains(err.Error(), e.ID) {
-			return e
-		}
-	}
-
-	// generic errors
-	for _, e := range apiErrors {
 		if strings.Contains(err.Error(), e.ID) {
 			return e
 		}
