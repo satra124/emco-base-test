@@ -53,14 +53,11 @@ func HandleErrors(params map[string]string, err error, mod interface{}, apiErr [
 // HandleLogicalCloudErrors handles logical cloud errors
 // Returns APIError with the ID, message and the http status based on the error
 func HandleLogicalCloudErrors(params map[string]string, err error, lcErrors []APIError) APIError {
-	log.Error("Logical cloud error :: ", log.Fields{"Parameters": params, "Error": err})
-
 	for _, e := range lcErrors {
 		if strings.Contains(err.Error(), e.ID) {
+			log.Error("Logical cloud error :: ", log.Fields{"Parameters": params, "Error": err})
 			return e
 		}
 	}
-
-	// Default
-	return APIError{ID: "Logical cloud error", Message: "The server encountered an internal error and was unable to complete your request.", Status: http.StatusInternalServerError}
+	return APIError{}
 }
