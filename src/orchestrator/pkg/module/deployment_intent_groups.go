@@ -265,7 +265,7 @@ func (c *DeploymentIntentGroupClient) DeleteDeploymentIntentGroup(di string, p s
 		acStatus, err := state.GetAppContextStatus(ctxid)
 		if err == nil &&
 			!(acStatus.Status == appcontext.AppContextStatusEnum.Terminated || acStatus.Status == appcontext.AppContextStatusEnum.TerminateFailed) {
-			return pkgerrors.Wrap(err, "DeploymentIntentGroup has not completed terminating: "+di)
+			return pkgerrors.New("DeploymentIntentGroup has not completed terminating: " + di)
 		}
 
 		for _, id := range state.GetContextIdsFromStateInfo(s) {
