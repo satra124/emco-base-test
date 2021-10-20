@@ -6767,6 +6767,11 @@ components:
         externalSupport:
           description: External Support
           type: boolean
+        serviceMesh:
+          description: Service Mesh type
+          type: string
+          maxLength: 128
+          example: "istio"
       required:
         - app
         - serviceName

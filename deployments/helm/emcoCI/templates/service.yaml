@@ -183,6 +183,25 @@ spec:
     targetPort: 9039
 
 ---
+# ITS Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: its
+  labels:
+    app: its
+spec:
+  selector:
+    app: its
+  type: NodePort
+  ports:
+  - name: internal
+    port: 9040
+    nodePort: 31740
+    protocol: TCP
+    targetPort: 9040
+
+---
 
 # Clm Service
 apiVersion: v1

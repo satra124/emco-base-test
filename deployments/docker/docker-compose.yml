@@ -163,6 +163,22 @@ services:
     depends_on:
       - "etcd"
       - "mongo"
+  its:
+    image: ${REGISTRY_PREFIX}emco-its${TAG}
+    networks:
+      - emconet
+    ports:
+      - 9040:9040
+    environment:
+      - no_proxy=etcd,mongo,${NO_PROXY}
+      - NO_PROXY=etcd,mongo,${NO_PROXY}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - http_proxy=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+      - https_proxy=${HTTPS_PROXY}
+    depends_on:
+      - "etcd"
+      - "mongo"
   genericactioncontroller:
     image: ${REGISTRY_PREFIX}emco-gac${TAG}
     networks:

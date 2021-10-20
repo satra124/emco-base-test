@@ -98,7 +98,8 @@ var _ = Describe("Inboundserverintenthandler", func() {
 					"externalName":    "test-externalname",
 					"port":		   6666,
 					"protocol":	   "TCP",
-					"externalSupport": false
+					"externalSupport": false,
+					"serviceMesh":     "none"
 				}
 			}`)),
 			inStruct: module.InboundServerIntent{
@@ -116,6 +117,7 @@ var _ = Describe("Inboundserverintenthandler", func() {
 					Port:            6666,
 					Protocol:        "TCP",
 					ExternalSupport: false,
+					ServiceMesh:     "none",
 				},
 			},
 			mockError: nil,
@@ -134,6 +136,7 @@ var _ = Describe("Inboundserverintenthandler", func() {
 					Port:            6666,
 					Protocol:        "TCP",
 					ExternalSupport: false,
+					ServiceMesh:     "none",
 				},
 			},
 			client: &mocks.InboundServerIntentManager{},
@@ -304,7 +307,8 @@ var _ = Describe("Inboundserverintenthandler", func() {
 					"externalName":    "test-externalname",
 					"port":		   6666,
 					"protocol":	   "TCP",
-					"externalSupport": false
+					"externalSupport": false,
+					"serviceMesh":     "none"
 				}
 			}`)),
 			inStruct: module.InboundServerIntent{
@@ -322,6 +326,7 @@ var _ = Describe("Inboundserverintenthandler", func() {
 					Port:            6666,
 					Protocol:        "TCP",
 					ExternalSupport: false,
+					ServiceMesh:     "none",
 				},
 			},
 			mockError: pkgerrors.New("ServerInboundIntent already exists"),
@@ -344,7 +349,8 @@ var _ = Describe("Inboundserverintenthandler", func() {
 					"externalName":    "test-externalname",
 					"port":		   6666,
 					"protocol":	   "TCP",
-					"externalSupport": false
+					"externalSupport": false,
+					"serviceMesh":     "none"
 				}
 			}`)),
 			inStruct: module.InboundServerIntent{
@@ -362,6 +368,7 @@ var _ = Describe("Inboundserverintenthandler", func() {
 					Port:            6666,
 					Protocol:        "TCP",
 					ExternalSupport: false,
+					ServiceMesh:     "none",
 				},
 			},
 			mockError: pkgerrors.New("Inbound server intent not found"),
@@ -384,7 +391,8 @@ var _ = Describe("Inboundserverintenthandler", func() {
 					"externalName":    "test-externalname",
 					"port":		   6666,
 					"protocol":	   "TCP",
-					"externalSupport": false
+					"externalSupport": false,
+					"serviceMesh":     "none"
 				}
 			}`)),
 			inStruct: module.InboundServerIntent{
@@ -402,6 +410,7 @@ var _ = Describe("Inboundserverintenthandler", func() {
 					Port:            6666,
 					Protocol:        "TCP",
 					ExternalSupport: false,
+					ServiceMesh:     "none",
 				},
 			},
 			mockError: pkgerrors.New("Creating DB Entry"),

@@ -21,6 +21,7 @@ type InbondServerIntentSpec struct {
 	Port            int    `json:"port"`
 	Protocol        string `json:"protocol"`
 	ExternalSupport bool   `json:"externalSupport", default:false`
+	ServiceMesh     string `json:"serviceMesh", default:"none"`
 }
 
 type InboundServerIntentManager interface {

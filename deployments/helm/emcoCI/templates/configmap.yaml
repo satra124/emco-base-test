@@ -161,6 +161,24 @@ data:
           }
 
 ---
+
+# ITS Config Map
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: its
+  labels:
+    app: its
+data:
+  config.json: |
+          {
+          "database-type": "mongo",
+          "database-ip": "mongo",
+          "etcd-ip": "etcd",
+          "service-port": "9040"
+          }
+
+---
 # GenericActionController Config Map
 kind: ConfigMap
 apiVersion: v1

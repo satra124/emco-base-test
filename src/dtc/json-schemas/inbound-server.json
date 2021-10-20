@@ -58,6 +58,13 @@
           "description": "External support",
           "type": "boolean",
           "example": false
+        },
+	"serviceMesh": {
+          "description": "Service Mesh type",
+          "type": "string",
+          "example": "istio",
+          "maxLength": 128,
+          "pattern": "^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$"
         }
       }
     },
