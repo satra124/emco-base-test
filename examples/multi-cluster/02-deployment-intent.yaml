@@ -9,7 +9,7 @@ resourceContext:
 metadata :
   name: {{ .CompositeApp }}
 spec:
-  version: v1
+  compositeAppVersion: v1
 
 {{- range $index, $app := .Applist }}
 ---
@@ -40,7 +40,7 @@ resourceContext:
 metadata :
   name: {{ $app.Name }}-profile
 spec:
-  app-name: {{ $app.Name }}
+  app: {{ $app.Name }}
 file:
   {{ $.PackagesPath }}/{{ $app.Name }}_profile.tar.gz
 {{- end }}
@@ -54,10 +54,10 @@ metadata :
   name: {{ .DeploymentIntent }}
   description: "description"
 spec:
-  profile: {{ .CompositeProfile }}
+  compositeProfile: {{ .CompositeProfile }}
   version: r1
-  logical-cloud: {{ .AdminCloud }}
-  override-values: []
+  logicalCloud: {{ .AdminCloud }}
+  overrideValues: []
 
 ---
 #create intent in deployment intent group
@@ -78,7 +78,7 @@ resourceContext:
 metadata :
   name: {{ .GenericPlacementIntent }}
 spec:
-  logical-cloud: {{ .AdminCloud }}
+  logicalCloud: {{ .AdminCloud }}
 
 {{- range $index, $app := .Applist }}
 ---
@@ -89,12 +89,12 @@ resourceContext:
 metadata:
   name: {{ $app.Name }}-placement-intent
 spec:
-  app-name: {{ $app.Name }}
+  app: {{ $app.Name }}
   intent:
     allOf:
     {{- range $index1, $cluster := $app.Cluster }}
-    - provider-name: {{ $.ClusterProvider }}
-      cluster-name: {{ $cluster }}
+    - clusterProvider: {{ $.ClusterProvider }}
+      cluster: {{ $cluster }}
     {{- end }}
 {{- end }}
 

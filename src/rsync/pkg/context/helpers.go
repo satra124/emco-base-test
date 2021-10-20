@@ -42,10 +42,26 @@ func CreateCompApp(ca CompositeApp) (string, error) {
 	if err != nil {
 		return "", pkgerrors.Wrap(err, "Error adding app order instruction")
 	}
+
 	for _, app := range ca.Apps {
 		a, err := context.AddApp(compositeHandle, app.Name)
 		if err != nil {
 			return "", pkgerrors.Wrap(err, "Error Adding App")
+		}
+		if app.Dependency != nil {
+			var dep []AppCriteria
+			for i, j := range app.Dependency {
+				l := AppCriteria{App: i, OpStatus: j.OpStatus, Wait: j.Wait}
+				dep = append(dep, l)
+			}
+			dependency, err := json.Marshal(dep)
+			if err != nil {
+				return "", pkgerrors.Wrap(err, "Error adding depencency instruction")
+			}
+			_, err = context.AddLevelValue(a, "instruction/dependency", string(dependency))
+			if err != nil {
+				return "", pkgerrors.Wrap(err, "Error Adding depencency instruction")
+			}
 		}
 		for _, cluster := range app.Clusters {
 			c, err := context.AddCluster(a, cluster.Name)
@@ -90,14 +106,9 @@ func ReadAppContext(contextID interface{}) (CompositeApp, error) {
 	if err != nil {
 		return CompositeApp{}, err
 	}
-	//depOrder, err := ac.GetAppInstruction("dependency")
-	//if err != nil {
-	//	return CompositeApp{}, err
-	//}
 	var appList map[string][]string
 	json.Unmarshal([]byte(appsOrder.(string)), &appList)
 	ca.AppOrder = appList["apporder"]
-	//ca.DepOrder = depOrder
 	appsList := make(map[string]*App)
 	for _, app := range appList["apporder"] {
 		clusterNames, err := ac.GetClusterNames(app)
@@ -127,7 +138,17 @@ func ReadAppContext(contextID interface{}) (CompositeApp, error) {
 			clusterList[cluster] = &Cluster{Name: cluster, Resources: resList, ResOrder: aov["resorder"]}
 			//clusterList = append(clusterList, Cluster{Name: cluster, Resources: resList, ResOrder: aov["resorder"]})
 		}
-		appsList[app] = &App{Name: app, Clusters: clusterList}
+		dep, err := ac.GetAppLevelInstruction(app, "dependency")
+		depList := make(map[string]*Criteria)
+		if err == nil {
+			var a []AppCriteria
+			// If instruction available read it
+			json.Unmarshal([]byte(dep.(string)), &a)
+			for _, crt  := range a {
+				depList[crt.App] = &Criteria{Wait: crt.Wait, OpStatus: crt.OpStatus}
+			}
+		}
+		appsList[app] = &App{Name: app, Clusters: clusterList, Dependency: depList}
 	}
 	ca.Apps = appsList
 	return ca, nil
@@ -141,6 +162,7 @@ func PrintCompositeApp(ca CompositeApp) {
 	for _, app := range ca.Apps {
 		fmt.Println("")
 		fmt.Println("  App: ", app.Name)
+		fmt.Println("  Dependency: ", app.Dependency)
 		for _, cluster := range app.Clusters {
 
 			fmt.Println("    Cluster: ", cluster.Name)

@@ -118,7 +118,6 @@ function add_apps {
         fi
         a="oops"
         a="${arr[0]}"
-        echo "app:", $a
         if [[ "$a" == 'oops' ]]; then
             i=$[$i+1]
             continue
@@ -132,7 +131,6 @@ function add_apps {
                 continue
             fi
             y=$[$x-1]
-            echo "ele", $ele
             path=$ele index=$i inner=$y yq eval '.Applist[strenv(index)].Cluster[strenv(inner)] = strenv(path)' -i values.yaml
             x=$[$x+1]
         done
@@ -183,7 +181,7 @@ do
     case "${flag}" in
         a) app1_name=${OPTARG};;
         b) app2_name=${OPTARG};;
-        b) app3_name=${OPTARG};;
+        c) app3_name=${OPTARG};;
     esac
 done
 shift $((OPTIND-1))
@@ -205,7 +203,7 @@ case "$1" in
             echo -e "Atleast one 1 app must be provided (ex collectd, prometheus-operator, operator, http-client, http-server) must be provided on commandline -a -b"
         else
             create_values_yaml_clusters_apps $OUTPUT_DIR $HOST_IP $app1_name $app2_name $app3_name
-            echo "DONE"
+            echo "Done create!!!"
         fi
         ;;
     "cleanup" )

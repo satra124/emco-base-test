@@ -464,3 +464,64 @@ func TestTerminateWithInstantiate(t *testing.T) {
 		})
 	}
 }
+
+func TestAppDependency(t *testing.T) {
+	var edb *contextdb.MockConDb
+
+	var ca CompositeApp = CompositeApp{
+		CompMetadata: appcontext.CompositeAppMeta{Project: "proj1", CompositeApp: "ca1", Version: "v1", Release: "r1",
+			DeploymentIntentGroup: "dig1", Namespace: "default", Level: "0"},
+		AppOrder: []string{"a1", "a2",},
+		Apps: map[string]*App{"a1": {
+			Name: "a1",
+			Clusters: map[string]*Cluster{"provider1+cluster1": {
+				Name: "provider1+cluster1",
+				Resources: map[string]*AppResource{"r1": {Name: "r1", Data: "a1c1r1"},},
+				ResOrder: []string{"r1"}}},
+			Dependency: map[string]*Criteria{"a2": {OpStatus: "Deployed", Wait: 1}},
+		}, "a2": {
+			Name: "a2",
+			Clusters: map[string]*Cluster{"provider1+cluster1": {
+				Name: "provider1+cluster1",
+				Resources: map[string]*AppResource{"r3": {Name: "r3", Data: "a2c1r3"},},
+				ResOrder: []string{"r3",}},
+				"provider1+cluster2": {
+					Name: "provider1+cluster2",
+					Resources: map[string]*AppResource{"r3": {Name: "r3", Data: "a2c2r3"}},
+					ResOrder: []string{"r3"}}},
+		},
+		},
+	}
+
+	edb = new(contextdb.MockConDb)
+	edb.Err = nil
+	contextdb.Db = edb
+
+	cid, _ := CreateCompApp(ca)
+	con := MockConnector{}
+	con.Init(cid)
+
+	testCases := []struct {
+		label          string
+		expectedResources  map[string]string
+		Status         string
+		expectedError  error
+		event          RsyncEvent
+	}{
+		{
+			expectedResources:  map[string]string{"provider1+cluster1": "a2c1r3,a1c1r1", "provider1+cluster2": "a2c2r3"},
+			expectedError:  nil,
+			label:          "Instantiate Resources",
+			event:          InstantiateEvent,
+		},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.label, func(t *testing.T) {
+				_ = HandleAppContext(cid, nil, testCase.event, &con)
+			time.Sleep(5 * time.Second)
+			if !CompareMaps(testCase.expectedResources, LoadMap("resource")) {
+				t.Error("Apply resources doesn't match", LoadMap("resource"), testCase.expectedResources)
+			}
+		})
+	}
+}

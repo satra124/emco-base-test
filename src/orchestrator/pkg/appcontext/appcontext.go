@@ -497,6 +497,29 @@ func (ac *AppContext) AddInstruction(handle interface{}, level string, insttype 
 	return h, nil
 }
 
+//Returns the resource instruction for a given instruction type per app
+func (ac *AppContext) GetAppLevelInstruction(appname, insttype string) (interface{}, error) {
+	if !(insttype == DependencyInstruction) {
+		log.Error("Not a valid app context instruction type", log.Fields{})
+		return nil, pkgerrors.Errorf("Not a valid app context instruction type")
+	}
+
+	rh, err := ac.rtc.RtcGet()
+	if err != nil {
+		log.Error("ac.rtc.RtcGet()", log.Fields{"err": err})
+		return nil, err
+	}
+	s := fmt.Sprintf("%v", rh) + "app/" + appname + "/instruction/" + insttype + "/"
+	log.Info("Getting app instruction", log.Fields{"s": s})
+	var v string
+	err = ac.rtc.RtcGetValue(s, &v)
+	if err != nil {
+		log.Error("ac.rtc.RtcGetValue(s, &v)", log.Fields{"err": err})
+		return nil, err
+	}
+	return v, nil
+}
+
 //Delete instruction under given handle
 func (ac *AppContext) DeleteInstruction(handle interface{}) error {
 	err := ac.rtc.RtcDeletePair(handle)

@@ -199,7 +199,7 @@ func TestGetIntentHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("GET", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/intents/"+test.name, nil)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("getIntentHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}
@@ -290,7 +290,7 @@ func TestGetIntentByNameHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("GET", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/intents/"+test.name, nil)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("getIntentByNameHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}
@@ -413,7 +413,7 @@ func TestGetAllIntentsHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("GET", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/intents", nil)
-			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil))
+			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil))
 			if resp.StatusCode != test.code {
 				t.Fatalf("getAllIntentsHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.StatusCode)
 			}
@@ -445,14 +445,14 @@ func TestAddIntentHandler(t *testing.T) {
 		},
 		{
 			label: "Invalid Input. Missing Intent Name",
-			reader: bytes.NewBuffer([]byte(`{ 
-				"metadata": { 
+			reader: bytes.NewBuffer([]byte(`{
+				"metadata": {
 					"description": "Test Intent used for unit testing",
 					"userData1": "data1",
 					"userData2": "data2"
 				},
-				"spec": { 
-					"intent": { 
+				"spec": {
+					"intent": {
 						"genericPlacementIntent": "testGenericPlacementIntent"
 					}
 				}
@@ -463,14 +463,14 @@ func TestAddIntentHandler(t *testing.T) {
 		},
 		{
 			label: "Invalid Input. Missing Intent Spec Data",
-			reader: bytes.NewBuffer([]byte(`{ 
-				"metadata": { 
+			reader: bytes.NewBuffer([]byte(`{
+				"metadata": {
 					"name": "testIntent",
 					"description": "Test Intent used for unit testing",
 					"userData1": "data1",
 					"userData2": "data2"
 				},
-				"spec": { 
+				"spec": {
 				}
 			}`)),
 			code:   http.StatusBadRequest,
@@ -480,15 +480,15 @@ func TestAddIntentHandler(t *testing.T) {
 		{
 			label: "Create Intent",
 			code:  http.StatusCreated,
-			reader: bytes.NewBuffer([]byte(`{ 
-				"metadata": { 
+			reader: bytes.NewBuffer([]byte(`{
+				"metadata": {
 					"name": "testIntent",
 					"description": "Test Intent used for unit testing",
 					"userData1": "data1",
 					"userData2": "data2"
 				},
-				"spec": { 
-					"intent": { 
+				"spec": {
+					"intent": {
 						"genericPlacementIntent": "testGenericPlacementIntent"
 					}
 				}
@@ -527,15 +527,15 @@ func TestAddIntentHandler(t *testing.T) {
 		{
 			label: "Intent Already Exists",
 			code:  http.StatusConflict,
-			reader: bytes.NewBuffer([]byte(`{ 
-				"metadata": { 
+			reader: bytes.NewBuffer([]byte(`{
+				"metadata": {
 					"name": "testIntent",
 					"description": "Test Intent used for unit testing",
 					"userData1": "data1",
 					"userData2": "data2"
 				},
-				"spec": { 
-					"intent": { 
+				"spec": {
+					"intent": {
 						"genericPlacementIntent": "testGenericPlacementIntent"
 					}
 				}
@@ -578,7 +578,7 @@ func TestAddIntentHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("POST", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/intents", test.reader)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("addIntentHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}
@@ -616,14 +616,14 @@ func TestUpdateIntentHandler(t *testing.T) {
 		{
 			label: "Invalid Input. Missing Intent Name",
 			name:  "testIntent",
-			reader: bytes.NewBuffer([]byte(`{ 
-				"metadata": { 
+			reader: bytes.NewBuffer([]byte(`{
+				"metadata": {
 					"description": "Test Intent used for unit testing",
 					"userData1": "data1",
 					"userData2": "data2"
 				},
-				"spec": { 
-					"intent": { 
+				"spec": {
+					"intent": {
 						"genericPlacementIntent": "testGenericPlacementIntent"
 					}
 				}
@@ -635,14 +635,14 @@ func TestUpdateIntentHandler(t *testing.T) {
 		{
 			label: "Invalid Input. Missing Intent Spec Data",
 			name:  "testIntent",
-			reader: bytes.NewBuffer([]byte(`{ 
-				"metadata": { 
+			reader: bytes.NewBuffer([]byte(`{
+				"metadata": {
 					"name": "testIntent",
 					"description": "Test Intent used for unit testing",
 					"userData1": "data1",
 					"userData2": "data2"
 				},
-				"spec": { 
+				"spec": {
 				}
 			}`)),
 			code:   http.StatusBadRequest,
@@ -653,7 +653,7 @@ func TestUpdateIntentHandler(t *testing.T) {
 			label: "Update Existing Intent",
 			name:  "testIntent",
 			code:  http.StatusOK,
-			reader: bytes.NewBuffer([]byte(`{ 
+			reader: bytes.NewBuffer([]byte(`{
 					"metadata" : {
 					"name": "testIntent",
     				"description": "Test Intent updated for unit testing",
@@ -763,7 +763,7 @@ func TestUpdateIntentHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("PUT", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/intents/"+test.name, test.reader)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("putIntentHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}
@@ -852,7 +852,7 @@ func TestDeleteIntentHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("DELETE", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/intents/"+test.name, nil)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("deleteIntentHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}

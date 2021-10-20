@@ -119,7 +119,7 @@ func Test_compositeProfileHandler_createHandler(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
 			request := httptest.NewRequest("POST", "/v2/projects/{project}/composite-apps/{compositeApp}/{version}/composite-profiles", testCase.reader)
-			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, testCase.cProfClient, nil, nil))
+			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, testCase.cProfClient, nil, nil, nil))
 
 			//Check returned code
 			if resp.StatusCode != testCase.expectedCode {

@@ -31,8 +31,8 @@ function create_apps {
     tar -czf $output_dir/m3db_profile.tar.gz -C $m3db_folder/profile .
     tar -czf $output_dir/http-client.tar.gz -C $http_client_folder/helm http-client
     tar -czf $output_dir/http-server.tar.gz -C $http_server_folder/helm http-server
-    tar -czf $output_dir/http-server-profile.tar.gz -C $http_server_folder/profile/network_policy_overrides/http-server-profile .
-    tar -czf $output_dir/http-client-profile.tar.gz -C $http_client_folder/profile/network_policy_overrides/http-client-profile .
+    tar -czf $output_dir/http-server_profile.tar.gz -C $http_server_folder/profile/network_policy_overrides/http-server-profile .
+    tar -czf $output_dir/http-client_profile.tar.gz -C $http_client_folder/profile/network_policy_overrides/http-client-profile .
     tar -czf $output_dir/firewall.tar.gz -C $firewall_folder/helm firewall
     tar -czf $output_dir/packetgen.tar.gz -C $firewall_folder/helm packetgen
     tar -czf $output_dir/sink.tar.gz -C $firewall_folder/helm sink

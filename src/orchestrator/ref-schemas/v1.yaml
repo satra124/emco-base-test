@@ -33,3 +33,5 @@
       - name: app
       - name: cluster
         type: many
+  - name: appDependency
+    parent: app

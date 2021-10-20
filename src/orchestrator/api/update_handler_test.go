@@ -109,7 +109,7 @@ func Test_updateHandler_migrate(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
 			request := httptest.NewRequest("POST", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/migrate", testCase.reader)
-			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, testCase.uClient))
+			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, testCase.uClient, nil))
 
 			//Check returned code
 			if resp.StatusCode != testCase.expectedCode {
@@ -136,7 +136,7 @@ func Test_updateHandler_update(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
 			request := httptest.NewRequest("POST", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/update", testCase.reader)
-			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, testCase.uClient))
+			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, testCase.uClient, nil))
 
 			//Check returned code
 			if resp.StatusCode != testCase.expectedCode {
@@ -186,7 +186,7 @@ func Test_updateHandler_rollback(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
 			request := httptest.NewRequest("POST", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/rollback", testCase.reader)
-			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, testCase.uClient))
+			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, testCase.uClient, nil))
 
 			//Check returned code
 			if resp.StatusCode != testCase.expectedCode {

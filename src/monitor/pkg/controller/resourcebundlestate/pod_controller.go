@@ -11,7 +11,10 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	//	"k8s.io/apimachinery/pkg/types"
+	pkgerrors "github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -50,6 +53,10 @@ type podReconciler struct {
 	client client.Client
 }
 
+func (r *podReconciler) GetClient() client.Client {
+	return r.client
+}
+
 // Reconcile implements the loop that will update the ResourceBundleState CR
 // whenever we get any updates from all the pods we watch.
 func (r *podReconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) {
@@ -63,31 +70,15 @@ func (r *podReconciler) Reconcile(req reconcile.Request) (reconcile.Result, erro
 			// Remove the Pod's status from StatusList
 			// This can happen if we get the DeletionTimeStamp event
 			// after the POD has been deleted.
-			r.deletePodFromAllCRs(req.NamespacedName)
+			//r.deletePodFromAllCRs(req.NamespacedName)
+			DeleteFromAllCRs(r, req.NamespacedName)
 			return reconcile.Result{}, nil
 		}
 		log.Printf("Failed to get pod: %+v\n", req.NamespacedName)
 		return reconcile.Result{}, err
 	}
 
-	// Find the CRs which track this pod via the labelselector
-	crSelector := returnLabel(pod.GetLabels())
-	if crSelector == nil {
-		log.Println("We should not be here. The predicate should have filtered this Pod")
-	}
-
-	// Get the CRs which have this label and update them all
-	// Ideally, we will have only one CR, but there is nothing
-	// preventing the creation of multiple.
-	// TODO: Consider using an admission validating webook to prevent multiple
-	rbStatusList := &v1alpha1.ResourceBundleStateList{}
-	err = listResources(r.client, req.Namespace, crSelector, rbStatusList)
-	if err != nil || len(rbStatusList.Items) == 0 {
-		log.Printf("Did not find any CRs tracking this resource\n")
-		return reconcile.Result{}, nil
-	}
-
-	err = r.updateCRs(rbStatusList, pod)
+	err = UpdateCR(r, pod)
 	if err != nil {
 		// Requeue the update
 		return reconcile.Result{}, err
@@ -96,91 +87,46 @@ func (r *podReconciler) Reconcile(req reconcile.Request) (reconcile.Result, erro
 	return reconcile.Result{}, nil
 }
 
-// deletePodFromAllCRs deletes pod status from all the CRs when the POD itself has been deleted
-// and we have not handled the updateCRs yet.
-// Since, we don't have the pod's labels, we need to look at all the CRs in this namespace
-func (r *podReconciler) deletePodFromAllCRs(namespacedName types.NamespacedName) error {
-
-	rbStatusList := &v1alpha1.ResourceBundleStateList{}
-	err := listResources(r.client, namespacedName.Namespace, nil, rbStatusList)
-	if err != nil || len(rbStatusList.Items) == 0 {
-		log.Printf("Did not find any CRs tracking this resource\n")
-		return nil
+func (r *podReconciler) UpdateStatus(cr *v1alpha1.ResourceBundleState, obj runtime.Object) (bool, error) {
+	var found bool
+	pod, ok := obj.(*corev1.Pod)
+	if !ok {
+		return found, pkgerrors.Errorf("Unknown resource %v", obj)
 	}
-	for _, cr := range rbStatusList.Items {
-		r.deleteFromSingleCR(&cr, namespacedName.Name)
-	}
-
-	return nil
-}
-
-func (r *podReconciler) updateCRs(crl *v1alpha1.ResourceBundleStateList, pod *corev1.Pod) error {
-
-	for _, cr := range crl.Items {
-		// Pod is not scheduled for deletion
-		if pod.DeletionTimestamp == nil {
-			err := r.updateSingleCR(&cr, pod)
-			if err != nil {
-				return err
-			}
-		} else {
-			// Pod is scheduled for deletion
-			r.deleteFromSingleCR(&cr, pod.Name)
-		}
-	}
-
-	return nil
-}
-
-func (r *podReconciler) deleteFromSingleCR(cr *v1alpha1.ResourceBundleState, name string) error {
-	cr.Status.ResourceCount--
-	length := len(cr.Status.PodStatuses)
-	for i, rstatus := range cr.Status.PodStatuses {
-		if rstatus.Name == name {
-			//Delete that status from the array
-			cr.Status.PodStatuses[i] = cr.Status.PodStatuses[length-1]
-			cr.Status.PodStatuses[length-1] = corev1.Pod{}
-			cr.Status.PodStatuses = cr.Status.PodStatuses[:length-1]
-			return nil
-		}
-	}
-
-	log.Println("Did not find a status for POD in CR")
-	return nil
-}
-
-func (r *podReconciler) updateSingleCR(cr *v1alpha1.ResourceBundleState, pod *corev1.Pod) error {
-
-	// Update status after searching for it in the list of resourceStatuses
 	for i, rstatus := range cr.Status.PodStatuses {
 		// Look for the status if we already have it in the CR
 		if rstatus.Name == pod.Name {
 			pod.Status.DeepCopyInto(&cr.Status.PodStatuses[i].Status)
-			err := r.client.Status().Update(context.TODO(), cr)
-			if err != nil {
-				log.Printf("failed to update rbstate: %v\n", err)
-				return err
-			}
-			return nil
+			found = true
+			break
 		}
 	}
-
-	// Exited for loop with no status found
-	// Increment the number of tracked resources
-	cr.Status.ResourceCount++
-
-	// Add it to CR
-	cr.Status.PodStatuses = append(cr.Status.PodStatuses, corev1.Pod{
-		TypeMeta:   pod.TypeMeta,
-		ObjectMeta: pod.ObjectMeta,
-		Status:     pod.Status,
-	})
-
-	err := r.client.Status().Update(context.TODO(), cr)
-	if err != nil {
-		log.Printf("failed to update rbstate: %v\n", err)
-		return err
+	if !found {
+		// Add it to CR
+		ps := corev1.Pod{
+			TypeMeta:   pod.TypeMeta,
+			ObjectMeta: pod.ObjectMeta,
+			Status:     pod.Status,
+			Spec:       pod.Spec,
+		}
+		ps.ObjectMeta.ManagedFields = []metav1.ManagedFieldsEntry{}
+		cr.Status.PodStatuses = append(cr.Status.PodStatuses, ps)
 	}
+	return found, nil
+}
 
-	return nil
+func (r *podReconciler) DeleteObj(cr *v1alpha1.ResourceBundleState, name string) bool {
+	var found bool
+	length := len(cr.Status.PodStatuses)
+	for i, rstatus := range cr.Status.PodStatuses {
+		if rstatus.Name == name {
+			found = true
+			//Delete that status from the array
+			cr.Status.PodStatuses[i] = cr.Status.PodStatuses[length-1]
+			cr.Status.PodStatuses[length-1] = corev1.Pod{}
+			cr.Status.PodStatuses = cr.Status.PodStatuses[:length-1]
+			break
+		}
+	}
+	return found
 }

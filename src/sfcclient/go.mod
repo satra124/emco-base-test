@@ -4,15 +4,15 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/gorilla/handlers v1.3.0
 	github.com/gorilla/mux v1.7.4
-	github.com/onsi/ginkgo v1.12.1
+	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.10.1
+	github.com/pkg/errors v0.9.1
+	github.com/stretchr/testify v1.7.0
 	gitlab.com/project-emco/core/emco-base/src/monitor v0.0.0-00010101000000-000000000000
 	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-00010101000000-000000000000
 	gitlab.com/project-emco/core/emco-base/src/ovnaction v0.0.0-20210428001208-a6881367118b
 	gitlab.com/project-emco/core/emco-base/src/rsync v0.0.0-00010101000000-000000000000
 	gitlab.com/project-emco/core/emco-base/src/sfc v0.0.0-00010101000000-000000000000
-	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.28.0
 	k8s.io/api v0.20.2
 	k8s.io/apimachinery v0.20.2

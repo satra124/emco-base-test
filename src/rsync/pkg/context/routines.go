@@ -10,11 +10,12 @@ import (
 	"strings"
 	"time"
 
+	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/resourcestatus"
 	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
-	pkgerrors "github.com/pkg/errors"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/depend"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -172,9 +173,10 @@ func (c *Context) startMainThread(a interface{}, con Connector) error {
 		}
 		c.sc = sc
 	}
+	// Intialize dependency management
+	c.dm = depend.NewDependManager(c.acID)
 	// Start Routine to handle AppContext
 	go c.appContextRoutine()
-	c.Running = true
 	return nil
 }
 
@@ -443,6 +445,15 @@ func (c *Context) updateModifyPhase(e AppContextQueueElement) error {
 
 // Iterate over the appcontext to apply/delete/read resources
 func (c *Context) run(ctx context.Context, g *errgroup.Group, op RsyncOperation) error {
+
+	if op == OpApply {
+		// Setup dependency before starting app and cluster threads
+		// Only for Apply for now
+		for _, a := range c.ca.AppOrder {
+			app := a
+			c.dm.AddDependency(app, c.ca.Apps[app].Dependency)
+		}
+	}
 	// Iterate over all the subapps and start go Routines per app
 	for _, a := range c.ca.AppOrder {
 		app := a
@@ -455,13 +466,23 @@ func (c *Context) run(ctx context.Context, g *errgroup.Group, op RsyncOperation)
 			continue
 		}
 		g.Go(func() error {
-			return c.runApp(ctx, g, op, app)
+			err := c.runApp(ctx, g, op, app)
+			if op == OpApply {
+				// Notify dependency that app got deployed
+				c.dm.NotifyAppliedStatus(app)
+			}
+			return err
 		})
 	}
 	return nil
 }
 
 func (c *Context) runApp(ctx context.Context, g *errgroup.Group, op RsyncOperation, app string) error {
+
+	if op == OpApply {
+		// Check if any dependency and wait for dependencies to be met
+		c.dm.WaitForDependency(ctx, app)
+	}
 	// Iterate over all clusters
 	for _, cluster := range c.ca.Apps[app].Clusters {
 		// If marked to skip then no processing needed

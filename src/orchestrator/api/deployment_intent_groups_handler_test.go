@@ -249,7 +249,7 @@ func TestGetDeploymentIntentGroupHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("GET", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/"+test.name, nil)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("getDeploymentIntentGroupHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}
@@ -379,7 +379,7 @@ func TestGetAllDeploymentIntentGroupsHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("GET", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups", nil)
-			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil))
+			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil))
 			if resp.StatusCode != test.code {
 				t.Fatalf("getAllDeploymentIntentGroupsHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.StatusCode)
 			}
@@ -524,7 +524,7 @@ func TestCreateDeploymentIntentGroupHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("POST", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups", test.reader)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("createDeploymentIntentGroupHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}
@@ -760,7 +760,7 @@ func TestUpdateDeploymentIntentGroupHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("PUT", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/"+test.name, test.reader)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("putDeploymentIntentGroupHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}
@@ -874,7 +874,7 @@ func TestDeleteDeploymentIntentGroupHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("DELETE", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/"+test.name, nil)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("deleteDeploymentIntentGroupHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}

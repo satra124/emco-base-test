@@ -1,0 +1,23 @@
+---
+#adding dependency to the app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $.CompositeApp }}/v1/apps/{{ $.APP1}}/dependency
+metadata :
+  name: {{ $.APP2 }}
+spec:
+  app: {{ $.APP2 }}
+  opStatus: Ready
+  wait: 10
+---
+#adding dependency to the app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $.CompositeApp }}/v1/apps/{{ $.APP2}}/dependency
+metadata :
+  name: {{ $.APP3 }}
+spec:
+  app: {{ $.APP3 }}
+  opStatus: Ready
+  wait: 10
+

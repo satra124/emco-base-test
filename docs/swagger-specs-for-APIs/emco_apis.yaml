@@ -443,6 +443,147 @@ paths:
         '500':
           description: Internal Server Error
 
+############################ Application Dependency API'S #################################################
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/apps/{app}/dependency:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/compositeAppName'
+      - $ref: '#/components/parameters/compositeAppVersion'
+      - $ref: '#/components/parameters/appName'
+    post:
+      tags:
+        - Application Dependency
+      summary: Add dependency for app
+      description: Add dependency for app
+      operationId: addDependencyApp
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/Dependency'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: Internal Server Error
+      # request body documentation
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/Dependency'
+        description: Project data
+        required: true
+
+    get: # documentation for GET operation for this path
+      tags:
+        - Application Dependency
+      summary: Get all dependencies for the app
+
+      description: |
+        Get all `dependencies for the application`
+
+      operationId: getAllDependencyApp
+      responses: # list of responses
+        '200':
+          description: Success
+          content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/DependencyArray'
+        '404':
+          description: No dependency found for the Application
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/apps/{app}/dependency/{dependency}:
+    # parameters list that are used with each operation for this path
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/compositeAppName'
+      - $ref: '#/components/parameters/compositeAppVersion'
+      - $ref: '#/components/parameters/appName'
+      - $ref: '#/components/parameters/dependencyName'
+    get: # documentation for GET operation for this path
+      tags:
+        - Application Dependency
+      summary: Get Application dependency
+
+      description: |
+        Get `application dependency`
+
+      operationId: getDependencyApp
+      responses: # list of responses
+        '200':
+          description: Success
+          content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/Dependency'
+        '404':
+          description: Dependency not found
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+    put:
+      tags:
+        - Application Dependency
+      summary: Update dependency for an app
+      description: Update dependency for an application
+      operationId: updateDependencyApp
+      responses:
+        '200':
+          content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/Dependency'
+          description: Success
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: Internal Server Error
+      # request body documentation
+      requestBody:
+        content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/Dependency'
+        required: true
+    delete: # documentation for DELETE operation for this path
+      tags:
+        - Application Dependency
+      summary: Delete Application dependency
+
+      description: |
+        Delete `application dependency`
+
+      operationId: deleteDependencyApp
+      responses: # list of responses
+        '204':
+          description: Delete
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '500':
+          description: Internal Server Error
+
 ############################ PROFILE API'S #################################################
   /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/composite-profiles:
     parameters:
@@ -5144,7 +5285,7 @@ paths:
         '500':
           description: Internal Server Error
 
-  # HPA INTENTS API 
+  # HPA INTENTS API
   /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/:
     parameters:
       - $ref: '#/components/parameters/projectName'
@@ -5201,7 +5342,7 @@ paths:
           description: Bad Request
         '500':
           description: Internal Server Error
-  
+
   # HPA INTENT RUD(retrieve, update, delete) API
   /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/{hpa-intent-name}:
     parameters:
@@ -5376,7 +5517,7 @@ paths:
           description: Bad Request
         '500':
           description: Internal Server Error
- 
+
  # HPA INTENT CONSUMER RUD(retrieve, update, delete) API
   /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/{hpa-consumer-name}:
     parameters:
@@ -5555,7 +5696,7 @@ paths:
           description: Bad Request
         '500':
           description: Internal Server Error
- 
+
   # HPA INTENT CONSUMER RESOURCE RUD(retrieve, update, delete) API
   /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/{hpa-consumer-name}/resource-requirements/{hpa-resource-name}:
     parameters:
@@ -5591,7 +5732,7 @@ paths:
           description: Conflict
         '500':
           description: Internal Server Error
-          
+
     put:
       tags:
         - HpaIntent Consumer Resources
@@ -5615,7 +5756,7 @@ paths:
           description: Unprocessable Entity
         '500':
           description: Internal Server Error
-  
+
       # request body documentation
       requestBody:
         content:
@@ -5641,7 +5782,7 @@ paths:
           description: Conflict
         '500':
           description: Internal Server Error
-  
+
   #Query
   /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/{hpa-consumer-name}/resource-requirements:
     parameters:
@@ -6968,7 +7109,36 @@ components:
       items:
         $ref: '#/components/schemas/HpaResourceRequirements'
 
-
+    DependencySpec:
+      type: object
+      properties:
+        app:
+          description: Name of the app that the app depends on
+          type: string
+          maxLength: 128
+        opStatus:
+          description: Operational Status of the App to wait for either ready or deployed
+          type: string
+          maxLength: 128
+          example: "Ready"
+        wait:
+          description: Wait (in seconds) after the Operational status is met
+          type: integer
+          example: 5
+      required:
+        - opStatus
+        - app
+    Dependency:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/MetadataBase'
+        spec:
+          $ref: '#/components/schemas/DependencySpec'
+    DependencyArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/Dependency'
 
   parameters:
     projectName:
@@ -7270,7 +7440,15 @@ components:
     hpaResourceName:
       name: hpa-resource-name
       in: path
-      description: Name of Hpa Placement Consumer's resource 
+      description: Name of Hpa Placement Consumer's resource
+      required: true
+      schema:
+        type: string
+        maxLength: 128
+    dependencyName:
+      name: dependency
+      in: path
+      description: Name of the dependency resource
       required: true
       schema:
         type: string

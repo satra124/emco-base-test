@@ -10,10 +10,12 @@ It contains methods for creating appContext, saving cluster and resource details
 */
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"time"
 
 	pkgerrors "github.com/pkg/errors"
+	"github.com/yourbasic/graph"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	gpic "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/gpic"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
@@ -275,6 +277,11 @@ func storeAppContextIntoRunTimeDB(allApps []App, cxtForCApp contextForCompositeA
 	var appDepStr appDepInstr
 	appDepStr.AppDepMap = make(map[string]string)
 
+	if !checkDependency(allApps, p, ca, v) {
+		str := fmt.Sprint("Cyclic Dependency between apps found in composite app:", ca)
+		log.Error(str, log.Fields{})
+		return pkgerrors.New(str)
+	}
 	for _, eachApp := range allApps {
 		appOrdInsStr.Apporder = append(appOrdInsStr.Apporder, eachApp.Metadata.Name)
 		appDepStr.AppDepMap[eachApp.Metadata.Name] = "go"
@@ -282,7 +289,6 @@ func storeAppContextIntoRunTimeDB(allApps []App, cxtForCApp contextForCompositeA
 		sortedTemplates, err := GetSortedTemplateForApp(eachApp.Metadata.Name, p, ca, v, rName, cp, namespace, overrideValues)
 
 		if err != nil {
-			deleteAppContext(context)
 			log.Error("Unable to get the sorted templates for app", log.Fields{"AppName": eachApp.Metadata.Name})
 			return pkgerrors.Wrap(err, "Unable to get the sorted templates for app")
 		}
@@ -291,7 +297,6 @@ func storeAppContextIntoRunTimeDB(allApps []App, cxtForCApp contextForCompositeA
 
 		resources, err := getResources(sortedTemplates)
 		if err != nil {
-			deleteAppContext(context)
 			return pkgerrors.Wrapf(err, "Unable to get the resources for app :: %s", eachApp.Metadata.Name)
 		}
 
@@ -299,20 +304,17 @@ func storeAppContextIntoRunTimeDB(allApps []App, cxtForCApp contextForCompositeA
 
 		specData, err := NewAppIntentClient().GetAllIntentsByApp(eachApp.Metadata.Name, p, ca, v, gIntent, di)
 		if err != nil {
-			deleteAppContext(context)
 			return pkgerrors.Wrap(err, "Unable to get the intents for app")
 		}
 
 		// listOfClusters shall have both mandatoryClusters and optionalClusters where the app needs to be installed.
 		listOfClusters, err := gpic.IntentResolver(specData.Intent)
 		if err != nil {
-			deleteAppContext(context)
 			return pkgerrors.Wrap(err, "Unable to get the intents resolved for app")
 		}
 
 		log.Info(":: listOfClusters ::", log.Fields{"listOfClusters": listOfClusters})
 		if listOfClusters.MandatoryClusters == nil && listOfClusters.OptionalClusters == nil {
-			deleteAppContext(context)
 			log.Error("No compatible clusters have been provided to the Deployment Intent Group", log.Fields{"listOfClusters": listOfClusters})
 			return pkgerrors.New("No compatible clusters have been provided to the Deployment Intent Group")
 		}
@@ -325,43 +327,50 @@ func storeAppContextIntoRunTimeDB(allApps []App, cxtForCApp contextForCompositeA
 		// Add an app to the app context
 		apphandle, err := context.AddApp(cxtForCApp.compositeAppHandle, eachApp.Metadata.Name)
 		if err != nil {
-			deleteAppContext(context)
 			return pkgerrors.Wrap(err, "Error adding App to AppContext")
+		}
+		// Read app dependency
+		appDep, err := NewAppDependencyClient().GetAllSpecAppDependency(p, ca, v,eachApp.Metadata.Name)
+		log.Info(":: appDep ::", log.Fields{"app": eachApp.Metadata.Name, "appDep": appDep})
+		if err == nil && len(appDep) > 0 {
+			// Add Dependency Instruction for the App
+			dependency, err := json.Marshal(appDep)
+			if err != nil {
+				return pkgerrors.Wrap(err, "Error Marshalling dependency for app")
+			}
+			dh, err := context.AddLevelValue(apphandle, "instruction/dependency", string(dependency))
+			if err != nil {
+				return pkgerrors.Wrap(err, "Error adding App dependency to AppContext")
+			}
+			log.Info(":: appDep ::", log.Fields{"dh": dh, "dep": string(dependency)})
 		}
 		err = addClustersToAppContext(listOfClusters, context, apphandle, resources, namespace)
 		if err != nil {
-			deleteAppContext(context)
 			return pkgerrors.Wrap(err, "Error while adding cluster and resources to app")
 		}
 		err = verifyResources(listOfClusters, context, resources, eachApp.Metadata.Name)
 		if err != nil {
-			deleteAppContext(context)
 			return pkgerrors.Wrap(err, "Error while verifying resources in app: ")
 		}
 	}
 	jappOrderInstr, err := json.Marshal(appOrdInsStr)
 	if err != nil {
-		deleteAppContext(context)
 		return pkgerrors.Wrap(err, "Error marshalling app order instruction")
 	}
 
 	jappDepInstr, err := json.Marshal(appDepStr.AppDepMap)
 	if err != nil {
-		deleteAppContext(context)
 		return pkgerrors.Wrap(err, "Error marshalling app dependency instruction")
 	}
 	_, err = context.AddInstruction(cxtForCApp.compositeAppHandle, "app", "order", string(jappOrderInstr))
 	if err != nil {
-		deleteAppContext(context)
 		return pkgerrors.Wrap(err, "Error adding app dependency instruction")
 	}
 	_, err = context.AddInstruction(cxtForCApp.compositeAppHandle, "app", "dependency", string(jappDepInstr))
 	if err != nil {
-		deleteAppContext(context)
 		return pkgerrors.Wrap(err, "Error adding app dependency instruction")
 	}
 	//END: storing into etcd
-
 	return nil
 }
 
@@ -421,4 +430,34 @@ func handleStateInfo(p, ca, v, di string) (state.StateInfo, error) {
 		return state.StateInfo{}, pkgerrors.Errorf("DeploymentIntentGroup is in an unknown state" + stateVal)
 	}
 	return s, nil
+}
+
+// Check if cycles exist in dependency
+func checkDependency(allApps []App, p, ca, v string) bool {
+
+	gph := make(map[string]int)
+	g := graph.New(len(allApps))
+	// Check Dependency
+
+	// Assign a number to each app
+	for i, eachApp := range allApps {
+		gph[eachApp.Metadata.Name] = i
+	}
+	for _, eachApp := range allApps {
+		// Read app dependency
+		appDep, err := NewAppDependencyClient().GetAllSpecAppDependency(p, ca, v, eachApp.Metadata.Name)
+		if err == nil && len(appDep) > 0 {
+			for _, b := range appDep {
+				if item, ok := gph[b.AppName]; ok {
+					g.Add(gph[eachApp.Metadata.Name], item)
+				} else {
+					log.Error("Unknown App in dependency", log.Fields{"app": eachApp.Metadata.Name, "Dependency app": b.AppName})
+					return false
+				}
+			}
+		}
+	}
+	// Empty graph is acyclic
+	return graph.Acyclic(g)
+
 }

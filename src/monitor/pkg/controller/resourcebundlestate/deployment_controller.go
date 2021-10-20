@@ -9,9 +9,12 @@ import (
 
 	"gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
 
+	pkgerrors "github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/apps/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -63,7 +66,7 @@ func (r *deploymentReconciler) Reconcile(req reconcile.Request) (reconcile.Resul
 			// Remove the Deployment's status from StatusList
 			// This can happen if we get the DeletionTimeStamp event
 			// after the Deployment has been deleted.
-			r.deleteDeploymentFromAllCRs(req.NamespacedName)
+			DeleteFromAllCRs(r, req.NamespacedName)
 			return reconcile.Result{}, nil
 		}
 		log.Printf("Failed to get deployment: %+v\n", req.NamespacedName)
@@ -87,7 +90,7 @@ func (r *deploymentReconciler) Reconcile(req reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, nil
 	}
 
-	err = r.updateCRs(rbStatusList, dep)
+	err = UpdateCR(r, dep)
 	if err != nil {
 		// Requeue the update
 		return reconcile.Result{}, err
@@ -96,91 +99,52 @@ func (r *deploymentReconciler) Reconcile(req reconcile.Request) (reconcile.Resul
 	return reconcile.Result{}, nil
 }
 
-// deleteDeploymentFromAllCRs deletes deployment status from all the CRs when the Deployment itself has been deleted
-// and we have not handled the updateCRs yet.
-// Since, we don't have the deployment's labels, we need to look at all the CRs in this namespace
-func (r *deploymentReconciler) deleteDeploymentFromAllCRs(namespacedName types.NamespacedName) error {
-
-	rbStatusList := &v1alpha1.ResourceBundleStateList{}
-	err := listResources(r.client, namespacedName.Namespace, nil, rbStatusList)
-	if err != nil || len(rbStatusList.Items) == 0 {
-		log.Printf("Did not find any CRs tracking this resource\n")
-		return nil
-	}
-	for _, cr := range rbStatusList.Items {
-		r.deleteFromSingleCR(&cr, namespacedName.Name)
-	}
-
-	return nil
+func (r *deploymentReconciler) GetClient() client.Client {
+	return r.client
 }
 
-func (r *deploymentReconciler) updateCRs(crl *v1alpha1.ResourceBundleStateList, dep *appsv1.Deployment) error {
-
-	for _, cr := range crl.Items {
-		// Deployment is not scheduled for deletion
-		if dep.DeletionTimestamp == nil {
-			err := r.updateSingleCR(&cr, dep)
-			if err != nil {
-				return err
-			}
-		} else {
-			// Deployment is scheduled for deletion
-			r.deleteFromSingleCR(&cr, dep.Name)
-		}
-	}
-
-	return nil
-}
-
-func (r *deploymentReconciler) deleteFromSingleCR(cr *v1alpha1.ResourceBundleState, name string) error {
-	cr.Status.ResourceCount--
+func (r *deploymentReconciler) DeleteObj(cr *v1alpha1.ResourceBundleState, name string) bool {
+	var found bool
 	length := len(cr.Status.DeploymentStatuses)
 	for i, rstatus := range cr.Status.DeploymentStatuses {
 		if rstatus.Name == name {
+			found = true
 			//Delete that status from the array
 			cr.Status.DeploymentStatuses[i] = cr.Status.DeploymentStatuses[length-1]
 			cr.Status.DeploymentStatuses[length-1].Status = appsv1.DeploymentStatus{}
 			cr.Status.DeploymentStatuses = cr.Status.DeploymentStatuses[:length-1]
-			return nil
+			break
 		}
 	}
-
-	log.Println("Did not find a status for Deployment in CR")
-	return nil
+	return found
 }
 
-func (r *deploymentReconciler) updateSingleCR(cr *v1alpha1.ResourceBundleState, dep *appsv1.Deployment) error {
+func (r *deploymentReconciler) UpdateStatus(cr *v1alpha1.ResourceBundleState, obj runtime.Object) (bool, error) {
 
+	var found bool
+	dm, ok := obj.(*v1.Deployment)
+	if !ok {
+		return found, pkgerrors.Errorf("Unknown resource %v", obj)
+	}
 	// Update status after searching for it in the list of resourceStatuses
 	for i, rstatus := range cr.Status.DeploymentStatuses {
 		// Look for the status if we already have it in the CR
-		if rstatus.Name == dep.Name {
-			dep.Status.DeepCopyInto(&cr.Status.DeploymentStatuses[i].Status)
-			err := r.client.Status().Update(context.TODO(), cr)
-			if err != nil {
-				log.Printf("failed to update rbstate: %v\n", err)
-				return err
-			}
-			return nil
+		if rstatus.Name == dm.Name {
+			dm.Status.DeepCopyInto(&cr.Status.DeploymentStatuses[i].Status)
+			found = true
+			break
 		}
 	}
-
-	// Exited for loop with no status found
-	// Increment the number of tracked resources
-	cr.Status.ResourceCount++
-
-	// Add it to CR
-	cr.Status.DeploymentStatuses = append(cr.Status.DeploymentStatuses, appsv1.Deployment{
-		TypeMeta:   dep.TypeMeta,
-		ObjectMeta: dep.ObjectMeta,
-		Status:     dep.Status,
-	})
-
-	err := r.client.Status().Update(context.TODO(), cr)
-	if err != nil {
-		log.Printf("failed to update rbstate: %v\n", err)
-		return err
+	if !found {
+		// Add it to CR
+		c := v1.Deployment{
+			TypeMeta:   dm.TypeMeta,
+			ObjectMeta: dm.ObjectMeta,
+			Spec:       dm.Spec,
+			Status:     dm.Status,
+		}
+		c.ObjectMeta.ManagedFields = []metav1.ManagedFieldsEntry{}
+		cr.Status.DeploymentStatuses = append(cr.Status.DeploymentStatuses, c)
 	}
-
-	return nil
+	return found, nil
 }

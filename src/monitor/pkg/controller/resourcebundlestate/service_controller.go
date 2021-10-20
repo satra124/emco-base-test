@@ -11,7 +11,10 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
+	//"k8s.io/apimachinery/pkg/types"
+	pkgerrors "github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -50,6 +53,10 @@ type serviceReconciler struct {
 	client client.Client
 }
 
+func (r *serviceReconciler) GetClient() client.Client {
+	return r.client
+}
+
 // Reconcile implements the loop that will update the ResourceBundleState CR
 // whenever we get any updates from all the services we watch.
 func (r *serviceReconciler) Reconcile(req reconcile.Request) (reconcile.Result, error) {
@@ -63,31 +70,14 @@ func (r *serviceReconciler) Reconcile(req reconcile.Request) (reconcile.Result, 
 			// Remove the Service's status from StatusList
 			// This can happen if we get the DeletionTimeStamp event
 			// after the Service has been deleted.
-			r.deleteServiceFromAllCRs(req.NamespacedName)
+			DeleteFromAllCRs(r, req.NamespacedName)
 			return reconcile.Result{}, nil
 		}
 		log.Printf("Failed to get service: %+v\n", req.NamespacedName)
 		return reconcile.Result{}, err
 	}
-
-	// Find the CRs which track this service via the labelselector
-	crSelector := returnLabel(svc.GetLabels())
-	if crSelector == nil {
-		log.Println("We should not be here. The predicate should have filtered this Service")
-	}
-
-	// Get the CRs which have this label and update them all
-	// Ideally, we will have only one CR, but there is nothing
-	// preventing the creation of multiple.
-	// TODO: Consider using an admission validating webook to prevent multiple
-	rbStatusList := &v1alpha1.ResourceBundleStateList{}
-	err = listResources(r.client, req.Namespace, crSelector, rbStatusList)
-	if err != nil || len(rbStatusList.Items) == 0 {
-		log.Printf("Did not find any CRs tracking this resource\n")
-		return reconcile.Result{}, nil
-	}
-
-	err = r.updateCRs(rbStatusList, svc)
+	//err = r.updateCRs(rbStatusList, svc)
+	err = UpdateCR(r, svc)
 	if err != nil {
 		// Requeue the update
 		return reconcile.Result{}, err
@@ -96,91 +86,46 @@ func (r *serviceReconciler) Reconcile(req reconcile.Request) (reconcile.Result, 
 	return reconcile.Result{}, nil
 }
 
-// deleteServiceFromAllCRs deletes service status from all the CRs when the Service itself has been deleted
-// and we have not handled the updateCRs yet.
-// Since, we don't have the service's labels, we need to look at all the CRs in this namespace
-func (r *serviceReconciler) deleteServiceFromAllCRs(namespacedName types.NamespacedName) error {
-
-	rbStatusList := &v1alpha1.ResourceBundleStateList{}
-	err := listResources(r.client, namespacedName.Namespace, nil, rbStatusList)
-	if err != nil || len(rbStatusList.Items) == 0 {
-		log.Printf("Did not find any CRs tracking this resource\n")
-		return nil
+func (r *serviceReconciler) UpdateStatus(cr *v1alpha1.ResourceBundleState, obj runtime.Object) (bool, error) {
+	var found bool
+	service, ok := obj.(*corev1.Service)
+	if !ok {
+		return found, pkgerrors.Errorf("Unknown resource %v", obj)
 	}
-	for _, cr := range rbStatusList.Items {
-		r.deleteFromSingleCR(&cr, namespacedName.Name)
-	}
-
-	return nil
-}
-
-func (r *serviceReconciler) updateCRs(crl *v1alpha1.ResourceBundleStateList, svc *corev1.Service) error {
-
-	for _, cr := range crl.Items {
-		// Service is not scheduled for deletion
-		if svc.DeletionTimestamp == nil {
-			err := r.updateSingleCR(&cr, svc)
-			if err != nil {
-				return err
-			}
-		} else {
-			// Service is scheduled for deletion
-			r.deleteFromSingleCR(&cr, svc.Name)
+	for i, rstatus := range cr.Status.ServiceStatuses {
+		// Look for the status if we already have it in the CR
+		if rstatus.Name == service.Name {
+			service.Status.DeepCopyInto(&cr.Status.ServiceStatuses[i].Status)
+			found = true
+			break
 		}
 	}
-
-	return nil
+	if !found {
+		// Add it to CR
+		svc := corev1.Service{
+			TypeMeta:   service.TypeMeta,
+			ObjectMeta: service.ObjectMeta,
+			Status:     service.Status,
+			Spec:       service.Spec,
+		}
+		svc.ObjectMeta.ManagedFields = []metav1.ManagedFieldsEntry{}
+		cr.Status.ServiceStatuses = append(cr.Status.ServiceStatuses, svc)
+	}
+	return found, nil
 }
 
-func (r *serviceReconciler) deleteFromSingleCR(cr *v1alpha1.ResourceBundleState, name string) error {
-	cr.Status.ResourceCount--
+func (r *serviceReconciler) DeleteObj(cr *v1alpha1.ResourceBundleState, name string) bool {
+	var found bool
 	length := len(cr.Status.ServiceStatuses)
 	for i, rstatus := range cr.Status.ServiceStatuses {
 		if rstatus.Name == name {
+			found = true
 			//Delete that status from the array
 			cr.Status.ServiceStatuses[i] = cr.Status.ServiceStatuses[length-1]
-			cr.Status.ServiceStatuses[length-1].Status = corev1.ServiceStatus{}
+			cr.Status.ServiceStatuses[length-1] = corev1.Service{}
 			cr.Status.ServiceStatuses = cr.Status.ServiceStatuses[:length-1]
-			return nil
+			break
 		}
 	}
-
-	log.Println("Did not find a status for Service in CR")
-	return nil
-}
-
-func (r *serviceReconciler) updateSingleCR(cr *v1alpha1.ResourceBundleState, svc *corev1.Service) error {
-
-	// Update status after searching for it in the list of resourceStatuses
-	for i, rstatus := range cr.Status.ServiceStatuses {
-		// Look for the status if we already have it in the CR
-		if rstatus.Name == svc.Name {
-			svc.Status.DeepCopyInto(&cr.Status.ServiceStatuses[i].Status)
-			err := r.client.Status().Update(context.TODO(), cr)
-			if err != nil {
-				log.Printf("failed to update rbstate: %v\n", err)
-				return err
-			}
-			return nil
-		}
-	}
-
-	// Exited for loop with no status found
-	// Increment the number of tracked resources
-	cr.Status.ResourceCount++
-
-	// Add it to CR
-	cr.Status.ServiceStatuses = append(cr.Status.ServiceStatuses, corev1.Service{
-		TypeMeta:   svc.TypeMeta,
-		ObjectMeta: svc.ObjectMeta,
-		Status:     svc.Status,
-	})
-
-	err := r.client.Status().Update(context.TODO(), cr)
-	if err != nil {
-		log.Printf("failed to update rbstate: %v\n", err)
-		return err
-	}
-
-	return nil
+	return found
 }

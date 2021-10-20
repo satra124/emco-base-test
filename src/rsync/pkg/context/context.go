@@ -13,6 +13,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/connector"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/depend"
 	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
 )
 
@@ -41,6 +42,8 @@ type Context struct {
 	waitTime int
 	// Structure to hold CompositeApp Information
 	ca CompositeApp
+	// To manage dependency
+	dm *depend.DependManager
 }
 
 // AppContextData struct
@@ -52,6 +55,7 @@ type AppContextData struct {
 var appContextData = AppContextData{
 	Data: map[string]*Context{},
 }
+
 // HandleAppContext adds event to queue and starts main thread
 func HandleAppContext(a interface{}, ucid interface{}, e RsyncEvent, con Connector) error {
 
@@ -71,13 +75,20 @@ func HandleAppContext(a interface{}, ucid interface{}, e RsyncEvent, con Connect
 		if e == TerminateEvent {
 			c.terminateContextRoutine()
 		}
-	} else  {
+	} else {
+		// One main thread for AppContext
+		c.Running = true
 		err = c.startMainThread(a, con)
+		if err != nil {
+			c.Running = false
+			return err
+		}
 	}
 	return err
 }
+
 // EnqueueToAppContext adds the event to the appContext Queue
-func (c *Context)EnqueueToAppContext(a interface{}, ucid interface{}, e RsyncEvent) error {
+func (c *Context) EnqueueToAppContext(a interface{}, ucid interface{}, e RsyncEvent) error {
 	acID := fmt.Sprintf("%v", a)
 	ac := appcontext.AppContext{}
 	_, err := ac.LoadAppContext(acID)
@@ -99,13 +110,14 @@ func (c *Context)EnqueueToAppContext(a interface{}, ucid interface{}, e RsyncEve
 	// Push the appContext to ActiveContext space of etcD
 	ok, err := RecordActiveContext(acID)
 	if !ok {
-		logutils.Info("Already in active context", logutils.Fields{"AppContextID":acID, "err": err})
+		logutils.Info("Already in active context", logutils.Fields{"AppContextID": acID, "err": err})
 	}
 	// Enqueue event
 	qUtils.Enqueue(elem)
 	c.Lock.Unlock()
 	return nil
 }
+
 // RestartAppContext called in Restart scenario to handle an AppContext
 func RestartAppContext(a interface{}, con Connector) error {
 	var err error
@@ -121,6 +133,7 @@ func RestartAppContext(a interface{}, con Connector) error {
 	}
 	return err
 }
+
 // Create per AppContext thread data
 func CreateAppContextData(key string) (bool, *Context) {
 	appContextData.Lock()
@@ -137,8 +150,9 @@ func CreateAppContextData(key string) (bool, *Context) {
 	// Didn't create appContext data (return false)
 	return false, appContextData.Data[key]
 }
+
 // Delete per AppContext thread data
-func DeleteAppContextData(key string) (error) {
+func DeleteAppContextData(key string) error {
 	appContextData.Lock()
 	defer appContextData.Unlock()
 	_, ok := appContextData.Data[key]
@@ -147,6 +161,7 @@ func DeleteAppContextData(key string) (error) {
 	}
 	return nil
 }
+
 // Read Max retries from configuration
 func getMaxRetries() int {
 	s := config.GetConfiguration().MaxRetries
@@ -163,10 +178,12 @@ func getMaxRetries() int {
 	}
 	return maxRetries
 }
+
 // CompositeAppContext represents composite app
 type CompositeAppContext struct {
 	cid interface{}
 }
+
 // InstantiateComApp Instantiatep Aps in Composite App
 func (instca *CompositeAppContext) InstantiateComApp(cid interface{}) error {
 	instca.cid = cid
@@ -174,6 +191,7 @@ func (instca *CompositeAppContext) InstantiateComApp(cid interface{}) error {
 	con.Init(instca.cid)
 	return HandleAppContext(instca.cid, nil, InstantiateEvent, &con)
 }
+
 // TerminateComApp Terminates Apps in Composite App
 func (instca *CompositeAppContext) TerminateComApp(cid interface{}) error {
 	instca.cid = cid

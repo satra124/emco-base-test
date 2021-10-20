@@ -16,13 +16,10 @@ import (
 	v1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
 	clientset "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/generated/clientset/versioned"
 	informers "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/generated/informers/externalversions"
-	appcontext "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
-	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/readynotifyserver"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
-	//"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/readynotifyserver"
-
 )
 
 type channelManager struct {
@@ -44,54 +41,17 @@ func HandleStatusUpdate(clusterId string, id string, v *v1alpha1.ResourceBundleS
 		logrus.Info(clusterId, "::label is missing an appcontext identifier::", id)
 		return
 	}
-
 	if len(result) != 2 {
 		logrus.Info(clusterId, "::invalid label format::", id)
 		return
 	}
-
 	// Get the app from the label (id)
 	if result[1] == "" {
 		logrus.Info(clusterId, "::label is missing an app identifier::", id)
 		return
 	}
-
-	// Look up the contextId
-	var ac appcontext.AppContext
-	_, err := ac.LoadAppContext(result[0])
-	if err != nil {
-		logrus.Info(clusterId, "::App context not found::", result[0], "::Error::", err)
-		return
-	}
-
-	// Produce yaml representation of the status
-	vjson, err := json.Marshal(v.Status)
-	if err != nil {
-		logrus.Info(clusterId, "::Error marshalling status information::", err)
-		return
-	}
-
-	chandle, err := ac.GetClusterHandle(result[1], clusterId)
-	if err != nil {
-		logrus.Info(clusterId, "::Error getting cluster handle::", err)
-		return
-	}
-	// Get the handle for the context/app/cluster status object
-	handle, _ := ac.GetLevelHandle(chandle, "status")
-
-	// If status handle was not found, then create the status object in the appcontext
-	if handle == nil {
-		ac.AddLevelValue(chandle, "status", string(vjson))
-	} else {
-		ac.UpdateStatusValue(handle, string(vjson))
-	}
-
-	// Send notification to the subscribers
-	err = readynotifyserver.SendAppContextNotification(result[0])
-	if err != nil {
-		logrus.Error(clusterId, "::Error sending ReadyNotify to subscribers::", err)
-	}
-	return
+	// Notify Resource tracking
+	status.HandleResourcesStatus(result[0], result[1], clusterId, v)
 }
 
 // StartClusterWatcher watches for CR

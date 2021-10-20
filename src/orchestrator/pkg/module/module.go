@@ -19,6 +19,7 @@ type Client struct {
 	Intent                 *IntentClient
 	CompositeProfile       *CompositeProfileClient
 	AppProfile             *AppProfileClient
+	AppDependency          *AppDependencyClient
 	// Add Clients for API's here
 	Instantiation *InstantiationClient
 }
@@ -36,6 +37,7 @@ func NewClient() *Client {
 	c.Intent = NewIntentClient()
 	c.CompositeProfile = NewCompositeProfileClient()
 	c.AppProfile = NewAppProfileClient()
+	c.AppDependency = NewAppDependencyClient()
 	// Add Client API handlers here
 	c.Instantiation = NewInstantiationClient()
 	return c

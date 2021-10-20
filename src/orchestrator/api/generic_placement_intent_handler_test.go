@@ -172,7 +172,7 @@ func TestGetGenericPlacementHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("GET", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/generic-placement-intents/"+test.name, nil)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("getGenericPlacementHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}
@@ -254,7 +254,7 @@ func TestGetAllGenericPlacementIntentsHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("GET", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/generic-placement-intents", nil)
-			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil, nil))
+			resp := executeRequest(request, NewRouter(nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil, nil, nil))
 			if resp.StatusCode != test.code {
 				t.Fatalf("getAllGenericPlacementIntentsHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.StatusCode)
 			}
@@ -347,7 +347,7 @@ func TestCreateGenericPlacementIntentHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("POST", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/generic-placement-intents", test.reader)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("createGenericPlacementIntentHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}
@@ -479,7 +479,7 @@ func TestUpdateGenericPlacementHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("PUT", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/generic-placement-intents/"+test.name, test.reader)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("putGenericPlacementHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}
@@ -554,7 +554,7 @@ func TestDeleteGenericPlacementHandler(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.label, func(t *testing.T) {
 			request := httptest.NewRequest("DELETE", "/v2/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/generic-placement-intents/"+test.name, nil)
-			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil, nil))
+			resp := executeRequestReturnWithBody(request, NewRouter(nil, nil, nil, nil, test.client, nil, nil, nil, nil, nil, nil, nil))
 			if resp.Code != test.code {
 				t.Fatalf("deleteGenericPlacementHandler returned an unexpected status. Expected %d; Got: %d", test.code, resp.Code)
 			}

@@ -22,7 +22,8 @@ func NewRouter(projectClient moduleLib.ProjectManager,
 	intentClient moduleLib.IntentManager,
 	compositeProfileClient moduleLib.CompositeProfileManager,
 	appProfileClient moduleLib.AppProfileManager,
-	instantiationClient moduleLib.InstantiationManager) *mux.Router {
+	instantiationClient moduleLib.InstantiationManager,
+	appDependencyClient moduleLib.AppDependencyManager) *mux.Router {
 
 	router := mux.NewRouter().PathPrefix("/v2").Subrouter()
 
@@ -196,5 +197,18 @@ func NewRouter(projectClient moduleLib.ProjectManager,
 	router.HandleFunc("/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/migrate", updateHandler.migrateHandler).Methods("POST")
 	router.HandleFunc("/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/update", updateHandler.updateHandler).Methods("POST")
 	router.HandleFunc("/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/rollback", updateHandler.rollbackHandler).Methods("POST")
+
+	if appDependencyClient == nil {
+		appDependencyClient = moduleClient.AppDependency
+	}
+	appDependencyHandler := appDependencyHandler{
+		client: appDependencyClient,
+	}
+
+	router.HandleFunc("/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/apps/{app}/dependency", appDependencyHandler.createAppDependencyHandler).Methods("POST")
+	router.HandleFunc("/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/apps/{app}/dependency/{dependency}", appDependencyHandler.getAppDependencyHandler).Methods("GET")
+	router.HandleFunc("/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/apps/{app}/dependency/{dependency}", appDependencyHandler.updateAppDependencyHandler).Methods("PUT")
+	router.HandleFunc("/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/apps/{app}/dependency", appDependencyHandler.getAllAppDependencyHandler).Methods("GET")
+	router.HandleFunc("/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/apps/{app}/dependency/{dependency}", appDependencyHandler.deleteappDependencyHandler).Methods("DELETE")
 	return router
 }

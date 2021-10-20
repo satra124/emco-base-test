@@ -7,14 +7,15 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.9.0
-	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-00010101000000-000000000000
-	gitlab.com/project-emco/core/emco-base/src/monitor v0.0.0-00010101000000-000000000000
-	gitlab.com/project-emco/core/emco-base/src/rsync v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.7.0
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.8.1
 	github.com/xeipuuv/gojsonschema v1.2.0
+	github.com/yourbasic/graph v0.0.0-20210606180040-8ecfec1c2869
+	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-00010101000000-000000000000
+	gitlab.com/project-emco/core/emco-base/src/monitor v0.0.0-00010101000000-000000000000
+	gitlab.com/project-emco/core/emco-base/src/rsync v0.0.0-00010101000000-000000000000
 	go.etcd.io/etcd v3.3.25+incompatible
 	go.mongodb.org/mongo-driver v1.5.1
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381

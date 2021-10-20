@@ -30,7 +30,7 @@ const (
 	AddChildContextEvent RsyncEvent = "AddChildContext"
 	UpdateEvent          RsyncEvent = "Update"
 	// This is an internal event
-	UpdateModifyEvent          RsyncEvent = "UpdateModify"
+	UpdateModifyEvent RsyncEvent = "UpdateModify"
 )
 
 // RsyncOperation is operation Rsync handles
@@ -113,23 +113,42 @@ var StateChanges = map[RsyncEvent]StateChange{
 }
 
 // Resource Dependency Structures
+// RsyncEvent is event Rsync handles
+type OpStatus string
+
+// OpStatus types
+const (
+	OpStatusDeployed OpStatus = "Deployed"
+	OpStatusReady    OpStatus = "Ready"
+	OpStatusDeleted  OpStatus = "Deleted"
+)
+
 type Resource struct {
 	App string                  `json:"app,omitempty"`
 	Res string                  `json:"name,omitempty"`
 	GVK schema.GroupVersionKind `json:"gvk,omitempty"`
 }
+
 // Criteria for Resource dependency
 type Criteria struct {
 	// Ready or deployed
-	OpStatus string `json:"opstatus,omitempty"`
+	OpStatus OpStatus `json:"opstatus,omitempty"`
 	// Wait time in seconds
-	Wait string `json:"wait,omitempty"`
+	Wait int `json:"wait,omitempty"`
+}
+
+type AppCriteria struct {
+	App string `json:"app"`
+	// Ready or deployed
+	OpStatus OpStatus `json:"opstatus,omitempty"`
+	// Wait time in seconds
+	Wait int `json:"wait,omitempty"`
 }
 
 // Dependency Structures
 type Dependency struct {
 	Resource Resource `json:"resource,omitempty"`
-	criteria Criteria `json:"criteria,omitempty"`
+	Criteria Criteria `json:"criteria,omitempty"`
 }
 
 // ResourceDependency structure
@@ -143,32 +162,35 @@ type CompositeApp struct {
 	Name         string                      `json:"name,omitempty"`
 	CompMetadata appcontext.CompositeAppMeta `json:"compmetadat,omitempty"`
 	AppOrder     []string                    `json:"appOrder,omitempty"`
-	Apps         map[string]*App              `json:"apps,omitempty"`
+	Apps         map[string]*App             `json:"apps,omitempty"`
 }
+
 // AppResource represents a resource
 type AppResource struct {
-	Name       string              `json:"name,omitempty"`
-	Data       interface{}         `json:"data,omitempty"`
-	Dependency map[string]*Criteria `json:"depenedency,omitempty"`
+	Name string      `json:"name,omitempty"`
+	Data interface{} `json:"data,omitempty"`
 	// Needed to suport updates
 	Skip bool `json:"bool,omitempty"`
 }
+
 // Cluster is a cluster within an App
 type Cluster struct {
-	Name      string                 `json:"name,omitempty"`
-	ResOrder  []string               `json:"reorder,omitempty"`
+	Name      string                  `json:"name,omitempty"`
+	ResOrder  []string                `json:"reorder,omitempty"`
 	Resources map[string]*AppResource `json:"resources,omitempty"`
 	// Needed to suport updates
 	Skip bool `json:"bool,omitempty"`
 }
+
 // App is an app within a composite app
 type App struct {
-	Name       string              `json:"name,omitempty"`
+	Name       string               `json:"name,omitempty"`
 	Clusters   map[string]*Cluster  `json:"clusters,omitempty"`
 	Dependency map[string]*Criteria `json:"dependency,omitempty"`
 	// Needed to suport updates
-	Skip       bool                `json:"bool,omitempty"`
+	Skip bool `json:"bool,omitempty"`
 }
+
 // ClientProvider is interface for client
 type ClientProvider interface {
 	Apply(content []byte) error
@@ -178,6 +200,7 @@ type ClientProvider interface {
 	IsReachable() error
 	TagResource([]byte, string) ([]byte, error)
 }
+
 // Connector is interface for connection to Cluster
 type Connector interface {
 	Init(id interface{}) error
@@ -186,6 +209,7 @@ type Connector interface {
 	StartClusterWatcher(cluster string) error
 	GetStatusCR(label string) ([]byte, error)
 }
+
 // AppContextQueueElement element in per AppContext Queue
 type AppContextQueueElement struct {
 	Event RsyncEvent `json:"event"`
@@ -194,6 +218,7 @@ type AppContextQueueElement struct {
 	// Status - Pending, Done, Error, skip
 	Status string `json:"status"`
 }
+
 // AppContextQueue per AppContext queue
 type AppContextQueue struct {
 	AcQueue []AppContextQueueElement

@@ -48,6 +48,7 @@ func (i *Instantiator) MakeAppContext() (contextForCompositeApp, error) {
 
 	err = storeAppContextIntoRunTimeDB(allApps, cca, overrideValues, dcmClusters, i.project, i.compositeApp, i.compAppVersion, rName, cp, gIntent, i.deploymentIntent, namespace)
 	if err != nil {
+		deleteAppContext(cca.context)
 		return contextForCompositeApp{}, pkgerrors.Wrap(err, "Error in storeAppContextIntoETCd")
 	}
 
