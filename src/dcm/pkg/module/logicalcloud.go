@@ -5,10 +5,12 @@ package module
 
 import (
 	"encoding/json"
+	"time"
 
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 
 	pkgerrors "github.com/pkg/errors"
 )
@@ -57,6 +59,7 @@ type LogicalCloudManager interface {
 	Create(project string, c LogicalCloud) (LogicalCloud, error)
 	Get(project, name string) (LogicalCloud, error)
 	GetAll(project string) ([]LogicalCloud, error)
+	GetState(p string, lc string) (state.StateInfo, error)
 	Delete(project, name string) error
 	Update(project, name string, c LogicalCloud) (LogicalCloud, error)
 }
@@ -67,6 +70,7 @@ type LogicalCloudClient struct {
 	storeName  string
 	tagMeta    string
 	tagContext string
+	tagState   string
 }
 
 // LogicalCloudClient returns an instance of the LogicalCloudClient
@@ -76,6 +80,7 @@ func NewLogicalCloudClient() *LogicalCloudClient {
 		storeName:  "resources",
 		tagMeta:    "data",
 		tagContext: "logicalCloudContext",
+		tagState:   "stateInfo",
 	}
 }
 
@@ -102,6 +107,20 @@ func (v *LogicalCloudClient) Create(project string, c LogicalCloud) (LogicalClou
 	err = db.DBconn.Insert(v.storeName, key, nil, v.tagMeta, c)
 	if err != nil {
 		return LogicalCloud{}, pkgerrors.Wrap(err, "Creating DB Entry")
+	}
+
+	// Add the state info  record
+	s := state.StateInfo{}
+	a := state.ActionEntry{
+		State:     state.StateEnum.Created,
+		ContextId: "",
+		TimeStamp: time.Now(),
+	}
+	s.Actions = append(s.Actions, a)
+
+	err = db.DBconn.Insert(v.storeName, key, nil, v.tagState, s)
+	if err != nil {
+		return LogicalCloud{}, pkgerrors.Wrap(err, "Error updating the state info of the LogicalCloud: "+c.MetaData.LogicalCloudName)
 	}
 
 	return c, nil
@@ -162,6 +181,35 @@ func (v *LogicalCloudClient) GetAll(project string) ([]LogicalCloud, error) {
 	}
 
 	return resp, nil
+}
+
+// GetState returns the LogicalCloud StateInfo with a given logical cloud name and project
+func (v *LogicalCloudClient) GetState(p string, lc string) (state.StateInfo, error) {
+
+	key := LogicalCloudKey{
+		Project:          p,
+		LogicalCloudName: lc,
+	}
+
+	result, err := db.DBconn.Find(v.storeName, key, v.tagState)
+	if err != nil {
+		return state.StateInfo{}, err
+	}
+
+	if len(result) == 0 {
+		return state.StateInfo{}, pkgerrors.New("LogicalCloud StateInfo not found")
+	}
+
+	if result != nil {
+		s := state.StateInfo{}
+		err = db.DBconn.Unmarshal(result[0], &s)
+		if err != nil {
+			return state.StateInfo{}, err
+		}
+		return s, nil
+	}
+
+	return state.StateInfo{}, pkgerrors.New("Unknown Error")
 }
 
 // Delete the Logical Cloud entry from database

@@ -62,4 +62,5 @@ var apiErrors = []apierror.APIError{
 	{ID: "The Logical Cloud has already been terminated", Message: "The Logical Cloud has already been terminated", Status: http.StatusConflict},
 	{ID: "The Logical Cloud is already being terminated", Message: "The Logical Cloud is already being terminated", Status: http.StatusConflict},
 	{ID: "The Logical Cloud is still instantiating", Message: "The Logical Cloud is still instantiating", Status: http.StatusConflict},
+	{ID: "Logical Cloud state not found", Message: "Logical Cloud state not found", Status: http.StatusBadRequest},
 }

@@ -22,6 +22,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 	rsync "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
 	"gopkg.in/yaml.v2"
 	certificatesv1beta1 "k8s.io/api/certificates/v1beta1"
@@ -72,6 +73,14 @@ type RoleRef struct {
 	Name     string `yaml:"name"`
 	ApiGroup string `yaml:"apiGroup"`
 }
+
+// // LogicalCloudStatus is the structure used to return general status results
+// // for the Logical Cloud
+// type LogicalCloudStatus struct {
+// 	Project               string `json:"project,omitempty"`
+// 	LogicalCloudName      string `json:"project,omitempty"`
+// 	status.LCStatusResult `json:",inline"`
+// }
 
 func cleanupCompositeApp(context appcontext.AppContext, err error, reason string, details []string) error {
 	if err == nil {
@@ -834,6 +843,13 @@ func Terminate(project string, logicalcloud LogicalCloud, clusterList []Cluster,
 					}
 				}
 			}
+
+			// Set State as Terminated
+			err = addState(lcclient, project, logicalCloudName, cid, state.StateEnum.Terminated)
+			if err != nil {
+				return err // error already logged
+			}
+
 		default:
 			log.Error("The Logical Cloud isn't in an expected status so not taking any action", log.Fields{"logicalcloud": logicalCloudName, "status": acStatus.Status})
 			return pkgerrors.New("The Logical Cloud isn't in an expected status so not taking any action")

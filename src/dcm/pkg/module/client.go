@@ -14,8 +14,10 @@ import (
 	"google.golang.org/grpc"
 
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 	readynotifypb "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/readynotify"
 )
 
@@ -150,7 +152,49 @@ func processAlert(client readynotifypb.ReadyNotifyClient, stream readynotifypb.R
 	}
 	log.Info("[ReadyNotify gRPC] All CloudConfigs for Logical Cloud have been created", log.Fields{"project": project, "logicalCloud": logicalCloud})
 
+	// Set State as Instantiated
+	err = addState(lcc, project, logicalCloud, appContextID, state.StateEnum.Instantiated)
+	if err != nil {
+		return // error already logged
+	}
+
 	_ = unsubscribe(client, appContextID)
+}
+
+// Updates the State of an existing logical cloud, adding to the timestamped history of States
+func addState(lcc *LogicalCloudClient, project, logicalCloud, cid, newState string) error {
+	s, err := lcc.GetState(project, logicalCloud)
+	if err != nil {
+		log.Error("LogicalCloud has no state info: ", log.Fields{"logicalCloud": logicalCloud})
+		return err
+	}
+	lckey := LogicalCloudKey{
+		Project:          project,
+		LogicalCloudName: logicalCloud,
+	}
+	lastRevision, err := state.GetLatestRevisionFromStateInfo(s)
+	if err != nil {
+		log.Error("Latest revision not found", log.Fields{})
+		return err
+	}
+	// TODO: make atomic
+	newRevision := lastRevision + 1
+
+	a := state.ActionEntry{
+		State:     newState,
+		ContextId: cid,
+		TimeStamp: time.Now(),
+		Revision:  newRevision,
+	}
+	s.StatusContextId = cid
+	s.Actions = append(s.Actions, a)
+
+	err = db.DBconn.Insert(lcc.storeName, lckey, nil, lcc.tagState, s)
+	if err != nil {
+		log.Error("Error updating the state info of the LogicalCloud: ", log.Fields{"logicalCloud": logicalCloud})
+		return err
+	}
+	return nil
 }
 
 func subscribe(client readynotifypb.ReadyNotifyClient, appContextID string) {
