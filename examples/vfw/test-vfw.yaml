@@ -21,6 +21,16 @@ resourceContext:
 clusterLabel: LabelA
 
 ---
+#Add kv cluster
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/{{ .ClusterProvider }}/clusters/{{ .Cluster1 }}/kv-pairs
+metadata:
+  name: cluster1key1
+spec:
+  kv:
+    - CNI-Networking-Multi-VM-CNI-Wrapper: Multus
+---
 version: emco/v2
 resourceContext:
   anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/networks

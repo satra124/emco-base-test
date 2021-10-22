@@ -5,7 +5,9 @@ package ovncontroller
 
 import (
 	"encoding/json"
-
+	"fmt"
+	"strings"
+	clusterPkg "gitlab.com/project-emco/core/emco-base/src/clm/pkg/cluster"
 	otheryaml "github.com/ghodss/yaml"
 	nad "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	netintents "gitlab.com/project-emco/core/emco-base/src/ncm/pkg/networkintents"
@@ -18,6 +20,8 @@ import (
 	pkgerrors "github.com/pkg/errors"
 )
 
+var CNINetworkingMultiVMCNIWrapper   string = "CNI-Networking-Multi-VM-CNI-Wrapper"
+var MultusCNINetworking string = "multus"
 // makeNetworkAttachmentDefinition makes a network attachment definition and
 // returns it as a string ready to be added to the resources list for the
 // appcontext
@@ -64,6 +68,21 @@ func Apply(ctxVal interface{}, clusterProvider, cluster string) error {
 	if err != nil {
 		return pkgerrors.Wrapf(err, "Error getting AppContext with Id: %v for %v/%v", ctxVal, clusterProvider, cluster)
 	}
+	ckv, err := clusterPkg.NewClusterClient().GetAllClusterKvPairs(clusterProvider, cluster)
+	var val string
+	if err == nil {
+		for _, kvp := range ckv {
+			for _, mkey := range kvp.Spec.Kv {
+				if v, ok := mkey[CNINetworkingMultiVMCNIWrapper]; ok {
+					val = fmt.Sprintf("%v", v)
+					log.Info("Kv found for cluster", log.Fields{"cluster": cluster, "key": CNINetworkingMultiVMCNIWrapper, "val": val})
+					break
+				}
+			}
+		}
+	}
+	// Compare case insenstive
+	multus := strings.EqualFold(MultusCNINetworking, val)
 
 	// Find all Network Intents for this cluster
 	networkIntents, err := netintents.NewNetworkClient().GetNetworks(clusterProvider, cluster)
@@ -92,17 +111,18 @@ func Apply(ctxVal interface{}, clusterProvider, cluster string) error {
 			name:  intent.Metadata.Name + nettypes.SEPARATOR + netintents.NETWORK_KIND,
 			value: string(y),
 		})
-
-		// make the network attachment definition CR for this network
-		nadRes, err := makeNetworkAttachmentDefinition(intent.Metadata.Name)
-		if err != nil {
-			// TODO - probably should error out instead (and above too)
-			continue
+		if multus {
+			// make the network attachment definition CR for this network
+			nadRes, err := makeNetworkAttachmentDefinition(intent.Metadata.Name)
+			if err != nil {
+				// TODO - probably should error out instead (and above too)
+				continue
+			}
+			resources = append(resources, resource{
+				name:  intent.Metadata.Name + nettypes.SEPARATOR + "NetworkAttachmentDefinition",
+				value: nadRes,
+			})
 		}
-		resources = append(resources, resource{
-			name:  intent.Metadata.Name + nettypes.SEPARATOR + "NetworkAttachmentDefinition",
-			value: nadRes,
-		})
 	}
 
 	// Find all Provider Network Intents for this cluster
@@ -132,17 +152,18 @@ func Apply(ctxVal interface{}, clusterProvider, cluster string) error {
 			name:  intent.Metadata.Name + nettypes.SEPARATOR + netintents.PROVIDER_NETWORK_KIND,
 			value: string(y),
 		})
-
-		// make the network attachment definition CR for this network
-		nadRes, err := makeNetworkAttachmentDefinition(intent.Metadata.Name)
-		if err != nil {
-			// TODO - probably should error out instead (and above too)
-			continue
+		if multus {
+			// make the network attachment definition CR for this network
+			nadRes, err := makeNetworkAttachmentDefinition(intent.Metadata.Name)
+			if err != nil {
+				// TODO - probably should error out instead (and above too)
+				continue
+			}
+			resources = append(resources, resource{
+				name:  intent.Metadata.Name + nettypes.SEPARATOR + "NetworkAttachmentDefinition",
+				value: nadRes,
+			})
 		}
-		resources = append(resources, resource{
-			name:  intent.Metadata.Name + nettypes.SEPARATOR + "NetworkAttachmentDefinition",
-			value: nadRes,
-		})
 	}
 
 	if len(resources) == 0 {

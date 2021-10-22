@@ -261,7 +261,7 @@ func AddNfnAnnotation(r interface{}, new []WorkloadIfIntentSpec) {
 	}
 }
 // Add Annotations for non standard K8s resources with template section
-func AddTemplateAnnotation(r interface{}, a nettypes.NetworkSelectionElement, new []WorkloadIfIntentSpec) ([]byte, error) {
+func AddTemplateAnnotation(r interface{}, a nettypes.NetworkSelectionElement, new []WorkloadIfIntentSpec, multus bool) ([]byte, error) {
 
 	//Decode the yaml to create a runtime.Object
 	unstruct := &unstructured.Unstructured{}
@@ -280,9 +280,11 @@ func AddTemplateAnnotation(r interface{}, a nettypes.NetworkSelectionElement, ne
 	if err != nil {
 		return nil, pkgerrors.Wrap(err, "updateTemplateNfnAnnotation error")
 	}
-	err = updateTemplateNetworkAnnotation(unstruct, a)
-	if err != nil {
-		return nil, pkgerrors.Wrap(err, "updateTemplateNetworkAnnotation error")
+	if multus {
+		err = updateTemplateNetworkAnnotation(unstruct, a)
+		if err != nil {
+			return nil, pkgerrors.Wrap(err, "updateTemplateNetworkAnnotation error")
+		}
 	}
 	// Convert to Json
 	b, err := unstruct.MarshalJSON()

@@ -198,7 +198,7 @@ var _ = Describe("Resources", func() {
 		module.AddNetworkAnnotation(obj1, networkAnnotation[0])
 	})
 	It("should add NfnAnnotation and network annotation to unknown resource", func() {
-		obj1, err := module.AddTemplateAnnotation(tempres, networkAnnotation[0], spec_array)
+		obj1, err := module.AddTemplateAnnotation(tempres, networkAnnotation[0], spec_array, true)
 		Expect(err).To(BeNil())
 		obj2, err := jyaml.JSONToYAML(obj1)
 		Expect(err).To(BeNil())
@@ -206,7 +206,7 @@ var _ = Describe("Resources", func() {
 		check := strings.Contains(temp, "name1")
 		Expect(check).To(Equal(true))
 		// Add Nfn and Network annotation to replicaset
-		obj3, err := module.AddTemplateAnnotation(replicaset, networkAnnotation[0], spec_array)
+		obj3, err := module.AddTemplateAnnotation(replicaset, networkAnnotation[0], spec_array, true)
 		Expect(err).To(BeNil())
 		obj4, err := jyaml.JSONToYAML(obj3)
 		Expect(err).To(BeNil())

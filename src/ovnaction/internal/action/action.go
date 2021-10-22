@@ -5,10 +5,12 @@ package action
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
+	"strconv"
 
 	jyaml "github.com/ghodss/yaml"
-
+	clusterPkg "gitlab.com/project-emco/core/emco-base/src/clm/pkg/cluster"
 	nettypes "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
@@ -18,6 +20,9 @@ import (
 
 	pkgerrors "github.com/pkg/errors"
 )
+var CNI_Networking_Nodus_CNI_For_all_interfaces string = "CNI-Networking-Nodus-CNI-For-all-interfaces"
+var CNI_Networking_Multi_CNI_Wrapper  string = "CNI-Networking-Multi-CNI-Wrapper"
+var MultusCNINetworking string = "multus"
 
 // Action applies the supplied intent against the given AppContext ID
 func UpdateAppContext(intentName, appContextId string) error {
@@ -104,6 +109,38 @@ func UpdateAppContext(intentName, appContextId string) error {
 				})
 				continue
 			}
+			pc := strings.Split(c, "+")
+			// Read the cluster kv pairs for cluster capabilities
+			ckv, err := clusterPkg.NewClusterClient().GetAllClusterKvPairs(pc[0], pc[1])
+			var allIntf, cniWrapper string
+			// Deafults
+			allIntf = "false"
+			cniWrapper = MultusCNINetworking
+			// Go with defaults if err
+			if err == nil {
+				for _, kvp := range ckv {
+					for _, mkey := range kvp.Spec.Kv {
+						if v, ok := mkey[CNI_Networking_Nodus_CNI_For_all_interfaces]; ok {
+							allIntf = fmt.Sprintf("%v", v)
+							break
+						}
+						if v, ok := mkey[CNI_Networking_Multi_CNI_Wrapper]; ok {
+							cniWrapper = fmt.Sprintf("%v", v)
+							break
+						}
+					}
+				}
+			}
+			var multus bool
+			// If all interfaces is nodus, Multus not required
+			b, _ := strconv.ParseBool(allIntf)
+			if b {
+				multus = false
+			} else {
+				// Compare case insenstive
+				// Currently only Multus CNI Wrapper
+				multus = strings.EqualFold(MultusCNINetworking, cniWrapper)
+			}
 			// Add network annotation to object
 			netAnnot := nettypes.NetworkSelectionElement{
 				Name:      "ovn-networkobj",
@@ -120,7 +157,7 @@ func UpdateAppContext(intentName, appContextId string) error {
 			if err != nil {
 				// Not a standard K8s Resource
 				//Check if it follows the K8s API Conventions
-				j, err = module.AddTemplateAnnotation(r, netAnnot, newNfnIfs)
+				j, err = module.AddTemplateAnnotation(r, netAnnot, newNfnIfs, multus)
 				if err != nil {
 					log.Error("Error AddTemplateAnnotation", log.Fields{
 						"error": err,
@@ -128,7 +165,9 @@ func UpdateAppContext(intentName, appContextId string) error {
 					continue
 				}
 			} else {
-				module.AddNetworkAnnotation(robj, netAnnot)
+				if multus {
+					module.AddNetworkAnnotation(robj, netAnnot)
+				}
 				module.AddNfnAnnotation(robj, newNfnIfs)
 				// Marshal object back to yaml format (via json - seems to eliminate most clutter)
 				j, err = json.Marshal(robj)
