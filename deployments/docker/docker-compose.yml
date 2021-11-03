@@ -32,6 +32,8 @@ services:
       - 2380:2380
     environment:
       - ALLOW_NONE_AUTHENTICATION=yes
+      - no_proxy=etcd,${NO_PROXY}
+      - NO_PROXY=etcd,${NO_PROXY}
       - HTTP_PROXY=${HTTP_PROXY}
       - http_proxy=${HTTP_PROXY}
       - HTTPS_PROXY=${HTTPS_PROXY}
