@@ -10,6 +10,7 @@ import (
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 	moduleLib "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module"
+	pkgerrors "github.com/pkg/errors"
 )
 
 var migrateJSONFile string = "json-schemas/migrate.json"
@@ -68,7 +69,11 @@ func (h updateHandler) migrateHandler(w http.ResponseWriter, r *http.Request) {
 			// There are no logical cloud error(s). Check for api specific error(s)
 			apiErr = apierror.HandleErrors(vars, iErr, nil, apiErrors)
 		}
-		http.Error(w, apiErr.Message, apiErr.Status)
+		if apiErr.Status == http.StatusInternalServerError {
+			http.Error(w, pkgerrors.Cause(iErr).Error(), apiErr.Status)
+		} else {
+			http.Error(w, apiErr.Message, apiErr.Status)
+		}
 		return
 	}
 	log.Info("migrateHandler ... end ", log.Fields{"project": p, "compositeApp": ca, "compositeAppVer": v,
@@ -93,7 +98,11 @@ func (h updateHandler) updateHandler(w http.ResponseWriter, r *http.Request) {
 			// There are no logical cloud error(s). Check for api specific error(s)
 			apiErr = apierror.HandleErrors(vars, iErr, nil, apiErrors)
 		}
-		http.Error(w, apiErr.Message, apiErr.Status)
+		if apiErr.Status == http.StatusInternalServerError {
+			http.Error(w, pkgerrors.Cause(iErr).Error(), apiErr.Status)
+		} else {
+			http.Error(w, apiErr.Message, apiErr.Status)
+		}
 		return
 	}
 	log.Info("updateHandler ... end ", log.Fields{"project": p, "compositeApp": ca, "compositeAppVer": v,
@@ -149,7 +158,11 @@ func (h updateHandler) rollbackHandler(w http.ResponseWriter, r *http.Request) {
 			// There are no logical cloud error(s). Check for api specific error(s)
 			apiErr = apierror.HandleErrors(vars, iErr, nil, apiErrors)
 		}
-		http.Error(w, apiErr.Message, apiErr.Status)
+		if apiErr.Status == http.StatusInternalServerError {
+			http.Error(w, pkgerrors.Cause(iErr).Error(), apiErr.Status)
+		} else {
+			http.Error(w, apiErr.Message, apiErr.Status)
+		}
 		return
 	}
 	log.Info("rollbackHandler ... end ", log.Fields{"project": p, "compositeApp": ca, "compositeAppVer": v,

@@ -14,6 +14,7 @@ import (
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 	moduleLib "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module"
+	pkgerrors "github.com/pkg/errors"
 )
 
 /* Used to store backend implementation objects
@@ -57,7 +58,11 @@ func (h instantiationHandler) instantiateHandler(w http.ResponseWriter, r *http.
 			// There are no logical cloud error(s). Check for api specific error(s)
 			apiErr = apierror.HandleErrors(vars, iErr, nil, apiErrors)
 		}
-		http.Error(w, apiErr.Message, apiErr.Status)
+		if apiErr.Status == http.StatusInternalServerError {
+			http.Error(w, pkgerrors.Cause(iErr).Error(), apiErr.Status)
+		} else {
+			http.Error(w, apiErr.Message, apiErr.Status)
+		}
 		return
 	}
 	log.Info("instantiateHandler ... end ", log.Fields{"project": p, "compositeApp": ca, "compositeAppVer": v, "depGroup": di, "returnValue": iErr})
