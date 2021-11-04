@@ -4,9 +4,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	"gitlab.com/project-emco/core/emco-base/src/ovnaction/pkg/module"
-	pkgerrors "github.com/pkg/errors"
 )
 
 var _ = Describe("Workloadifintent", func() {
@@ -95,7 +95,7 @@ var _ = Describe("Workloadifintent", func() {
 			Expect(err).To(BeNil())
 			_, err = (*WLFIDBC).CreateWorkloadIfIntent(WLFI, "test", "capp1", "v1", "dig", "theName", "theSecondName", false)
 			Expect(err).To(BeNil())
-			err = (*WLFIDBC).DeleteWorkloadIfIntent("theSecondName", "test", "capp1", "v1", "dig", "theName", "theSecondName")
+			err = (*WLFIDBC).DeleteWorkloadIfIntent("theThirdName", "test", "capp1", "v1", "dig", "theName", "theSecondName")
 			Expect(err).To(BeNil())
 		})
 	})

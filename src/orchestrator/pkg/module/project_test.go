@@ -261,9 +261,24 @@ func TestDeleteProject(t *testing.T) {
 		mockdb        *db.MockDB
 	}{
 		{
-			label:  "Delete Project",
-			name:   "testProject",
-			mockdb: &db.MockDB{},
+			label: "Delete Project",
+			name:  "testProject",
+			mockdb: &db.MockDB{
+				Items: []map[string]map[string][]byte{
+					{
+						ProjectKey{ProjectName: "testProject"}.String(): {
+							"data": []byte(
+								"{" +
+									"\"metadata\" : {" +
+									"\"Name\":\"testProject\"," +
+									"\"Description\":\"Test project for unit testing\"," +
+									"\"UserData1\": \"userData1\"," +
+									"\"UserData2\":\"userData2\"}" +
+									"}"),
+						},
+					},
+				},
+			},
 		},
 		{
 			label:         "Delete Error",

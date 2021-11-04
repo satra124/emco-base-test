@@ -51,6 +51,15 @@ func FilterClusters(appContextID string) error {
 		log.Error("FilterClusters .. Not finding the compositeApp attached apps", log.Fields{"appContextID": appContextID, "compositeApp": compositeApp})
 		return pkgerrors.Wrapf(err, "FilterClusters .. Not finding the compositeApp[%s] attached apps", compositeApp)
 	}
+
+	if len(apps) == 0 {
+		return pkgerrors.Errorf(
+			"Apps not found for composite app '%s' with version '%s'",
+			compositeApp,
+			compositeAppVersion,
+		)
+	}
+
 	allAppNames := make([]string, 0)
 	for _, a := range apps {
 		allAppNames = append(allAppNames, a.Metadata.Name)
@@ -183,9 +192,17 @@ func FilterClusters(appContextID string) error {
 						return pkgerrors.Wrapf(err, "FilterClusters .. Error GetAllResources. Intent[%v] consumer[%v] for project[%v] comp-app[%v] comp-app-version[%v] not found", hpaIntent.MetaData.Name, hpaConsumer.MetaData.Name, project, compositeApp, compositeAppVersion)
 					}
 
-					// Continue with other apps as the current app does not have intents associated
 					if len(hpaResources) == 0 {
-						log.Info("FilterClusters .. No hpa Resources for the consumer", log.Fields{"project": project, "compositeApp": compositeApp, "deploymentGroup": deploymentIntentGroup, "app-nme": eachApp, "hpa-intent": hpaIntent, "hpa-consumer": hpaConsumer})
+						log.Warn("Continuing with the next HPA-Consumer as the current HPA-Consumer does not have any resources associated.",
+							log.Fields{
+								"project":         project,
+								"compositeApp":    compositeApp,
+								"deploymentGroup": deploymentIntentGroup,
+								"app-nme":         eachApp,
+								"hpa-intent":      hpaIntent,
+								"hpa-consumer":    hpaConsumer,
+							},
+						)
 						continue
 					}
 

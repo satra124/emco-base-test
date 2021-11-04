@@ -155,9 +155,23 @@ func TestDeleteController(t *testing.T) {
 		mockdb        *db.MockDB
 	}{
 		{
-			label:  "Delete Controller",
-			name:   "testController",
-			mockdb: &db.MockDB{},
+			label: "Delete Controller",
+			name:  "testController",
+			mockdb: &db.MockDB{
+				Items: []map[string]map[string][]byte{
+					{
+						ControllerKey{ControllerGroup: "orchestrator", ControllerName: "testController"}.String(): {
+							"data": []byte(
+								"{\"metadata\":{" +
+									"\"name\":\"testController\"" +
+									"}," +
+									"\"spec\":{" +
+									"\"host\":\"132.156.0.10\"," +
+									"\"port\": 8080 }}"),
+						},
+					},
+				},
+			},
 		},
 		{
 			label:         "Delete Error",

@@ -15,11 +15,11 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 
+	pkgerrors "github.com/pkg/errors"
 	hpaMod "gitlab.com/project-emco/core/emco-base/src/hpa-plc/pkg/module"
 	orchLog "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	orchMod "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/connector"
-	pkgerrors "github.com/pkg/errors"
 )
 
 type contextForCompositeApp struct {
@@ -497,6 +497,7 @@ var _ = Describe("HPA-PLACEMENT-CONTROLLER", func() {
 
 		It("*** GINKGO ACTION TESTCASE: unsuccessful filter-cluster when there are no apps in composite-app apps", func() {
 			(mdb.Items[0])[orchMod.AppKey{App: "", Project: project, CompositeApp: compApp, CompositeAppVersion: version}.String()] = nil
+			(mdb.Items[1])[orchMod.AppKey{App: "", Project: project, CompositeApp: compApp, CompositeAppVersion: version}.String()] = nil
 			contextID := fmt.Sprintf("%v", cfca.ctxval)
 			err := action.FilterClusters(contextID)
 			Expect(err).To(HaveOccurred())
@@ -532,7 +533,7 @@ var _ = Describe("HPA-PLACEMENT-CONTROLLER", func() {
 
 		})
 
-		It("*** GINKGO ACTION TESTCASE: unsuccessful hpa-intent filter-cluster for non-existing hpa-consumers", func() {
+		It("*** GINKGO ACTION TESTCASE: Successful hpa-intent filter-cluster for non-existing hpa-consumers", func() {
 			(mdb.Items[0])[hpaMod.HpaIntentKey{IntentName: "",
 				Project: project, CompositeApp: compApp,
 				Version: version, DeploymentIntentGroup: dig}.String()] = map[string][]byte{
@@ -549,11 +550,11 @@ var _ = Describe("HPA-PLACEMENT-CONTROLLER", func() {
 			}
 			contextID := fmt.Sprintf("%v", cfca.ctxval)
 			err := action.FilterClusters(contextID)
-			Expect(err).To(HaveOccurred())
+			Expect(err).To(BeNil())
 
 		})
 
-		It("*** GINKGO ACTION TESTCASE: unsuccessful filter-cluster for non-existing hpa-consumer", func() {
+		It("*** GINKGO ACTION TESTCASE: Successful filter-cluster for non-existing hpa-consumer", func() {
 			(mdb.Items[0])[hpaMod.HpaConsumerKey{ConsumerName: "", IntentName: hpaIntentName1,
 				Project: project, CompositeApp: compApp,
 				Version: version, DeploymentIntentGroup: dig}.String()] = map[string][]byte{
@@ -571,7 +572,7 @@ var _ = Describe("HPA-PLACEMENT-CONTROLLER", func() {
 			}
 			contextID := fmt.Sprintf("%v", cfca.ctxval)
 			err := action.FilterClusters(contextID)
-			Expect(err).To(HaveOccurred())
+			Expect(err).To(BeNil())
 		})
 
 		It("*** GINKGO ACTION TESTCASE: successful filter-cluster with NO hpa-resources", func() {

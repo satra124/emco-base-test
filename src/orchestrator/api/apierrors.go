@@ -19,13 +19,17 @@ var apiErrors = []apierror.APIError{
 	{ID: "Intent already exists", Message: "Intent already exists", Status: http.StatusConflict},
 	{ID: "AppIntent already exists", Message: "AppIntent already exists", Status: http.StatusConflict},
 	{ID: "AppProfile already exists", Message: "AppProfile already exists", Status: http.StatusConflict},
+	{ID: "AppProfile not found", Message: "AppProfile not found", Status: http.StatusNotFound},
 	{ID: "App already has an AppProfile", Message: "App already has an AppProfile", Status: http.StatusConflict},
 	{ID: "App already exists", Message: "App already exists", Status: http.StatusConflict},
+	{ID: "App not found", Message: "App not found", Status: http.StatusNotFound},
 	{ID: "CompositeApp already exists", Message: "CompositeApp already exists", Status: http.StatusConflict},
+	{ID: "CompositeApp not found", Message: "CompositeApp not found", Status: http.StatusNotFound},
 	{ID: "CompositeProfile already exists", Message: "CompositeProfile already exists", Status: http.StatusConflict},
 	{ID: "DeploymentIntent already exists", Message: "DeploymentIntent already exists", Status: http.StatusConflict},
 	{ID: "Project already exists", Message: "Project already exists", Status: http.StatusConflict},
 	{ID: "Controller already exists", Message: "Controller already exists", Status: http.StatusConflict},
+	{ID: "The DeploymentIntentGroup is not updated", Message: "The specified DeploymentIntentGroup is not in Created status", Status: http.StatusConflict},
 }
 
 var lcErrors = []apierror.APIError{

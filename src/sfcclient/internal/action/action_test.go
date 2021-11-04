@@ -293,7 +293,7 @@ var _ = Describe("SFC Client Action", func() {
 		Expect(err).To(BeNil())
 		_, err = (*caClient).CreateCompositeApp(ca, "testp", false)
 		Expect(err).To(BeNil())
-		_, err = (*digClient).CreateDeploymentIntentGroup(dig, "testp", "clientCA", "v1")
+		_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testp", "clientCA", "v1", true)
 		Expect(err).To(BeNil())
 		_, err = (*sfcClient).CreateSfcClientIntent(sfcLeftClientIntent, "testp", "clientCA", "v1", "dig1", false)
 		Expect(err).To(BeNil())
@@ -303,7 +303,7 @@ var _ = Describe("SFC Client Action", func() {
 		// set up prerequisites - chain CA
 		_, err = (*caClient).CreateCompositeApp(chainCa, "testp", false)
 		Expect(err).To(BeNil())
-		_, err = (*digClient).CreateDeploymentIntentGroup(chainDig, "testp", "chainCA", "v1")
+		_, _, err = (*digClient).CreateDeploymentIntentGroup(chainDig, "testp", "chainCA", "v1", true)
 		Expect(err).To(BeNil())
 		_, err = (*sfcIntentClient).CreateSfcIntent(sfcIntent, "testp", "chainCA", "v1", "chainDig1", false)
 		Expect(err).To(BeNil())

@@ -82,7 +82,7 @@ var _ = Describe("SFCIntent", func() {
 			Expect(err).To(BeNil())
 			_, err = (*caClient).CreateCompositeApp(ca, "testproject", false)
 			Expect(err).To(BeNil())
-			_, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1")
+			_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1", true)
 			Expect(err).To(BeNil())
 
 			// test SFC intent creation
@@ -95,7 +95,7 @@ var _ = Describe("SFCIntent", func() {
 			Expect(err).To(BeNil())
 			_, err = (*caClient).CreateCompositeApp(ca, "testproject", false)
 			Expect(err).To(BeNil())
-			_, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1")
+			_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1", true)
 			Expect(err).To(BeNil())
 
 			// test SFC intent creation
@@ -111,7 +111,7 @@ var _ = Describe("SFCIntent", func() {
 			Expect(err).To(BeNil())
 			_, err = (*caClient).CreateCompositeApp(ca, "testproject", false)
 			Expect(err).To(BeNil())
-			_, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1")
+			_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1", true)
 			Expect(err).To(BeNil())
 
 			// test SFC intent creation, with update form of call (exists bool == true)
@@ -124,7 +124,7 @@ var _ = Describe("SFCIntent", func() {
 			Expect(err).To(BeNil())
 			_, err = (*caClient).CreateCompositeApp(ca, "testproject", false)
 			Expect(err).To(BeNil())
-			_, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1")
+			_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1", true)
 			Expect(err).To(BeNil())
 
 			// test SFC intent creation
@@ -147,7 +147,7 @@ var _ = Describe("SFCIntent", func() {
 			Expect(err).To(BeNil())
 			_, err = (*caClient).CreateCompositeApp(ca, "testproject", false)
 			Expect(err).To(BeNil())
-			_, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1")
+			_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1", true)
 			Expect(err).To(BeNil())
 
 			list, err := (*sfcClient).GetAllSfcIntents("testproject", "ca", "v1", "dig")
@@ -159,7 +159,7 @@ var _ = Describe("SFCIntent", func() {
 			Expect(err).To(BeNil())
 			_, err = (*caClient).CreateCompositeApp(ca, "testproject", false)
 			Expect(err).To(BeNil())
-			_, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1")
+			_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1", true)
 			Expect(err).To(BeNil())
 
 			// test SFC intent creation - make 2 of them
@@ -184,7 +184,7 @@ var _ = Describe("SFCIntent", func() {
 			Expect(err).To(BeNil())
 			_, err = (*caClient).CreateCompositeApp(ca, "testproject", false)
 			Expect(err).To(BeNil())
-			_, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1")
+			_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1", true)
 			Expect(err).To(BeNil())
 
 			mdb.MarshalErr = pkgerrors.New("Unmarshalling bson")
@@ -204,7 +204,7 @@ var _ = Describe("SFCIntent", func() {
 			Expect(err).To(BeNil())
 			_, err = (*caClient).CreateCompositeApp(ca, "testproject", false)
 			Expect(err).To(BeNil())
-			_, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1")
+			_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1", true)
 			Expect(err).To(BeNil())
 
 			// test SFC intent creation
@@ -225,7 +225,7 @@ var _ = Describe("SFCIntent", func() {
 			Expect(err).To(BeNil())
 			_, err = (*caClient).CreateCompositeApp(ca, "testproject", false)
 			Expect(err).To(BeNil())
-			_, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1")
+			_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1", true)
 			Expect(err).To(BeNil())
 
 			_, err = (*sfcClient).CreateSfcIntent(sfcIntent, "testproject", "ca", "v1", "dig", false)
@@ -243,7 +243,7 @@ var _ = Describe("SFCIntent", func() {
 			Expect(err).To(BeNil())
 			_, err = (*caClient).CreateCompositeApp(ca, "testproject", false)
 			Expect(err).To(BeNil())
-			_, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1")
+			_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testproject", "ca", "v1", true)
 			Expect(err).To(BeNil())
 
 			// test SFC intent creation

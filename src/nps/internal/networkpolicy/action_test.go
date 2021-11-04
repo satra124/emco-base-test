@@ -6,17 +6,18 @@ package networkpolicy_test
 import (
 	"encoding/json"
 	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/clm/pkg/cluster"
-	"gitlab.com/project-emco/core/emco-base/src/nps/internal/networkpolicy"
 	"gitlab.com/project-emco/core/emco-base/src/dtc/pkg/module"
+	"gitlab.com/project-emco/core/emco-base/src/nps/internal/networkpolicy"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	mtypes "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
-	pkgerrors "github.com/pkg/errors"
 )
 
 type contextForCompositeApp struct {
@@ -96,10 +97,9 @@ var _ = Describe("Action", func() {
 		ISI    module.InboundServerIntent
 		ISIDBC *module.InboundServerIntentDbClient
 
-		ICI    module.InboundClientsIntent
-		ICIDBC *module.InboundClientsIntentDbClient
-		expectedOut string =
-`apiVersion: networking.k8s.io/v1
+		ICI         module.InboundClientsIntent
+		ICIDBC      *module.InboundClientsIntentDbClient
+		expectedOut string = `apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: testtgi-testisi
@@ -149,8 +149,8 @@ spec:
 				UserData2:   "user data2",
 			},
 			Spec: module.InbondServerIntentSpec{
-				AppName: "server",
-				AppLabel: "app=server",
+				AppName:         "server",
+				AppLabel:        "app=server",
 				ServiceName:     "server-svc",
 				ExternalName:    "",
 				Port:            4443,
@@ -168,8 +168,8 @@ spec:
 				UserData2:   "user data2",
 			},
 			Spec: module.InboundClientsIntentSpec{
-				AppName: "client",
-				AppLabel: "app=client",
+				AppName:     "client",
+				AppLabel:    "app=client",
 				ServiceName: "client-svc",
 				Namespaces:  []string{},
 				IpRange:     []string{},
@@ -266,7 +266,7 @@ spec:
 			err = networkpolicy.UpdateAppContext("testtgi", contextID)
 			Expect(err).To(HaveOccurred())
 		})
-		It("cover error getting clients inbound intents", func() {
+		It("cover getting empty client inbound intents", func() {
 			cfca, err := makeAppContextForCompositeApp("project1", "ca", "v2", "r1", "dig", "n1", "app")
 			Expect(err).To(BeNil())
 			sap, err := cfca.context.AddApp(cfca.compositeAppHandle, "server")
@@ -294,7 +294,7 @@ spec:
 			Expect(err).To(BeNil())
 			contextID := fmt.Sprintf("%v", cfca.ctxval)
 			err = networkpolicy.UpdateAppContext("testtgi", contextID)
-			Expect(err).To(HaveOccurred())
+			Expect(err).To(BeNil())
 		})
 		It("cover invalid cluster name", func() {
 			cfca, err := makeAppContextForCompositeApp("project1", "ca", "v2", "r1", "dig", "n1", "app")

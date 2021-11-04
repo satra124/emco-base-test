@@ -12,8 +12,8 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
 
-	clmModel "gitlab.com/project-emco/core/emco-base/src/clm/pkg/model"
 	pkgerrors "github.com/pkg/errors"
+	clmModel "gitlab.com/project-emco/core/emco-base/src/clm/pkg/model"
 )
 
 func TestCreateController(t *testing.T) {
@@ -162,9 +162,23 @@ func TestDeleteController(t *testing.T) {
 		mockdb        *db.MockDB
 	}{
 		{
-			label:  "Delete Controller",
-			name:   "testController",
-			mockdb: &db.MockDB{},
+			label: "Delete Controller",
+			name:  "testController",
+			mockdb: &db.MockDB{
+				Items: []map[string]map[string][]byte{
+					{
+						clmModel.ControllerKey{ControllerGroup: "cluster", ControllerName: "testController"}.String(): {
+							"data": []byte(
+								"{\"metadata\":{" +
+									"\"name\":\"testController\"" +
+									"}," +
+									"\"spec\":{" +
+									"\"host\":\"132.156.0.10\"," +
+									"\"port\": 8080 }}"),
+						},
+					},
+				},
+			},
 		},
 		{
 			label:         "Delete Error",

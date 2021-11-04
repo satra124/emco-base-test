@@ -92,8 +92,8 @@ func (m *MockDB) Find(table string, key Key, tag string) ([][]byte, error) {
 					i++
 				}
 			} else {
-				if str == k {
-					return [][]byte{v[tag]}, m.Err
+				if str == k && v[tag] != nil {
+					r = append(r, v[tag])
 				}
 			}
 		}
@@ -103,13 +103,16 @@ func (m *MockDB) Find(table string, key Key, tag string) ([][]byte, error) {
 	} else {
 		if m.Err != nil {
 			return r, m.Err
-		} else {
-			return r, pkgerrors.New("Record not found")
 		}
+		return r, nil
 	}
 }
 
 func (m *MockDB) Remove(table string, key Key) error {
+	if m.Err != nil {
+		return m.Err
+	}
+
 	jkey, _ := json.Marshal(key)
 	str := (string(jkey))
 	for i, item := range m.Items {
@@ -117,11 +120,11 @@ func (m *MockDB) Remove(table string, key Key) error {
 			if k == str {
 				m.Items[i] = m.Items[len(m.Items)-1]
 				m.Items = m.Items[:len(m.Items)-1]
-				return m.Err
+				return nil
 			}
 		}
 	}
-	return m.Err
+	return pkgerrors.New("db Remove resource not found")
 }
 
 func (m *MockDB) RemoveAll(table string, key Key) error {

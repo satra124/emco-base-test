@@ -255,7 +255,7 @@ var _ = Describe("SFCAction", func() {
 		Expect(err).To(BeNil())
 		_, err = (*caClient).CreateCompositeApp(ca, "testp", false)
 		Expect(err).To(BeNil())
-		_, err = (*digClient).CreateDeploymentIntentGroup(dig, "testp", "chainCA", "v1")
+		_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testp", "chainCA", "v1", true)
 		Expect(err).To(BeNil())
 		_, err = (*sfcClient).CreateSfcIntent(sfcIntent, "testp", "chainCA", "v1", "dig1", false)
 		Expect(err).To(BeNil())

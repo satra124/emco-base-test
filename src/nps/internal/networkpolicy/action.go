@@ -7,11 +7,11 @@ import (
 	"encoding/json"
 	"strings"
 
+	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/clm/pkg/cluster"
 	"gitlab.com/project-emco/core/emco-base/src/dtc/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
-	pkgerrors "github.com/pkg/errors"
 )
 
 // Action applies the supplied intent against the given AppContext ID
@@ -47,6 +47,17 @@ func UpdateAppContext(intentName, appContextId string) error {
 		return pkgerrors.Wrapf(err, "Error getting server inbound intents %v for %v/%v%v/%v not found", intentName, project, compositeapp, deployIntentGroup, compositeappversion)
 	}
 
+	if len(iss) == 0 {
+		return pkgerrors.Errorf(
+			"ServerInboundIntents not found for %s/%s/%s/%s/%s.",
+			intentName,
+			project,
+			compositeapp,
+			compositeappversion,
+			deployIntentGroup,
+		)
+	}
+
 	for _, is := range iss {
 		policytypes := []string{"Ingress"}
 		meta := Metadata{
@@ -55,10 +66,10 @@ func UpdateAppContext(intentName, appContextId string) error {
 			Description: "",
 		}
 
-		sl := strings.Split(is.Spec.AppLabel, "=" )
+		sl := strings.Split(is.Spec.AppLabel, "=")
 		if len(sl) != 2 {
 			log.Error("Not a valid app label", log.Fields{
-					"label": is.Spec.AppLabel,
+				"label": is.Spec.AppLabel,
 			})
 			return pkgerrors.New("Not a valid app label")
 		}
@@ -85,6 +96,19 @@ func UpdateAppContext(intentName, appContextId string) error {
 			return pkgerrors.Wrapf(err,
 				"Error getting clients inbound intents %v under server inbound intent %v for %v/%v%v/%v not found",
 				is.Metadata.Name, intentName, project, compositeapp, compositeappversion, deployIntentGroup)
+		}
+
+		if len(ics) == 0 {
+			log.Warn("Continuing with the next ServerInboundIntent as the current ServerInboundIntent does not have any ClientsInboundIntent associated.",
+				log.Fields{
+					"intentName":          intentName,
+					"project":             project,
+					"compositeapp":        compositeapp,
+					"compositeappversion": compositeappversion,
+					"deployIntentGroup":   deployIntentGroup,
+				},
+			)
+			continue
 		}
 
 		flist := []interface{}{}
