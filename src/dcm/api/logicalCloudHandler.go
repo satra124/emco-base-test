@@ -290,15 +290,12 @@ func (h logicalCloudHandler) stopHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Stop the instantiation
+	// Attempt to stop instantiating/terminating
 	err = dcm.Stop(project, lc)
 	if err != nil {
-		log.Error(err.Error(), log.Fields{})
-		if err.Error() == "Logical Clouds can't be stopped" {
-			http.Error(w, err.Error(), http.StatusNotImplemented)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -317,7 +314,7 @@ func (h logicalCloudHandler) statusHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
 		log.Error(apiErr.Message, log.Fields{})
-                http.Error(w, apiErr.Message, apiErr.Status)
+		http.Error(w, apiErr.Message, apiErr.Status)
 		return
 	}
 
@@ -327,7 +324,7 @@ func (h logicalCloudHandler) statusHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
 		log.Error(apiErr.Message, log.Fields{})
-                http.Error(w, apiErr.Message, apiErr.Status)
+		http.Error(w, apiErr.Message, apiErr.Status)
 		return
 	}
 }

@@ -75,14 +75,6 @@ type RoleRef struct {
 	ApiGroup string `yaml:"apiGroup"`
 }
 
-// // LogicalCloudStatus is the structure used to return general status results
-// // for the Logical Cloud
-// type LogicalCloudStatus struct {
-// 	Project               string `json:"project,omitempty"`
-// 	LogicalCloudName      string `json:"project,omitempty"`
-// 	status.LCStatusResult `json:",inline"`
-// }
-
 func cleanupCompositeApp(context appcontext.AppContext, err error, reason string, details []string) error {
 	if err == nil {
 		// create an error object to avoid wrap failures
@@ -423,6 +415,18 @@ func Instantiate(project string, logicalcloud LogicalCloud, clusterList []Cluste
 		acStatus, err := GetAppContextStatus(ac)
 		if err != nil {
 			return err
+		}
+
+		// If we're trying to instantiate a stopped termination, first clear the stop flag
+		stateVal, err := state.GetCurrentStateFromStateInfo(s)
+		if err != nil {
+			return err
+		}
+		if stateVal == state.StateEnum.TerminateStopped {
+			err = state.UpdateAppContextStopFlag(cid, false)
+			if err != nil {
+				return err
+			}
 		}
 
 		// Make sure rsync status for this logical cloud is Terminated,
@@ -825,6 +829,19 @@ func Terminate(project string, logicalcloud LogicalCloud, clusterList []Cluster,
 		if err != nil {
 			return err
 		}
+
+		// If we're trying to terminate a stopped instantiation, first clear the stop flag
+		stateVal, err := state.GetCurrentStateFromStateInfo(s)
+		if err != nil {
+			return err
+		}
+		if stateVal == state.StateEnum.InstantiateStopped {
+			err = state.UpdateAppContextStopFlag(cid, false)
+			if err != nil {
+				return err
+			}
+		}
+
 		// Make sure rsync status for this logical cloud is Terminated,
 		// otherwise we can't re-instantiate logical cloud yet
 		acStatus, err := GetAppContextStatus(ac)
@@ -869,7 +886,7 @@ func Terminate(project string, logicalcloud LogicalCloud, clusterList []Cluster,
 					if err != nil {
 						log.Error("Failed destroying at least one CloudConfig of L1 LC", log.Fields{"cluster": cluster, "err": err})
 						// continue terminating and removing any remaining CloudConfigs
-						// (this happens when terminating a Logical Cloud before all kubeconfigs had a chance to be generated)
+						// (this happens when terminating a Logical Cloud before all kubeconfigs had a chance to be generated, such as after a stopped instantiation)
 					}
 				}
 			}
@@ -892,31 +909,52 @@ func Terminate(project string, logicalcloud LogicalCloud, clusterList []Cluster,
 func Stop(project string, logicalcloud LogicalCloud) error {
 
 	logicalCloudName := logicalcloud.MetaData.LogicalCloudName
-
 	lcclient := NewLogicalCloudClient()
 
-	// Check if there was a previous context for this logical cloud
+	// Find and deal with state
 	s, err := lcclient.GetState(project, logicalCloudName)
+	if err != nil {
+		return pkgerrors.Wrap(err, "LogicalCloud has no state info: "+logicalCloudName)
+	}
+
+	stateVal, err := state.GetCurrentStateFromStateInfo(s)
+	if err != nil {
+		return pkgerrors.Wrap(err, "Error getting current state from LogicalCloud stateInfo: "+logicalCloudName)
+	}
+
+	cid := state.GetLastContextIdFromStateInfo(s)
+	// Uncomment to use appcontext status if additional info is needed to inform the actual state transition that should take place:
+	// ac, err := state.GetAppContextFromId(cid)
+	// if err != nil {
+	// 	return err
+	// }
+	// acStatus, err := GetAppContextStatus(ac)
+
+	stopState := state.StateEnum.Undefined
+	switch stateVal {
+	case state.StateEnum.Created:
+		return pkgerrors.New("LogicalCloud has not been asked to instantiate: " + logicalCloudName)
+	case state.StateEnum.Instantiated:
+		stopState = state.StateEnum.InstantiateStopped
+	case state.StateEnum.Terminated:
+		stopState = state.StateEnum.TerminateStopped
+	case state.StateEnum.TerminateStopped:
+		return pkgerrors.New("LogicalCloud termination already stopped: " + logicalCloudName)
+	case state.StateEnum.InstantiateStopped:
+		return pkgerrors.New("LogicalCloud instantiation already stopped: " + logicalCloudName)
+	default:
+		return pkgerrors.New("LogicalCloud is in an invalid state: " + logicalCloudName + " " + stateVal)
+	}
+
+	err = state.UpdateAppContextStopFlag(cid, true)
 	if err != nil {
 		return err
 	}
-	cid := state.GetLastContextIdFromStateInfo(s)
-	if cid != "" {
-		ac, err := state.GetAppContextFromId(cid)
-		if err != nil {
-			return err
-		}
-		acStatus, err := GetAppContextStatus(ac)
-		if err != nil {
-			return err
-		}
-		if acStatus.Status != appcontext.AppContextStatusEnum.Instantiating &&
-			acStatus.Status != appcontext.AppContextStatusEnum.Terminating {
-			return pkgerrors.Errorf("Logical Cloud is not instantiating or terminating:" + logicalCloudName)
-		}
 
-		// DCM doesn't support StateInfo today, so the Stop operation is effectively a stub
-		return pkgerrors.New("Logical Clouds can't be stopped")
+	err = addState(lcclient, project, logicalCloudName, cid, stopState)
+	if err != nil {
+		return pkgerrors.Wrap(err, "Error updating the stateInfo of the LogicalCloud: "+logicalCloudName)
 	}
-	return pkgerrors.New("Logical Cloud is not instantiated: " + logicalCloudName)
+
+	return nil
 }

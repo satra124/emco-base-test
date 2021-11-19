@@ -66,7 +66,7 @@ func NewRouter(
 	lcRouter.HandleFunc(
 		"/logical-clouds/{logicalCloud}/terminate",
 		logicalCloudHandler.terminateHandler).Methods("POST")
-	lcRouter.HandleFunc( // stub, developer-use only at the moment
+	lcRouter.HandleFunc(
 		"/logical-clouds/{logicalCloud}/stop",
 		logicalCloudHandler.stopHandler).Methods("POST")
 	lcRouter.HandleFunc("/logical-clouds/{logicalCloud}/status", logicalCloudHandler.statusHandler).Methods("GET")
