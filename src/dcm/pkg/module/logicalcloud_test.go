@@ -15,6 +15,7 @@ import (
 	orch "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 	rsync "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/installapp"
 )
@@ -460,6 +461,73 @@ var _ = Describe("Logicalcloud", func() {
 				logicalCloud, err := client.Update("project", "testlogicalCloud", logicalCloud)
 				Expect(err).Should(HaveOccurred())
 				Expect(logicalCloud).To(Equal(dcm.LogicalCloud{}))
+			})
+
+			It("create followed by instantiation should succeed (level 1/standard) and status reflected", func() {
+				var err error
+				var stateInfo state.StateInfo
+
+				originalLogicalCloud := _createTestLogicalCloud("testlogicalCloudL1", "1")
+				logicalCloud, err := client.Create("project", originalLogicalCloud)
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(originalLogicalCloud).To(Equal(logicalCloud))
+
+				// create rsync controller in database (for grpc calls)
+				ctrlkey := controller.ControllerKey{
+					ControllerGroup: "orchestrator",
+					ControllerName:  "",
+				}
+				ctrl := controller.Controller{}
+				ctrl.Metadata = types.Metadata{
+					Name:        "rsync",
+					Description: "",
+					UserData1:   "",
+					UserData2:   "",
+				}
+				ctrl.Spec = controller.ControllerSpec{
+					Host: "localhost",
+					Port: 9031,
+					Type: "",
+				}
+				mdb.Insert("resources", ctrlkey, nil, "data", ctrl)
+
+				// Expect status to be Created
+				stateInfo, err = client.GetState("project", "testlogicalCloudL1")
+				Expect(len(stateInfo.Actions)).To(Equal(1))
+				Expect(stateInfo.Actions[0].State).To(Equal("Created"))
+				Expect(err).ShouldNot(HaveOccurred())
+
+				// Mock gRPC InstallApp()
+				var gsia = &grpcSignature{}
+				gsia.grpcReq = nil
+				gsia.grpcRsp = []interface{}{&installapp.InstallAppResponse{
+					AppContextInstalled: true,
+				}, nil}
+				testMockGrpc(mockinstallapp.EXPECT().InstallApp, gsia.grpcReq, gsia.grpcRsp)
+
+				// Mock gRPC ReadyNotify()
+				var gsrn = &grpcSignature{}
+				gsrn.grpcReq = nil
+				testMockGrpcRN(mockreadynotify.EXPECT().Alert, gsrn.grpcReq)
+
+				// resources needed to call Instantiate()
+				lc := _createTestLogicalCloud("testlogicalCloudL1", "1")
+				cl := _createTestClusterReference("testcp", "testcl")
+				quota := _createTestQuota("testquota")
+				up := _createTestUserPermission("testup", "testns")
+
+				// Expect status to be Created
+				stateInfo, err = client.GetState("project", "testlogicalCloudL1")
+				Expect(len(stateInfo.Actions)).To(Equal(1))
+				Expect(stateInfo.Actions[0].State).To(Equal("Created"))
+
+				// Next step is to verify that Instantiated state gets added after Instantiate() succeeds (mocking CSR auth success)
+
+				// Expect instantiation to succeed
+				err = dcm.Instantiate("project", lc, []dcm.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up})
+				Expect(err).ShouldNot(HaveOccurred())
+
+				// INFO: Status doesn't get updated simply by doing this because the entire grpc and CSR issuing path isn't mocked here
 			})
 		})
 	})
