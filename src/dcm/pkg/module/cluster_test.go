@@ -12,13 +12,13 @@ import (
 var _ = Describe("Cluster", func() {
 
 	var (
-		mdb    *db.MockDB
+		mdb    *db.NewMockDB
 		client *dcm.ClusterClient
 	)
 
 	BeforeEach(func() {
 		client = dcm.NewClusterClient()
-		mdb = new(db.MockDB)
+		mdb = new(db.NewMockDB)
 		mdb.Err = nil
 		mdb.Items = []map[string]map[string][]byte{}
 		db.DBconn = mdb
