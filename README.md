@@ -119,18 +119,23 @@ Do the following steps:
    * For release:
      ```
         export BUILD_CAUSE=RELEASE
-        export EMCOSRV_RELEASE_TAG=emco-${release_number}tag
+        export EMCOSRV_RELEASE_TAG=emco-${release_number}
      ```
      This sets the image tags to the specified tag. Note that if you set
      `BUILD_CAUSE=RELEASE` but do not set `EMCOSRV_RELEASE_TAG`, the image tags
      will be set to any tag defined on the git `HEAD` of the current git
      branch. If no git tag is defined on the HEAD, the build will fail.
 
- * Set up the Helm charts: Be sure to reference those image names and tags in
-   your Helm charts.
-
  * Build and deploy EMCO:
    ```make deploy```
+
+ * The helm charts and other build artefacts are put in a new folder called `bin/`
+   - Helm chart: `bin/helm/`
+   - EMCO control utility: `bin/emcoctl/emcoctl`
+
+ * Transfer those files over to your target (assuming you built EMCO on a separate development system). To finalize your installation on the target:
+   - Copy the `emcoctl` file somewhere on the path
+   - Run the script in the `bin/helm` folder: `./emco-base-helm-install.sh install` (`./emco-base-helm-install.sh -h` for more details)
 
 ### Deploy sample test cases with EMCO
 See [this Readme](examples/single-cluster/Readme.md) on how to setup an environment and run a few test cases with EMCO.
