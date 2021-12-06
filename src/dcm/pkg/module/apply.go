@@ -783,6 +783,11 @@ func Instantiate(project string, logicalcloud LogicalCloud, clusterList []Cluste
 		}
 	}
 
+	err = addState(lcclient, project, logicalCloudName, ctxVal.(string), state.StateEnum.Terminated)
+	if err != nil {
+		return err // error already logged
+	}
+
 	// call resource synchronizer to instantiate the CRs in the cluster
 	err = callRsyncInstall(ctxVal)
 	if err != nil {

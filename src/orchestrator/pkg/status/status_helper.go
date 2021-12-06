@@ -16,6 +16,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/utils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/resourcestatus"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -44,9 +45,23 @@ func getUnstruct(y []byte) (unstructured.Unstructured, error) {
 	return unstruct, nil
 }
 
+func updateReadyCounts(ready bool, cnts map[string]int) string {
+	if ready {
+		cnt := cnts["Ready"]
+		cnts["Ready"] = cnt + 1
+		return "Ready"
+	} else {
+		cnt := cnts["NotReady"]
+		cnts["NotReady"] = cnt + 1
+		return "NotReady"
+	}
+}
+
 // GetClusterResources takes in a ResourceBundleStatus CR and resturns a list of ResourceStatus elments
 func GetClusterResources(rbData rb.ResourceBundleStatus, qOutput string, fResources []string,
 	resourceList *[]ResourceStatus, cnts map[string]int) (int, error) {
+
+	readyChecker := status.NewReadyChecker(status.PausedAsReady(true), status.CheckJobs(true))
 
 	count := 0
 
@@ -60,10 +75,9 @@ func GetClusterResources(rbData rb.ResourceBundleStatus, qOutput string, fResour
 		if qOutput == "detail" {
 			r.Detail = p
 		}
+		r.ClusterStatus = updateReadyCounts(readyChecker.PodReady(&p), cnts)
 		*resourceList = append(*resourceList, r)
 		count++
-		cnt := cnts["Present"]
-		cnts["Present"] = cnt + 1
 	}
 
 	for _, s := range rbData.ServiceStatuses {
@@ -76,10 +90,9 @@ func GetClusterResources(rbData rb.ResourceBundleStatus, qOutput string, fResour
 		if qOutput == "detail" {
 			r.Detail = s
 		}
+		r.ClusterStatus = updateReadyCounts(readyChecker.ServiceReady(&s), cnts)
 		*resourceList = append(*resourceList, r)
 		count++
-		cnt := cnts["Present"]
-		cnts["Present"] = cnt + 1
 	}
 
 	for _, d := range rbData.DeploymentStatuses {
@@ -92,10 +105,9 @@ func GetClusterResources(rbData rb.ResourceBundleStatus, qOutput string, fResour
 		if qOutput == "detail" {
 			r.Detail = d
 		}
+		r.ClusterStatus = updateReadyCounts(readyChecker.DeploymentReady(&d), cnts)
 		*resourceList = append(*resourceList, r)
 		count++
-		cnt := cnts["Present"]
-		cnts["Present"] = cnt + 1
 	}
 
 	for _, c := range rbData.ConfigMapStatuses {
@@ -108,10 +120,9 @@ func GetClusterResources(rbData rb.ResourceBundleStatus, qOutput string, fResour
 		if qOutput == "detail" {
 			r.Detail = c
 		}
+		r.ClusterStatus = updateReadyCounts(true, cnts)
 		*resourceList = append(*resourceList, r)
 		count++
-		cnt := cnts["Present"]
-		cnts["Present"] = cnt + 1
 	}
 
 	for _, s := range rbData.SecretStatuses {
@@ -124,10 +135,9 @@ func GetClusterResources(rbData rb.ResourceBundleStatus, qOutput string, fResour
 		if qOutput == "detail" {
 			r.Detail = s
 		}
+		r.ClusterStatus = updateReadyCounts(true, cnts)
 		*resourceList = append(*resourceList, r)
 		count++
-		cnt := cnts["Present"]
-		cnts["Present"] = cnt + 1
 	}
 
 	for _, d := range rbData.DaemonSetStatuses {
@@ -140,10 +150,9 @@ func GetClusterResources(rbData rb.ResourceBundleStatus, qOutput string, fResour
 		if qOutput == "detail" {
 			r.Detail = d
 		}
+		r.ClusterStatus = updateReadyCounts(readyChecker.DaemonSetReady(&d), cnts)
 		*resourceList = append(*resourceList, r)
 		count++
-		cnt := cnts["Present"]
-		cnts["Present"] = cnt + 1
 	}
 
 	for _, i := range rbData.IngressStatuses {
@@ -156,10 +165,9 @@ func GetClusterResources(rbData rb.ResourceBundleStatus, qOutput string, fResour
 		if qOutput == "detail" {
 			r.Detail = i
 		}
+		r.ClusterStatus = updateReadyCounts(true, cnts)
 		*resourceList = append(*resourceList, r)
 		count++
-		cnt := cnts["Present"]
-		cnts["Present"] = cnt + 1
 	}
 
 	for _, j := range rbData.JobStatuses {
@@ -172,10 +180,9 @@ func GetClusterResources(rbData rb.ResourceBundleStatus, qOutput string, fResour
 		if qOutput == "detail" {
 			r.Detail = j
 		}
+		r.ClusterStatus = updateReadyCounts(readyChecker.JobReady(&j), cnts)
 		*resourceList = append(*resourceList, r)
 		count++
-		cnt := cnts["Present"]
-		cnts["Present"] = cnt + 1
 	}
 
 	for _, s := range rbData.StatefulSetStatuses {
@@ -188,10 +195,9 @@ func GetClusterResources(rbData rb.ResourceBundleStatus, qOutput string, fResour
 		if qOutput == "detail" {
 			r.Detail = s
 		}
+		r.ClusterStatus = updateReadyCounts(readyChecker.StatefulSetReady(&s), cnts)
 		*resourceList = append(*resourceList, r)
 		count++
-		cnt := cnts["Present"]
-		cnts["Present"] = cnt + 1
 	}
 
 	for _, s := range rbData.CsrStatuses {
@@ -204,10 +210,9 @@ func GetClusterResources(rbData rb.ResourceBundleStatus, qOutput string, fResour
 		if qOutput == "detail" {
 			r.Detail = s
 		}
+		r.ClusterStatus = updateReadyCounts(true, cnts)
 		*resourceList = append(*resourceList, r)
 		count++
-		cnt := cnts["Present"]
-		cnts["Present"] = cnt + 1
 	}
 
 	return count, nil

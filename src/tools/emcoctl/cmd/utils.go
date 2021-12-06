@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,8 +19,12 @@ import (
 	"text/template"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
 	pkgerrors "github.com/pkg/errors"
+	statusnotifypb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/statusnotify"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/encoding/protojson"
 	"gopkg.in/yaml.v3"
 )
 
@@ -65,6 +70,26 @@ type Resources struct {
 	body   []byte
 	file   string
 	files  []string
+}
+
+// GrpcClient to use with CLI
+type GrpcClient struct {
+	client *grpc.ClientConn
+}
+
+// CreateGrpcClient creates the gRPC Client Connection
+func newGrpcClient(endpoint string) (*grpc.ClientConn, error) {
+	var err error
+	var opts []grpc.DialOption
+
+	opts = append(opts, grpc.WithInsecure())
+
+	conn, err := grpc.Dial(endpoint, opts...)
+	if err != nil {
+		fmt.Printf("Grpc Client Initialization failed with error: %v\n", err)
+	}
+
+	return conn, err
 }
 
 // RestyClient to use with CLI
@@ -585,6 +610,152 @@ func GetURL(anchor string) (string, error) {
 		return "", fmt.Errorf("Invalid baseUrl: %s", baseUrl)
 	}
 	return (baseUrl + "/" + anchor), nil
+}
+
+// WatchGrpcEndpoint reads the configuration file to get gRPC Endpoint
+// and makes a connection to watch status notifications.
+func WatchGrpcEndpoint(args ...string) {
+	var endpoint string
+	var anchor string
+	var reg statusnotifypb.StatusRegistration
+
+	reg.Output = statusnotifypb.OutputType_SUMMARY
+	reg.StatusType = statusnotifypb.StatusValue_READY
+	reg.Apps = make([]string, 0)
+	reg.Clusters = make([]string, 0)
+	reg.Resources = make([]string, 0)
+
+	for i, arg := range args {
+		if i == 0 {
+			anchor = arg
+			continue
+		}
+		s := strings.Split(arg, "=")
+		if len(s) != 2 {
+			fmt.Errorf("Invalid argument: %s\n", s)
+			fmt.Println("Use: 'emcoctl watch --help'")
+			return
+		}
+		switch s[0] {
+		case "format":
+			if s[1] == "summary" {
+				reg.Output = statusnotifypb.OutputType_SUMMARY
+			} else if s[1] == "all" {
+				reg.Output = statusnotifypb.OutputType_ALL
+			} else {
+				fmt.Errorf("Invalid output format parameter: %s\n", s[1])
+				fmt.Println("Use: 'emcoctl watch --help'")
+				return
+			}
+		case "status":
+			if s[1] == "deployed" {
+				reg.StatusType = statusnotifypb.StatusValue_DEPLOYED
+			} else if s[1] == "ready" {
+				reg.StatusType = statusnotifypb.StatusValue_READY
+			} else {
+				fmt.Errorf("Invalid output format parameter: %s\n", s[1])
+				fmt.Println("Use: 'emcoctl watch --help'")
+				return
+			}
+		case "app":
+			reg.Apps = append(reg.Apps, s[1])
+		case "cluster":
+			reg.Clusters = append(reg.Clusters, s[1])
+		case "resource":
+			reg.Resources = append(reg.Resources, s[1])
+		}
+	}
+
+	s := strings.Split(anchor, "/")
+	if len(s) < 1 {
+		fmt.Errorf("Invalid Anchor: %s\n", s)
+		fmt.Println("Use: 'emcoctl watch --help'")
+		return
+	}
+
+	switch s[0] {
+	case "cluster-providers":
+		if len(s) == 5 && s[2] == "clusters" && s[4] == "status" {
+			endpoint = GetNcmGrpcEndpoint()
+			reg.Key = &statusnotifypb.StatusRegistration_ClusterKey{
+				ClusterKey: &statusnotifypb.ClusterKey{
+					ClusterProvider: s[1],
+					Cluster:         s[3],
+				},
+			}
+			break
+		}
+		fmt.Errorf("Invalid Anchor: %s\n", s)
+		fmt.Println("Use: 'emcoctl watch --help'")
+		return
+	case "projects":
+		if len(s) == 5 && s[2] == "logical-clouds" && s[4] == "status" {
+			endpoint = GetDcmGrpcEndpoint()
+			reg.Key = &statusnotifypb.StatusRegistration_LcKey{
+				LcKey: &statusnotifypb.LcKey{
+					Project:      s[1],
+					LogicalCloud: s[3],
+				},
+			}
+			break
+		}
+		if len(s) == 8 && s[2] == "composite-apps" && s[5] == "deployment-intent-groups" && s[7] == "status" {
+			endpoint = GetOrchestratorGrpcEndpoint()
+			reg.Key = &statusnotifypb.StatusRegistration_DigKey{
+				DigKey: &statusnotifypb.DigKey{
+					Project:               s[1],
+					CompositeApp:          s[3],
+					CompositeAppVersion:   s[4],
+					DeploymentIntentGroup: s[6],
+				},
+			}
+			break
+		}
+		fmt.Errorf("Invalid status anchor: %s\n", s)
+		fmt.Println("Use: 'emcoctl watch --help'")
+		return
+	default:
+		fmt.Errorf("Invalid status anchor: %s\n", s)
+		fmt.Println("Use: 'emcoctl watch --help'")
+		return
+	}
+
+	reg.ClientId = uuid.New().String()
+
+	conn, err := newGrpcClient(endpoint)
+	if err != nil {
+		fmt.Errorf("Error connecting to gRPC status endpoint: %s, Error: %s\n", endpoint, err)
+		fmt.Println("Use: 'emcoctl watch --help'")
+		return
+	}
+
+	client := statusnotifypb.NewStatusNotifyClient(conn)
+
+	stream, err := client.StatusRegister(context.Background(), &reg, grpc.WaitForReady(true))
+	if err != nil {
+		fmt.Errorf("Error registering for status notifications, gRPC status endpoint: %s, Error: %s\n", endpoint, err)
+		fmt.Println("Use: 'emcoctl watch --help'")
+		return
+	}
+
+	for true {
+		resp, err := stream.Recv()
+		if err != nil {
+			fmt.Errorf("error reading from status stream: %s\n", err)
+			time.Sleep(5 * time.Second) // protect against potential deluge of errors in the for loop
+			continue
+		}
+		printResponse(resp)
+	}
+}
+
+func printResponse(resp *statusnotifypb.StatusNotification) {
+	jsonStatus, err := protojson.Marshal(resp)
+	if err != nil {
+		fmt.Println("Error Marshalling Status Notification to JSON:", err)
+		return
+	}
+	fmt.Printf("%v\n", string(jsonStatus))
 }
 
 func printOutput(url, op string, resp *resty.Response) {

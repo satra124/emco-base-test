@@ -27,8 +27,9 @@ type EmcoConfigurations struct {
 
 // ControllerConfigurations exported
 type ControllerConfigurations struct {
-	Port int
-	Host string
+	Port       int
+	StatusPort int
+	Host       string
 }
 
 const urlVersion string = "v2"
@@ -40,12 +41,15 @@ var Configurations EmcoConfigurations
 func SetDefaultConfiguration() {
 	Configurations.Orchestrator.Host = "localhost"
 	Configurations.Orchestrator.Port = 9015
+	Configurations.Orchestrator.StatusPort = 9016
 	Configurations.Clm.Host = "localhost"
 	Configurations.Clm.Port = 9061
 	Configurations.Ncm.Host = "localhost"
 	Configurations.Ncm.Port = 9031
+	Configurations.Ncm.StatusPort = 9082
 	Configurations.Dcm.Host = "localhost"
 	Configurations.Dcm.Port = 0
+	Configurations.Dcm.StatusPort = 9078
 	Configurations.OvnAction.Host = "localhost"
 	Configurations.OvnAction.Port = 9051
 	Configurations.Dtc.Host = "localhost"
@@ -194,7 +198,7 @@ func GetSfcURL() string {
 	return urlPrefix + Configurations.Sfc.Host + ":" + strconv.Itoa(Configurations.Sfc.Port) + "/" + urlVersion
 }
 
-// GetSfcClientURL Url for sfc
+// GetSfcClientURL Url for sfcclient
 func GetSfcClientURL() string {
 	// If Ingress is available use that url
 	if s := GetIngressURL(); s != "" {
@@ -206,4 +210,34 @@ func GetSfcClientURL() string {
 		os.Exit(1)
 	}
 	return urlPrefix + Configurations.SfcClient.Host + ":" + strconv.Itoa(Configurations.SfcClient.Port) + "/" + urlVersion
+}
+
+// GetOrchestratorGrpcEndpoint gRPC endpoint for Orchestrator
+func GetOrchestratorGrpcEndpoint() string {
+	if Configurations.Orchestrator.Host == "" || Configurations.Orchestrator.StatusPort == 0 {
+		fmt.Println("Fatal: No Orchestrator StatusPort Information in Config File")
+		// Exit executing
+		os.Exit(1)
+	}
+	return Configurations.Orchestrator.Host + ":" + strconv.Itoa(Configurations.Orchestrator.StatusPort)
+}
+
+// GetNcmGrpcEndpoint gRPC endpoint for ncm
+func GetNcmGrpcEndpoint() string {
+	if Configurations.Ncm.Host == "" || Configurations.Ncm.StatusPort == 0 {
+		fmt.Println("Fatal: No NCM StatusPort Information in Config File")
+		// Exit executing
+		os.Exit(1)
+	}
+	return Configurations.Ncm.Host + ":" + strconv.Itoa(Configurations.Ncm.StatusPort)
+}
+
+// GetDcmGrpcEndpoint gRPC endpoint for dcm
+func GetDcmGrpcEndpoint() string {
+	if Configurations.Dcm.Host == "" || Configurations.Dcm.StatusPort == 0 {
+		fmt.Println("Fatal: No DCM StatusPort Information in Config File")
+		// Exit executing
+		os.Exit(1)
+	}
+	return Configurations.Dcm.Host + ":" + strconv.Itoa(Configurations.Dcm.StatusPort)
 }
