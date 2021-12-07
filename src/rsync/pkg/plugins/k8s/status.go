@@ -1,23 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2020 Intel Corporation
 
-package connector
+package k8s
 
 import (
-	"encoding/json"
-	"fmt"
 	"strings"
 	"sync"
 
-	yaml "github.com/ghodss/yaml"
 	pkgerrors "github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
+	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 
 	v1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
 	clientset "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/generated/clientset/versioned"
 	informers "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/generated/informers/externalversions"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -33,38 +29,35 @@ const monitorLabel = "emco/deployment-id"
 
 // HandleStatusUpdate for an application in a cluster
 func HandleStatusUpdate(clusterId string, id string, v *v1alpha1.ResourceBundleState) {
+	log.Info("K8s HandleStatusUpdate", log.Fields{"id": id, "cluster": clusterId})
 	// Get the contextId from the label (id)
 	result := strings.SplitN(id, "-", 2)
-	logrus.Info("::HandleStatusUpdate id::", id)
-	logrus.Info("::HandleStatusUpdate result::", result)
+	log.Info("::HandleStatusUpdate::", log.Fields{"id": id, "cluster": clusterId})
 	if result[0] == "" {
-		logrus.Info(clusterId, "::label is missing an appcontext identifier::", id)
+		log.Error("::label is missing an appcontext identifier::", log.Fields{"id": id, "cluster": clusterId})
 		return
 	}
 	if len(result) != 2 {
-		logrus.Info(clusterId, "::invalid label format::", id)
+		log.Error("::invalid label format::", log.Fields{"id": id, "cluster": clusterId})
 		return
 	}
 	// Get the app from the label (id)
 	if result[1] == "" {
-		logrus.Info(clusterId, "::label is missing an app identifier::", id)
+		log.Error("::label is missing an app identifier::", log.Fields{"id": id, "cluster": clusterId})
 		return
 	}
+	log.Info("K8s HandleStatusUpdate", log.Fields{"id": id, "cluster": clusterId, "app": result[1]})
 	// Notify Resource tracking
 	status.HandleResourcesStatus(result[0], result[1], clusterId, v)
 }
 
 // StartClusterWatcher watches for CR
 // configBytes - Kubectl file data
-func (c *Connection) StartClusterWatcher(clusterId string) error {
+func (c *K8sProvider) StartClusterWatcher() error {
 
 	// a cluster watcher always watches the cluster as a whole, so rsync's CloudConfig level
 	// is 0 and namespace doesn't need to be specified because the result is non-ambiguous
-	logrus.Info(fmt.Sprintf("Starting cluster watcher with L0 cloudconfig"))
-	configBytes, err := GetKubeConfig(clusterId, "0", "")
-	if err != nil {
-		return err
-	}
+	log.Info("Starting cluster watcher with L0 cloudconfig", log.Fields{})
 
 	//key := provider + "+" + name
 	// Get the lock
@@ -74,14 +67,19 @@ func (c *Connection) StartClusterWatcher(clusterId string) error {
 	if channelData.channels == nil {
 		channelData.channels = make(map[string]chan struct{})
 	}
-	_, ok := channelData.channels[clusterId]
+	_, ok := channelData.channels[c.cluster]
 	if !ok {
 		// Create Channel
-		channelData.channels[clusterId] = make(chan struct{})
+		channelData.channels[c.cluster] = make(chan struct{})
+		// Read config
+		configBytes, err := GetKubeConfig(c.cluster, "0", "")
+		if err != nil {
+			return err
+		}
 		// Create config
 		config, err := clientcmd.RESTConfigFromKubeConfig(configBytes)
 		if err != nil {
-			logrus.Info(fmt.Sprintf("RESTConfigFromKubeConfig error: %s", err.Error()))
+			log.Error("RESTConfigFromKubeConfig error:", log.Fields{"err": err})
 			return pkgerrors.Wrap(err, "RESTConfigFromKubeConfig error")
 		}
 		k8sClient, err := clientset.NewForConfig(config)
@@ -91,7 +89,7 @@ func (c *Connection) StartClusterWatcher(clusterId string) error {
 		// Create Informer
 		mInformerFactory := informers.NewSharedInformerFactory(k8sClient, 0)
 		mInformer := mInformerFactory.K8splugin().V1alpha1().ResourceBundleStates().Informer()
-		go scheduleStatus(clusterId, channelData.channels[clusterId], mInformer)
+		go scheduleStatus(c.cluster, channelData.channels[c.cluster], mInformer)
 	}
 	return nil
 }
@@ -149,35 +147,25 @@ func scheduleStatus(clusterId string, c <-chan struct{}, s cache.SharedIndexInfo
 	s.Run(c)
 }
 
-// GetStatusCR returns a status monitoring customer resource
-func (c *Connection) GetStatusCR(label string) ([]byte, error) {
-
-	var statusCr v1alpha1.ResourceBundleState
-
-	statusCr.TypeMeta.APIVersion = "k8splugin.io/v1alpha1"
-	statusCr.TypeMeta.Kind = "ResourceBundleState"
-	statusCr.SetName(label)
-
-	labels := make(map[string]string)
-	labels["emco/deployment-id"] = label
-	statusCr.SetLabels(labels)
-
-	labelSelector, err := metav1.ParseToLabelSelector("emco/deployment-id = " + label)
-	if err != nil {
-		return nil, err
+// ApplyStatusCR applies status CR
+func (p *K8sProvider) ApplyStatusCR(content []byte) error {
+	if err := p.client.Apply(content); err != nil {
+		log.Error("Failed to apply Status CR", log.Fields{
+			"error": err,
+		})
+		return err
 	}
-	statusCr.Spec.Selector = labelSelector
+	return nil
 
-	// Marshaling to json then convert to yaml works better than marshaling to yaml
-	// The 'apiVersion' attribute was marshaling to 'apiversion'
-	j, err := json.Marshal(&statusCr)
-	if err != nil {
-		return nil, err
-	}
-	y, err := yaml.JSONToYAML(j)
-	if err != nil {
-		return nil, err
-	}
+}
 
-	return y, nil
+// DeleteStatusCR deletes status CR
+func (p *K8sProvider) DeleteStatusCR(content []byte) error {
+	if err := p.client.Delete(content); err != nil {
+		log.Error("Failed to delete Status CR", log.Fields{
+			"error": err,
+		})
+		return err
+	}
+	return nil
 }

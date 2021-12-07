@@ -1,29 +1,45 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2020 Intel Corporation
 
-package context
+package utils
 
 import (
 	"encoding/json"
 	"fmt"
 	"strings"
 
+	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/resourcestatus"
-	pkgerrors "github.com/pkg/errors"
-	//	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
 )
 
-type AppContextUtils struct {
-	ac appcontext.AppContext
+type AppContextReference struct {
+	acID string
+	ac   appcontext.AppContext
+}
+
+func NewAppContextReference(acID string) (AppContextReference, error) {
+	ac := appcontext.AppContext{}
+	if len(acID) == 0 {
+		log.Error("Error loading AppContext - appContexID is nil", log.Fields{})
+		return AppContextReference{}, pkgerrors.Errorf("appContexID is nil")
+	}
+	_, err := ac.LoadAppContext(acID)
+	if err != nil {
+		log.Error("Error loading AppContext", log.Fields{"err": err, "acID": acID})
+		return AppContextReference{}, err
+	}
+	return AppContextReference{ac: ac, acID: acID}, nil
+}
+func (a *AppContextReference) GetAppContextHandle() appcontext.AppContext {
+	return a.ac
 }
 
 //GetAppContextFlag gets the stop flag
-func (a *AppContextUtils) GetAppContextFlag(key string) (bool, error) {
+func (a *AppContextReference) GetAppContextFlag(key string) (bool, error) {
 	h, err := a.ac.GetCompositeAppHandle()
 	if err != nil {
-		log.Error("Error GetAppContextFlag", log.Fields{"err": err})
 		// Treat an error as stop
 		return true, err
 	}
@@ -37,7 +53,7 @@ func (a *AppContextUtils) GetAppContextFlag(key string) (bool, error) {
 }
 
 //UpdateAppContextFlag to update flags
-func (a *AppContextUtils) UpdateAppContextFlag(key string, b bool) error {
+func (a *AppContextReference) UpdateAppContextFlag(key string, b bool) error {
 	h, err := a.ac.GetCompositeAppHandle()
 	if err != nil {
 		log.Error("Error UpdateAppContextFlag", log.Fields{"err": err})
@@ -57,7 +73,7 @@ func (a *AppContextUtils) UpdateAppContextFlag(key string, b bool) error {
 }
 
 //UpdateAppContextStatus updates a field in AppContext
-func (a *AppContextUtils) UpdateAppContextStatus(key string, status interface{}) error {
+func (a *AppContextReference) UpdateAppContextStatus(key string, status interface{}) error {
 	//var acStatus appcontext.AppContextStatus = appcontext.AppContextStatus{}
 	hc, err := a.ac.GetCompositeAppHandle()
 	if err != nil {
@@ -78,7 +94,7 @@ func (a *AppContextUtils) UpdateAppContextStatus(key string, status interface{})
 }
 
 //GetAppContextStatus gets the status
-func (a *AppContextUtils) GetAppContextStatus(key string) (appcontext.AppContextStatus, error) {
+func (a *AppContextReference) GetAppContextStatus(key string) (appcontext.AppContextStatus, error) {
 	var acStatus appcontext.AppContextStatus = appcontext.AppContextStatus{}
 
 	hc, err := a.ac.GetCompositeAppHandle()
@@ -110,8 +126,8 @@ func (a *AppContextUtils) GetAppContextStatus(key string) (appcontext.AppContext
 	return acStatus, err
 }
 
-// SetClusterReadyStatus gets the cluster ready status
-func (a *AppContextUtils) SetClusterReadyStatus(app, cluster string, status appcontext.StatusValue) {
+// SetClusterAvailableStatus sets the cluster available status
+func (a *AppContextReference) SetClusterAvailableStatus(app, cluster string, status appcontext.StatusValue) {
 	ch, err := a.ac.GetClusterHandle(app, cluster)
 	if err != nil {
 		return
@@ -123,13 +139,12 @@ func (a *AppContextUtils) SetClusterReadyStatus(app, cluster string, status appc
 	} else {
 		a.ac.UpdateStatusValue(rsh, status)
 	}
-	return
 }
 
-// GetClusterReadyStatus sets the cluster ready status
+// GetClusterAvailableStatus sets the cluster ready status
 // does not return an error, just a status of Unknown if the cluster readystatus key does
 // not exist or any other error occurs.
-func (a *AppContextUtils) GetClusterReadyStatus(app, cluster string) appcontext.StatusValue {
+func (a *AppContextReference) GetClusterAvailableStatus(app, cluster string) appcontext.StatusValue {
 	ch, err := a.ac.GetClusterHandle(app, cluster)
 	if err != nil {
 		return appcontext.ClusterReadyStatusEnum.Unknown
@@ -147,7 +162,7 @@ func (a *AppContextUtils) GetClusterReadyStatus(app, cluster string) appcontext.
 }
 
 // GetRes Reads resource
-func (a *AppContextUtils) GetRes(name string, app string, cluster string) ([]byte, interface{}, error) {
+func (a *AppContextReference) GetRes(name string, app string, cluster string) ([]byte, interface{}, error) {
 	var byteRes []byte
 
 	rh, err := a.ac.GetResourceHandle(app, cluster, name)
@@ -185,34 +200,8 @@ func (a *AppContextUtils) GetRes(name string, app string, cluster string) ([]byt
 	return byteRes, sh, nil
 }
 
-// GetSubResApprove Reads sub resource
-func (a *AppContextUtils) GetSubResApprove(name string, app string, cluster string) ([]byte, interface{}, error) {
-	var byteRes []byte
-	rh, err := a.ac.GetResourceHandle(app, cluster, name)
-	if err != nil {
-		log.Error("Error GetSubResApprove", log.Fields{"err": err})
-		return nil, nil, err
-	}
-	// Check if Subresource defined
-	sh, err := a.ac.GetLevelHandle(rh, "subresource/approval")
-	if err != nil {
-		return nil, nil, err
-	}
-	resval, err := a.ac.GetValue(sh)
-	if err != nil {
-		return nil, sh, err
-	}
-	if resval != "" {
-		byteRes = []byte(fmt.Sprintf("%v", resval.(interface{})))
-	} else {
-		log.Error("Error GetSubResApprove, Resource name is nil", log.Fields{})
-		return nil, sh, pkgerrors.Errorf("SubResource value is nil %s", name)
-	}
-	return byteRes, sh, nil
-}
-
 //GetNamespace reads namespace from metadata
-func (a *AppContextUtils) GetNamespace() (string, string) {
+func (a *AppContextReference) GetNamespace() (string, string) {
 
 	namespace := "default"
 	level := "0"
@@ -229,7 +218,7 @@ func (a *AppContextUtils) GetNamespace() (string, string) {
 }
 
 // PutRes copies resource into appContext
-func (a *AppContextUtils) PutRes(name string, app string, cluster string, data []byte) error {
+func (a *AppContextReference) PutRes(name string, app string, cluster string, data []byte) error {
 
 	rh, err := a.ac.GetResourceHandle(app, cluster, name)
 	if err != nil {
@@ -247,7 +236,7 @@ func (a *AppContextUtils) PutRes(name string, app string, cluster string, data [
 }
 
 //GetAppContextFlag gets the statusappctxid
-func (a *AppContextUtils) GetStatusAppContext(key string) (string, error) {
+func (a *AppContextReference) GetStatusAppContext(key string) (string, error) {
 	h, err := a.ac.GetCompositeAppHandle()
 	if err != nil {
 		log.Error("Error GetAppContextFlag", log.Fields{"err": err})
@@ -264,7 +253,7 @@ func (a *AppContextUtils) GetStatusAppContext(key string) (string, error) {
 
 // Add resource level for a status
 // Function adds any missing levels to AppContext
-func (a *AppContextUtils) AddResourceStatus(name string, app string, cluster string, status interface{}, acID string) error {
+func (a *AppContextReference) AddResourceStatus(name string, app string, cluster string, status interface{}, acID string) error {
 	var rh, ch, ah interface{}
 
 	rh, err := a.ac.GetResourceHandle(app, cluster, name)
@@ -337,4 +326,113 @@ func (a *AppContextUtils) AddResourceStatus(name string, app string, cluster str
 		a.ac.UpdateStatusValue(lch, link)
 	}
 	return nil
+}
+
+// SetClusterResourceReady sets the cluster ready status
+func (a *AppContextReference) SetClusterResourcesReady(app, cluster string, value bool) error {
+
+	ch, err := a.ac.GetClusterHandle(app, cluster)
+	if err != nil {
+		return err
+	}
+	rsh, _ := a.ac.GetLevelHandle(ch, "resourcesready")
+	// If resource ready handle was not found, then create it
+	if rsh == nil {
+		a.ac.AddLevelValue(ch, "resourcesready", value)
+	} else {
+		a.ac.UpdateStatusValue(rsh, value)
+	}
+	return nil
+}
+
+// GetClusterResourceReady gets the cluster ready status
+func (a *AppContextReference) GetClusterResourcesReady(app, cluster string) bool {
+	ch, err := a.ac.GetClusterHandle(app, cluster)
+	if err != nil {
+		return false
+	}
+	rsh, _ := a.ac.GetLevelHandle(ch, "resourcesready")
+	if rsh != nil {
+		status, err := a.ac.GetValue(rsh)
+		if err != nil {
+			return false
+		}
+		return status.(bool)
+	}
+	return false
+}
+
+// SetResourceReadyStatus sets the resource ready status
+func (a *AppContextReference) SetResourceReadyStatus(app, cluster, res string, readyType string, value bool) error {
+	rh, err := a.ac.GetResourceHandle(app, cluster, res)
+	if err != nil {
+		return err
+	}
+	rsh, _ := a.ac.GetLevelHandle(rh, string(readyType))
+	// If resource ready handle was not found, then create it
+	if rsh == nil {
+		a.ac.AddLevelValue(rh, string(readyType), value)
+	} else {
+		a.ac.UpdateStatusValue(rsh, value)
+	}
+	return nil
+}
+
+// GetClusterResourceReady gets the resources ready status
+func (a *AppContextReference) GetResourceReadyStatus(app, cluster, res string, readyType string) bool {
+	rh, err := a.ac.GetResourceHandle(app, cluster, res)
+	if err != nil {
+		return false
+	}
+	rsh, _ := a.ac.GetLevelHandle(rh, string(readyType))
+	if rsh != nil {
+		status, err := a.ac.GetValue(rsh)
+		if err != nil {
+			return false
+		}
+		return status.(bool)
+	}
+	return false
+}
+
+// CheckAppReadyOnAllClusters checks if App is ready on all clusters
+func (a *AppContextReference) CheckAppReadyOnAllClusters(app string) bool {
+	// Check if all the clusters are ready
+	cl, err := a.ac.GetClusterNames(app)
+	if err != nil {
+		return false
+	}
+	for _, cn := range cl {
+		if !a.GetClusterResourcesReady(app, cn) {
+			// Some cluster is not ready
+			return false
+		}
+	}
+	return true
+}
+
+func (a *AppContextReference) GetSubResApprove(name, app, cluster string) ([]byte, interface{}, error) {
+	var byteRes []byte
+
+	rh, err := a.ac.GetResourceHandle(app, cluster, name)
+	if err != nil {
+		log.Error("Error GetSubResApprove", log.Fields{"err": err})
+		return nil, nil, err
+	}
+	// Check if Subresource defined
+	sh, err := a.ac.GetLevelHandle(rh, "subresource/approval")
+	if err != nil {
+		return nil, nil, err
+	}
+	resval, err := a.ac.GetValue(sh)
+	if err != nil {
+		return nil, sh, err
+	}
+	if resval != "" {
+		byteRes = []byte(fmt.Sprintf("%v", resval.(interface{})))
+	} else {
+		log.Error("Error GetSubResApprove, Resource name is nil", log.Fields{})
+		return nil, sh, pkgerrors.Errorf("SubResource value is nil %s", name)
+	}
+	return byteRes, sh, nil
 }
