@@ -759,3 +759,163 @@ func (h clusterHandler) deleteClusterKvPairsHandler(w http.ResponseWriter, r *ht
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// Create handles creation of the Cluster Sync Objects entry in the database
+func (h clusterHandler) createClusterSyncObjectsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	provider := vars["clusterProvider"]
+
+	var p clusterPkg.ClusterSyncObjects
+
+	err := json.NewDecoder(r.Body).Decode(&p)
+	switch {
+	case err == io.EOF:
+		log.Error(":: Empty cluster sync object POST body ::", log.Fields{"Error": err})
+		http.Error(w, "Empty body", http.StatusBadRequest)
+		return
+	case err != nil:
+		log.Error(":: Error decoding cluster sync object POST body ::", log.Fields{"Error": err, "Body": p})
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	// Verify JSON Body
+	err, httpError := validation.ValidateJsonSchemaData(ckvJSONFile, p)
+	if err != nil {
+		log.Error(":: Invalid cluster sync object POST body ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), httpError)
+		return
+	}
+
+	// SyncObjectsName is required.
+	if p.Metadata.Name == "" {
+		log.Error(":: Missing cluster sync object name in POST body ::", log.Fields{"Error": err})
+		http.Error(w, "Missing cluster sync object name in POST request", http.StatusBadRequest)
+		return
+	}
+
+	ret, err := h.client.CreateClusterSyncObjects(provider, p, false)
+	if err != nil {
+		apiErr := apierror.HandleErrors(vars, err, p, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(ret)
+	if err != nil {
+		log.Error(":: Error encoding cluster sync object ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// putClusterSyncObjectsHandler  handles update of a ClusterSyncObjects entry in the database
+func (h clusterHandler) putClusterSyncObjectsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	provider := vars["clusterProvider"]
+	syncobject := vars["clusterSyncObject"]
+	var p clusterPkg.ClusterSyncObjects
+
+	err := json.NewDecoder(r.Body).Decode(&p)
+	switch {
+	case err == io.EOF:
+		log.Error(":: Empty cluster sync object PUT body ::", log.Fields{"Error": err})
+		http.Error(w, "Empty body", http.StatusBadRequest)
+		return
+	case err != nil:
+		log.Error(":: Error decoding sync object PUT body ::", log.Fields{"Error": err, "Body": p})
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	// Verify JSON Body
+	err, httpError := validation.ValidateJsonSchemaData(ckvJSONFile, p)
+	if err != nil {
+		log.Error(":: Invalid cluster sync object POST body ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), httpError)
+		return
+	}
+
+	// SyncObjectsName is required.
+	if p.Metadata.Name == "" {
+		log.Error(":: Missing cluster sync object name in POST body ::", log.Fields{"Error": err})
+		http.Error(w, "Missing cluster sync object name in POST request", http.StatusBadRequest)
+		return
+	}
+
+	// SyncObjectsName should match in URL and body
+	if p.Metadata.Name != syncobject {
+		log.Error(":: Mismatched cluster sync object name in PUT body ::", log.Fields{"Error": err})
+		http.Error(w, "Mismatched cluster sync object name in PUT request", http.StatusBadRequest)
+		return
+	}
+
+	ret, err := h.client.CreateClusterSyncObjects(provider, p, true)
+	if err != nil {
+		apiErr := apierror.HandleErrors(vars, err, p, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(ret)
+	if err != nil {
+		log.Error(":: Error encoding cluster sync object ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// Get handles GET operations on a particular Cluster Sync Object
+// Returns a ClusterSyncObjects
+func (h clusterHandler) getClusterSyncObjectsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	provider := vars["clusterProvider"]
+	syncobject := vars["clusterSyncObject"]
+	syncobjectkey := r.URL.Query().Get("key")
+
+	var ret interface{}
+	var err error
+
+	if len(syncobject) == 0 {
+		ret, err = h.client.GetAllClusterSyncObjects(provider)
+	} else if len(syncobjectkey) != 0 {
+		ret, err = h.client.GetClusterSyncObjectsValue(provider, syncobject, syncobjectkey)
+	} else {
+		ret, err = h.client.GetClusterSyncObjects(provider, syncobject)
+	}
+
+	if err != nil {
+		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(ret)
+	if err != nil {
+		log.Error(":: Error encoding cluster sync object response ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// Delete handles DELETE operations on a particular Cluster Provider
+func (h clusterHandler) deleteClusterSyncObjectsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	provider := vars["clusterProvider"]
+	syncobject := vars["clusterSyncObject"]
+
+	err := h.client.DeleteClusterSyncObjects(provider, syncobject)
+	if err != nil {
+		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
