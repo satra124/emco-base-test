@@ -99,9 +99,12 @@ func InvokeReadyNotify(appContextID string) error {
 }
 
 func processAlert(client readynotifypb.ReadyNotifyClient, stream readynotifypb.ReadyNotify_AlertClient) {
+	var ac appcontext.AppContext
 	var appContextID string
-	var lcc *LogicalCloudClient
 	var dcc *ClusterClient
+	var lcmeta appcontext.CompositeAppMeta
+	var project string
+	var logicalCloud string
 
 	allCertsReady := false
 	for !allCertsReady {
@@ -124,13 +127,19 @@ func processAlert(client readynotifypb.ReadyNotifyClient, stream readynotifypb.R
 	// if this point is reached, it means all clusters' certificates have been issued,
 	// so it's time for DCM to build all the L1 kubeconfigs and store them in CloudConfig
 
-	// Get the actual Logical Cloud via the known AppContext ID
-	lcc = NewLogicalCloudClient() // in logicalcloud.go
-	project, logicalCloud, err := GetLogicalCloudFromContext(lcc.storeName, appContextID)
+	// get logical cloud using context logicalcloud meta:
+	_, err := ac.LoadAppContext(appContextID)
+	if err != nil {
+		log.Error("[ReadyNotify gRPC] Error getting Logical Cloud using AppContext ID", log.Fields{"err": err})
+		return
+	}
+	lcmeta, err = ac.GetCompositeAppMeta()
 	if err != nil {
 		log.Error("[ReadyNotify gRPC] Couldn't get Logical Cloud using AppContext ID", log.Fields{"err": err})
 		return
 	}
+	project = lcmeta.Project
+	logicalCloud = lcmeta.LogicalCloud
 	log.Info("[ReadyNotify gRPC] Project and Logical Cloud obtained", log.Fields{"project": project, "logicalCloud": logicalCloud})
 
 	// Get all clusters of the Logical Cloud
@@ -152,8 +161,6 @@ func processAlert(client readynotifypb.ReadyNotifyClient, stream readynotifypb.R
 	}
 	log.Info("[ReadyNotify gRPC] All CloudConfigs for Logical Cloud have been created", log.Fields{"project": project, "logicalCloud": logicalCloud})
 
-	// Set State as Instantiated
-	err = addState(lcc, project, logicalCloud, appContextID, state.StateEnum.Instantiated)
 	if err != nil {
 		return // error already logged
 	}
