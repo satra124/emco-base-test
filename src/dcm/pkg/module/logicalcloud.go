@@ -31,9 +31,10 @@ type MetaDataList struct {
 
 // Spec contains the parameters needed for spec
 type Spec struct {
-	NameSpace string   `json:"namespace"`
-	Level     string   `json:"level"`
-	User      UserData `json:"user"`
+	NameSpace string            `json:"namespace"`
+	Labels    map[string]string `json:"labels"`
+	Level     string            `json:"level"`
+	User      UserData          `json:"user"`
 }
 
 // UserData contains the parameters needed for user

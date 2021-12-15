@@ -43,8 +43,9 @@ type Resource struct {
 }
 
 type MetaDatas struct {
-	Name      string `yaml:"name"`
-	Namespace string `yaml:"namespace,omitempty"`
+	Name      string            `yaml:"name"`
+	Namespace string            `yaml:"namespace,omitempty"`
+	Labels    map[string]string `yaml:"labels,omitempty"`
 }
 
 type Specs struct {
@@ -103,12 +104,14 @@ func cleanupCompositeApp(context appcontext.AppContext, err error, reason string
 func createNamespace(logicalcloud LogicalCloud) (string, string, error) {
 
 	name := logicalcloud.Specification.NameSpace
+	labels := logicalcloud.Specification.Labels
 
 	namespace := Resource{
 		ApiVersion: "v1",
 		Kind:       "Namespace",
 		MetaData: MetaDatas{
-			Name: name,
+			Name:   name,
+			Labels: labels,
 		},
 	}
 
