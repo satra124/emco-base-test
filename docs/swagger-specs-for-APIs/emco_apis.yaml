@@ -5286,7 +5286,7 @@ paths:
           description: Internal Server Error
 
   # HPA INTENTS API
-  /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/:
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/hpa-intents/:
     parameters:
       - $ref: '#/components/parameters/projectName'
       - $ref: '#/components/parameters/compositeAppName'
@@ -5344,7 +5344,7 @@ paths:
           description: Internal Server Error
 
   # HPA INTENT RUD(retrieve, update, delete) API
-  /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/{hpa-intent-name}:
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/hpa-intents/{hpa-intent-name}:
     parameters:
       - $ref: '#/components/parameters/projectName'
       - $ref: '#/components/parameters/compositeAppName'
@@ -5423,7 +5423,7 @@ paths:
         '500':
           description: Internal Server Error
   #Query
-  /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents:
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/hpa-intents:
     parameters:
       - $ref: '#/components/parameters/projectName'
       - $ref: '#/components/parameters/compositeAppName'
@@ -5460,7 +5460,7 @@ paths:
           description: Internal Server Error
 
  # HPA INTENT CONSUMERS API
-  /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/:
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/:
     parameters:
       - $ref: '#/components/parameters/projectName'
       - $ref: '#/components/parameters/compositeAppName'
@@ -5519,7 +5519,7 @@ paths:
           description: Internal Server Error
 
  # HPA INTENT CONSUMER RUD(retrieve, update, delete) API
-  /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/{hpa-consumer-name}:
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/{hpa-consumer-name}:
     parameters:
       - $ref: '#/components/parameters/projectName'
       - $ref: '#/components/parameters/compositeAppName'
@@ -5600,7 +5600,7 @@ paths:
           description: Internal Server Error
 
   #Query
-  /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers:
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers:
     parameters:
       - $ref: '#/components/parameters/projectName'
       - $ref: '#/components/parameters/compositeAppName'
@@ -5638,7 +5638,7 @@ paths:
           description: Internal Server Error
 
   # HPA INTENT CONSUMER RESOURCES API
-  /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/{hpa-consumer-name}/resource-requirements/:
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/{hpa-consumer-name}/resource-requirements/:
     parameters:
       - $ref: '#/components/parameters/projectName'
       - $ref: '#/components/parameters/compositeAppName'
@@ -5698,7 +5698,7 @@ paths:
           description: Internal Server Error
 
   # HPA INTENT CONSUMER RESOURCE RUD(retrieve, update, delete) API
-  /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/{hpa-consumer-name}/resource-requirements/{hpa-resource-name}:
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/{hpa-consumer-name}/resource-requirements/{hpa-resource-name}:
     parameters:
       - $ref: '#/components/parameters/projectName'
       - $ref: '#/components/parameters/compositeAppName'
@@ -5784,7 +5784,7 @@ paths:
           description: Internal Server Error
 
   #Query
-  /projects/{project-name}/composite-apps/{composite-app-name}/{composite-app-version}/deployment-intent-groups/{deployment-intent-group-name}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/{hpa-consumer-name}/resource-requirements:
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/hpa-intents/{hpa-intent-name}/hpa-resource-consumers/{hpa-consumer-name}/resource-requirements:
     parameters:
       - $ref: '#/components/parameters/projectName'
       - $ref: '#/components/parameters/compositeAppName'
@@ -6036,7 +6036,7 @@ components:
           maxLength: 128
           example: "cloud1"
       required:
-      - profile
+      - compositeProfile
       - version
       - logicalCloud
     DeploymentGroupIntent:
