@@ -283,23 +283,24 @@ func validateLogicalCloud(p string, lc string, dcmCloudClient *LogicalCloudClien
 	}
 	log.Info(":: logicalCloud ::", log.Fields{"logicalCloud": logicalCloud})
 
-	lckey := LogicalCloudKey{
-		Project:          p,
-		LogicalCloudName: lc,
-	}
-	ac, cid, err := dcmCloudClient.util.GetLogicalCloudContext(dcmCloudClient.storeName, lckey, dcmCloudClient.tagContext, p, lc)
+	// Check if there was a previous context for this logical cloud
+	s, err := dcmCloudClient.GetState(p, lc)
 	if err != nil {
-		log.Error("Error reading Logical Cloud context", log.Fields{"error": err.Error()})
-		return pkgerrors.Wrap(err, "Error reading Logical Cloud context")
+		return err
 	}
+	cid := state.GetLastContextIdFromStateInfo(s)
 	if cid == "" {
 		log.Error("The Logical Cloud has never been instantiated", log.Fields{"cid": cid})
 		return pkgerrors.New("The Logical Cloud has never been instantiated")
 	}
+	ac, err := state.GetAppContextFromId(cid)
+	if err != nil {
+		return err
+	}
 
 	// make sure rsync status for this logical cloud is Instantiated (instantiated),
 	// otherwise the cloud isn't ready to receive the application being instantiated
-	acStatus, err := dcmCloudClient.util.GetAppContextStatus(ac)
+	acStatus, err := GetAppContextStatus(ac)
 	if err != nil {
 		return err
 	}
