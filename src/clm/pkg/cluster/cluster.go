@@ -34,6 +34,7 @@ type ClusterProvider struct {
 
 type Cluster struct {
 	Metadata mtypes.Metadata `json:"metadata"`
+	Spec     GitOpsSpec      `json:"spec,omitempty"`
 }
 
 type ClusterWithLabels struct {
@@ -56,6 +57,16 @@ type ClusterKvPairs struct {
 
 type ClusterKvSpec struct {
 	Kv []map[string]interface{} `json:"kv"`
+}
+
+type GitOpsSpec struct {
+	Props GitOpsProps `json:"gitOps"`
+}
+
+type GitOpsProps struct {
+	GitOpsType            string `json:"gitOpsType"`
+	GitOpsReferenceObject string `json:"gitOpsReferenceObject"`
+	GitOpsResourceObject  string `json:"gitOpsResourceObject"`
 }
 
 type ClusterSyncObjects struct {
@@ -136,6 +147,7 @@ type ClusterManager interface {
 	GetClusterSyncObjectsValue(provider, syncobject, syncobjectkey string) (interface{}, error)
 	GetAllClusterSyncObjects(provider string) ([]ClusterSyncObjects, error)
 	DeleteClusterSyncObjects(provider, syncobject string) error
+	CreateClusterGitOpsData(provider string, pr Cluster, exists bool) (Cluster, error)
 }
 
 // ClusterClient implements the Manager
@@ -894,4 +906,24 @@ func (v *ClusterClient) GetAllClusterSyncObjects(provider string) ([]ClusterSync
 	}
 
 	return resp, nil
+}
+
+func (v *ClusterClient) CreateClusterGitOpsData(provider string, pr Cluster, exists bool) (Cluster, error) {
+
+	//Construct key and tag to select the entry
+	key := ClusterKey{
+		ClusterProviderName: provider,
+		ClusterName:         pr.Metadata.Name,
+	}
+	//Check if this ClusterKvPairs already exists
+	_, err := v.GetCluster(provider, pr.Metadata.Name)
+	if err == nil && !exists {
+		return Cluster{}, pkgerrors.New("Cluster already exists")
+	}
+	err = db.DBconn.Insert(v.db.storeName, key, nil, v.db.tagMeta, pr)
+	if err != nil {
+		return Cluster{}, pkgerrors.Wrap(err, "Creating DB Entry")
+	}
+
+	return pr, nil
 }
