@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2020 Intel Corporation
+# Copyright (c) 2022 Intel Corporation
 
 ---
 #creating composite app entry
@@ -57,8 +57,10 @@ spec:
   compositeProfile: {{ .CompositeProfile }}
   version: r1
   logicalCloud: {{ .AdminCloud }}
-  overrideValues: []
-
+  overrideValues:
+  - app: nginx
+    values:
+      "service.type": "NodePort"
 ---
 #create intent in deployment intent group
 version: emco/v2
