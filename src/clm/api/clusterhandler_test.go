@@ -2234,7 +2234,7 @@ func TestClusterSyncObjectsCreateHandler(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			request := httptest.NewRequest("POST", "/v2/cluster-providers/cp1/cluster-sync-objects/", testCase.reader)
+			request := httptest.NewRequest("POST", "/v2/cluster-providers/cp1/cluster-sync-objects", testCase.reader)
 			resp := executeRequest(request, NewRouter(testCase.clusterClient))
 
 			//Check returned code
@@ -2744,7 +2744,7 @@ func TestClusterSyncObjectsGetAllHandler(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			request := httptest.NewRequest("GET", "/v2/cluster-providers/cp1/cluster-sync-objects/", nil)
+			request := httptest.NewRequest("GET", "/v2/cluster-providers/cp1/cluster-sync-objects", nil)
 			resp := executeRequest(request, NewRouter(testCase.clusterClient))
 
 			//Check returned code

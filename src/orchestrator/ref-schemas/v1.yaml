@@ -8,6 +8,8 @@ resources:
     parent: cluster
   - name: clusterKv
     parent: cluster
+  - name: clusterSyncObject
+    parent: clusterProvider
 #emco-dcm
   - name: logicalCloud
     parent: project
