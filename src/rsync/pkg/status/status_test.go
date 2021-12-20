@@ -9,7 +9,9 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/context"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
+	
 	"k8s.io/api/core/v1"
 )
 
@@ -41,7 +43,7 @@ func TestAppReadyOnAllClusters(t *testing.T) {
 	// Read in test data
 
 	data := &rb.ResourceBundleState{}
-	_, err := status.DecodeYAMLData(string(rbfile), data)
+	_, err := utils.DecodeYAMLData(string(rbfile), data)
 	if err != nil {
 		return
 	}
