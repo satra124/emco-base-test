@@ -12,7 +12,10 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/apierror"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 )
+
+var clusterReferenceJSONValidation string = "json-schemas/cluster-reference.json"
 
 // clusterHandler is used to store backend implementations objects
 type clusterHandler struct {
@@ -44,6 +47,13 @@ func (h clusterHandler) createHandler(w http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		log.Error(err.Error(), log.Fields{})
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	err, httpError := validation.ValidateJsonSchemaData(clusterReferenceJSONValidation, v)
+	if err != nil {
+		log.Error(":: Invalid Cluster Reference JSON ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), httpError)
 		return
 	}
 
@@ -167,6 +177,13 @@ func (h clusterHandler) updateHandler(w http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		log.Error(err.Error(), log.Fields{})
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	err, httpError := validation.ValidateJsonSchemaData(clusterReferenceJSONValidation, v)
+	if err != nil {
+		log.Error(":: Invalid Cluster Reference JSON ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), httpError)
 		return
 	}
 

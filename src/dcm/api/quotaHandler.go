@@ -12,7 +12,10 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/apierror"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 )
+
+var clusterQuotaJSONValidation string = "json-schemas/cluster-quota.json"
 
 // quotaHandler is used to store backend implementations objects
 type quotaHandler struct {
@@ -35,6 +38,13 @@ func (h quotaHandler) createHandler(w http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		log.Error(err.Error(), log.Fields{})
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	err, httpError := validation.ValidateJsonSchemaData(clusterQuotaJSONValidation, v)
+	if err != nil {
+		log.Error(":: Invalid Cluster Quota JSON ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), httpError)
 		return
 	}
 
@@ -133,6 +143,13 @@ func (h quotaHandler) updateHandler(w http.ResponseWriter, r *http.Request) {
 	case err != nil:
 		log.Error(err.Error(), log.Fields{})
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	err, httpError := validation.ValidateJsonSchemaData(clusterQuotaJSONValidation, v)
+	if err != nil {
+		log.Error(":: Invalid Cluster Quota JSON ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), httpError)
 		return
 	}
 

@@ -13,7 +13,12 @@ import (
 	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/dcm/api/mocks"
 	"gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
+
 )
+
+func init() {
+	userPermissionJSONValidation = "../json-schemas/user-permission.json"
+}
 
 var _ = Describe("UserPermissionHandler", func() {
 	type testCase struct {

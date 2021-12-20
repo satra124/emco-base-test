@@ -15,6 +15,10 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 )
 
+func init() {
+	kvPairJSONValidation = "../json-schemas/kv-pair.json"
+}
+
 var _ = Describe("KeyValueHandler", func() {
 	type testCase struct {
 		inputName    string

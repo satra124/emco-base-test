@@ -13,9 +13,12 @@ import (
 	dcm "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/apierror"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 	orch "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 )
+
+var logicalCloudJSONValidation string = "json-schemas/logical-cloud.json"
 
 // logicalCloudHandler is used to store backend implementations objects
 type logicalCloudHandler struct {
@@ -41,6 +44,13 @@ func (h logicalCloudHandler) createHandler(w http.ResponseWriter, r *http.Reques
 	case err != nil:
 		log.Error(err.Error(), log.Fields{})
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	err, httpError := validation.ValidateJsonSchemaData(logicalCloudJSONValidation, v)
+	if err != nil {
+		log.Error(":: Invalid Logical Cloud JSON ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), httpError)
 		return
 	}
 
@@ -155,6 +165,13 @@ func (h logicalCloudHandler) updateHandler(w http.ResponseWriter, r *http.Reques
 	case err != nil:
 		log.Error(err.Error(), log.Fields{})
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	err, httpError := validation.ValidateJsonSchemaData(logicalCloudJSONValidation, v)
+	if err != nil {
+		log.Error(":: Invalid Logical Cloud JSON ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), httpError)
 		return
 	}
 

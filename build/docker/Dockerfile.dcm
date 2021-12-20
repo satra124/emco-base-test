@@ -13,6 +13,7 @@ RUN chown emco:emco . -R
 
 COPY --chown=emco ./dcm ./
 COPY --chown=emco ./config.json ./
+COPY --chown=emco ./json-schemas ./json-schemas
 
 USER emco
 

@@ -15,6 +15,10 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 )
 
+func init() {
+	clusterQuotaJSONValidation = "../json-schemas/cluster-quota.json"
+}
+
 var _ = Describe("QuotaHandler", func() {
 	type testCase struct {
 		inputName    string

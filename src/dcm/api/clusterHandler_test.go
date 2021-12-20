@@ -15,6 +15,10 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 )
 
+func init() {
+	clusterReferenceJSONValidation = "../json-schemas/cluster-reference.json"
+}
+
 var _ = Describe("ClusterHandler", func() {
 	type testCase struct {
 		inputName    string

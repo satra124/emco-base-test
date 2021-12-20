@@ -12,7 +12,10 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/apierror"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 )
+
+var userPermissionJSONValidation string = "json-schemas/user-permission.json"
 
 // userPermissionHandler is used to store backend implementations objects
 type userPermissionHandler struct {
@@ -36,6 +39,13 @@ func (h userPermissionHandler) createHandler(w http.ResponseWriter, r *http.Requ
 	case err != nil:
 		log.Error(err.Error(), log.Fields{})
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	err, httpError := validation.ValidateJsonSchemaData(userPermissionJSONValidation, v)
+	if err != nil {
+		log.Error(":: Invalid User Permission JSON ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), httpError)
 		return
 	}
 
@@ -134,6 +144,13 @@ func (h userPermissionHandler) updateHandler(w http.ResponseWriter, r *http.Requ
 	case err != nil:
 		log.Error(err.Error(), log.Fields{})
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	err, httpError := validation.ValidateJsonSchemaData(userPermissionJSONValidation, v)
+	if err != nil {
+		log.Error(":: Invalid User Permission JSON ::", log.Fields{"Error": err})
+		http.Error(w, err.Error(), httpError)
 		return
 	}
 

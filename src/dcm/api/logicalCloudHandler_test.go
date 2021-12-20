@@ -17,6 +17,10 @@ import (
 	state "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 )
 
+func init() {
+	logicalCloudJSONValidation = "../json-schemas/logical-cloud.json"
+}
+
 var _ = Describe("LogicalCloudHandler", func() {
 	type testCase struct {
 		inputName    string
