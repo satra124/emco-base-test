@@ -27,12 +27,12 @@ type logicalCloudHandler struct {
 
 // CreateHandler handles the creation of a logical cloud
 func (h logicalCloudHandler) createHandler(w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
 	project := vars["project"]
 	var v dcm.LogicalCloud
+	var err error
 
-	err := json.NewDecoder(r.Body).Decode(&v)
+	err = json.NewDecoder(r.Body).Decode(&v)
 	switch {
 	case err == io.EOF:
 		log.Error(err.Error(), log.Fields{})
@@ -136,8 +136,17 @@ func (h logicalCloudHandler) updateHandler(w http.ResponseWriter, r *http.Reques
 	vars := mux.Vars(r)
 	project := vars["project"]
 	name := vars["logicalCloud"]
+	var err error
 
-	err := json.NewDecoder(r.Body).Decode(&v)
+	// Get logical cloud
+	_, err = h.client.Get(project, name)
+	if err != nil {
+		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
+	}
+
+	err = json.NewDecoder(r.Body).Decode(&v)
 	switch {
 	case err == io.EOF:
 		log.Error(err.Error(), log.Fields{})
@@ -176,8 +185,10 @@ func (h logicalCloudHandler) deleteHandler(w http.ResponseWriter, r *http.Reques
 	vars := mux.Vars(r)
 	project := vars["project"]
 	name := vars["logicalCloud"]
+	var err error
 
-	err := h.client.Delete(project, name)
+	// call to Delete also takes care of checking whether Logical Cloud exists
+	err = h.client.Delete(project, name)
 	if err != nil {
 		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
 		http.Error(w, apiErr.Message, apiErr.Status)
@@ -192,6 +203,7 @@ func (h logicalCloudHandler) instantiateHandler(w http.ResponseWriter, r *http.R
 	vars := mux.Vars(r)
 	project := vars["project"]
 	name := vars["logicalCloud"]
+	var err error
 
 	// Get logical cloud
 	lc, err := h.client.Get(project, name)
@@ -240,6 +252,7 @@ func (h logicalCloudHandler) terminateHandler(w http.ResponseWriter, r *http.Req
 	vars := mux.Vars(r)
 	project := vars["project"]
 	name := vars["logicalCloud"]
+	var err error
 
 	// Get logical cloud
 	lc, err := h.client.Get(project, name)
@@ -281,6 +294,7 @@ func (h logicalCloudHandler) stopHandler(w http.ResponseWriter, r *http.Request)
 	vars := mux.Vars(r)
 	project := vars["project"]
 	name := vars["logicalCloud"]
+	var err error
 
 	// Get logical cloud
 	lc, err := h.client.Get(project, name)
@@ -302,15 +316,22 @@ func (h logicalCloudHandler) stopHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (h logicalCloudHandler) statusHandler(w http.ResponseWriter, r *http.Request) {
-
 	vars := mux.Vars(r)
-	p := vars["project"]
-	lc := vars["logicalCloud"]
-
-	var err error
+	project := vars["project"]
+	name := vars["logicalCloud"]
 	var status interface{}
+	var err error
 
-	status, err = _status(h, p, lc)
+	// Get logical cloud
+	_, err = h.client.Get(project, name)
+	if err != nil {
+		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
+	}
+
+	// Try to get status for the logical cloud
+	status, err = _status(h, project, name)
 	if err != nil {
 		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
 		log.Error(apiErr.Message, log.Fields{})
@@ -343,11 +364,6 @@ This method is responsible for obtaining the status of
 the logical cloud, which is made available in the appcontext.
 */
 func _status(h logicalCloudHandler, p string, lc string) (LogicalCloudStatus, error) {
-
-	_, err := h.client.Get(p, lc)
-	if err != nil {
-		return LogicalCloudStatus{}, pkgerrors.Wrap(err, "Logical Cloud not found")
-	}
 
 	lcState, err := h.client.GetState(p, lc)
 	if err != nil {

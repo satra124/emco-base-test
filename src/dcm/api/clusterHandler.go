@@ -25,8 +25,17 @@ func (h clusterHandler) createHandler(w http.ResponseWriter, r *http.Request) {
 	project := vars["project"]
 	logicalCloud := vars["logicalCloud"]
 	var v module.Cluster
+	var err error
 
-	err := json.NewDecoder(r.Body).Decode(&v)
+	// Check logical cloud exists and is valid
+	_, err = module.NewLogicalCloudClient().Get(project, logicalCloud)
+	if err != nil {
+		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
+	}
+
+	err = json.NewDecoder(r.Body).Decode(&v)
 	switch {
 	case err == io.EOF:
 		log.Error(err.Error(), log.Fields{})
@@ -72,7 +81,14 @@ func (h clusterHandler) getAllHandler(w http.ResponseWriter, r *http.Request) {
 	var ret interface{}
 	var err error
 
-	// TODO next release: allow return of empty cluster reference list
+	// Check logical cloud exists and is valid
+	_, err = module.NewLogicalCloudClient().Get(project, logicalCloud)
+	if err != nil {
+		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
+	}
+
 	ret, err = h.client.GetAllClusters(project, logicalCloud)
 	if err != nil {
 		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
@@ -100,6 +116,14 @@ func (h clusterHandler) getHandler(w http.ResponseWriter, r *http.Request) {
 	var ret interface{}
 	var err error
 
+	// Check logical cloud exists and is valid
+	_, err = module.NewLogicalCloudClient().Get(project, logicalCloud)
+	if err != nil {
+		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
+	}
+
 	ret, err = h.client.GetCluster(project, logicalCloud, name)
 	if err != nil {
 		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
@@ -124,8 +148,17 @@ func (h clusterHandler) updateHandler(w http.ResponseWriter, r *http.Request) {
 	project := vars["project"]
 	logicalCloud := vars["logicalCloud"]
 	name := vars["clusterReference"]
+	var err error
 
-	err := json.NewDecoder(r.Body).Decode(&v)
+	// Check logical cloud exists and is valid
+	_, err = module.NewLogicalCloudClient().Get(project, logicalCloud)
+	if err != nil {
+		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
+	}
+
+	err = json.NewDecoder(r.Body).Decode(&v)
 	switch {
 	case err == io.EOF:
 		log.Error(err.Error(), log.Fields{})
@@ -167,8 +200,17 @@ func (h clusterHandler) deleteHandler(w http.ResponseWriter, r *http.Request) {
 	project := vars["project"]
 	logicalCloud := vars["logicalCloud"]
 	name := vars["clusterReference"]
+	var err error
 
-	err := h.client.DeleteCluster(project, logicalCloud, name)
+	// Check logical cloud exists and is valid
+	_, err = module.NewLogicalCloudClient().Get(project, logicalCloud)
+	if err != nil {
+		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
+	}
+
+	err = h.client.DeleteCluster(project, logicalCloud, name)
 	if err != nil {
 		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
 		http.Error(w, apiErr.Message, apiErr.Status)
@@ -186,6 +228,14 @@ func (h clusterHandler) getConfigHandler(w http.ResponseWriter, r *http.Request)
 	logicalCloud := vars["logicalCloud"]
 	name := vars["clusterReference"]
 	var err error
+
+	// Check logical cloud exists and is valid
+	_, err = module.NewLogicalCloudClient().Get(project, logicalCloud)
+	if err != nil {
+		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
+		http.Error(w, apiErr.Message, apiErr.Status)
+		return
+	}
 
 	_, err = h.client.GetCluster(project, logicalCloud, name)
 	if err != nil {

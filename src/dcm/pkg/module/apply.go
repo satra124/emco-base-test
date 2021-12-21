@@ -914,7 +914,7 @@ func Stop(project string, logicalcloud LogicalCloud) error {
 	// Find and deal with state
 	s, err := lcclient.GetState(project, logicalCloudName)
 	if err != nil {
-		return pkgerrors.Wrap(err, "LogicalCloud has no state info: "+logicalCloudName)
+		return err
 	}
 
 	stateVal, err := state.GetCurrentStateFromStateInfo(s)

@@ -172,7 +172,6 @@ func processAlert(client readynotifypb.ReadyNotifyClient, stream readynotifypb.R
 func addState(lcc *LogicalCloudClient, project, logicalCloud, cid, newState string) error {
 	s, err := lcc.GetState(project, logicalCloud)
 	if err != nil {
-		log.Error("LogicalCloud has no state info: ", log.Fields{"logicalCloud": logicalCloud})
 		return err
 	}
 	lckey := LogicalCloudKey{
