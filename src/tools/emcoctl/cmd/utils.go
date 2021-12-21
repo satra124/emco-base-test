@@ -478,7 +478,7 @@ func (r RestyClient) RestClientGet(anchor string, body []byte) error {
 	}
 	s := strings.Split(anchor, "/")
 	a := s[len(s)-1]
-	if a == "instantiate" || a == "apply" || a == "approve" || a == "terminate" || a == "migrate" || a == "update" || a == "rollback" {
+	if a == "instantiate" || a == "apply" || a == "approve" || a == "terminate" || a == "migrate" || a == "update" || a == "rollback" || a == "stop" {
 		// No get for these
 		return nil
 	}
@@ -564,7 +564,7 @@ func GetURL(anchor string) (string, error) {
 	switch s[0] {
 	case "cluster-providers":
 		if len(s) >= 5 && (s[4] == "networks" || s[4] == "provider-networks" ||
-			s[4] == "apply" || s[4] == "terminate" || s[4] == "status") {
+			s[4] == "apply" || s[4] == "terminate" || s[4] == "status" || s[4] == "stop") {
 			baseUrl = GetNcmURL()
 		} else {
 			baseUrl = GetClmURL()
