@@ -67,7 +67,7 @@ var _ = Describe("Read schema file",
 			})
 
 			It("returns a valid schema segment", func() {
-				refSchemaFile = wd + "/test-schemas/ncm.yaml"
+				refSchemaFile = wd + "/test-schemas/emco-base.yaml"
 				schema, err := readSchema()
 				validate(err, "")
 				Expect(schema).To(Equal(mockSchema(schema.Name)))
@@ -75,9 +75,10 @@ var _ = Describe("Read schema file",
 			})
 
 			It("returns a valid segmentId", func() {
+				refSchemaFile = wd + "/test-schemas/emco-base.yaml"
 				rawBytes, _ := ioutil.ReadFile(refSchemaFile)
 				segmentId := segmentId(rawBytes)
-				Expect(segmentId).To(Equal("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
+				Expect(segmentId).To(Equal("4010c359a6dd06ee361bdb66ffc8d3d03c3ef6db6c43e065ac9c91ba03fc9c54"))
 				clear()
 			})
 		})
@@ -112,7 +113,7 @@ var _ = Describe("Verify referential integrity",
 
 		Context("when the schema file exists and the controller restarts", func() {
 			It("create the referential schema map with the schema segments available in the database", func() {
-				refSchemaFile = wd + "/test-schemas/ncm.yaml"
+				refSchemaFile = wd + "/test-schemas/emco-base.yaml"
 				mockMongoStore.db.Items = mockSchemaSegments()
 				refSchemaMapExpected := mockSchemaMap(false)
 				validate(mockMongoStore.ReadRefSchema(), "")
@@ -172,7 +173,7 @@ func mockSchemaSegments() []map[string]map[string][]byte {
 	return []map[string]map[string][]byte{
 		{
 			DbSchemaKey{
-				SegmentId: "e124a8b4d5f06b8c330379dc61cae7c223996e84116189f2b3ceacb7594580f7",
+				SegmentId: "4010c359a6dd06ee361bdb66ffc8d3d03c3ef6db6c43e065ac9c91ba03fc9c54",
 			}.String(): {
 				"segment": []byte(
 					"{" +
@@ -199,7 +200,7 @@ func mockSchemaSegments() []map[string]map[string][]byte {
 						"\"references\": null" +
 						"}" +
 						"]," +
-						"\"segmentid\": \"e124a8b4d5f06b8c330379dc61cae7c223996e84116189f2b3ceacb7594580f7\"" +
+						"\"segmentid\": \"4010c359a6dd06ee361bdb66ffc8d3d03c3ef6db6c43e065ac9c91ba03fc9c54\"" +
 						"}")},
 		},
 		{
@@ -238,9 +239,10 @@ func mockSchemaMap(withSchema bool) map[string]ReferentialSchema {
 	refSchemaMap["network"], _ = schemaSegment("network", "cluster", "", "", nil, false)
 
 	if withSchema { // This is a new schema segment. Include in the ref schema map.
-		refSchemaMap["sfcIntent"], _ = schemaSegment("sfcIntent", "", "sfcProviderNetwork,sfcClientSelector", "", nil, false)
+		refSchemaMap["sfcIntent"], _ = schemaSegment("sfcIntent", "", "sfcProviderNetwork,sfcClientSelector,sfcLink", "", nil, false)
 		refSchemaMap["sfcClientSelector"], _ = schemaSegment("sfcClientSelector", "sfcIntent", "", "", nil, false)
 		refSchemaMap["sfcProviderNetwork"], _ = schemaSegment("sfcProviderNetwork", "sfcIntent", "", "", nil, false)
+		refSchemaMap["sfcLink"], _ = schemaSegment("sfcLink", "sfcIntent", "", "", nil, false)
 	}
 
 	for resource, schema := range refSchemaMap {
@@ -311,7 +313,7 @@ func mockSchema(controller string) DbSchema {
 					References: nil,
 				},
 			},
-			SegmentId: "e6a83b911fa8f97db7b7b75a1c1ad4c0316cf1e19a652d1326d3b425bfdad9e6"}
+			SegmentId: "4010c359a6dd06ee361bdb66ffc8d3d03c3ef6db6c43e065ac9c91ba03fc9c54"}
 
 	default:
 		return DbSchema{}
