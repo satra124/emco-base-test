@@ -106,7 +106,7 @@ test:
 	  $(MAKE) -C ./src/$$m test || STATUS=$$?; \
 	  if [ $$STATUS != 0 ]; then \
 	    echo "One or more test case(s) of $$m failed"; \
-	    TESTFAILED+="$$m,"; \
+	    TESTFAILED="$$TESTFAILED$$m,"; \
 	  else \
             echo "Test case(s) for $$m executed successfully"; \
       	  fi \
