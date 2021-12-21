@@ -452,8 +452,8 @@ func Instantiate(project string, logicalcloud LogicalCloud, clusterList []Cluste
 			log.Error("The Logical Cloud has failed instantiating before, please terminate and try again", log.Fields{"logicalcloud": logicalCloudName})
 			return pkgerrors.New("The Logical Cloud has failed instantiating before, please terminate and try again")
 		case appcontext.AppContextStatusEnum.TerminateFailed:
-			log.Error("The Logical Cloud has failed terminating, please try to terminate again or delete the Logical Cloud", log.Fields{"logicalcloud": logicalCloudName})
-			return pkgerrors.New("The Logical Cloud has failed terminating, please try to terminate again or delete the Logical Cloud")
+			log.Error("The Logical Cloud has failed terminating, please delete the Logical Cloud", log.Fields{"logicalcloud": logicalCloudName})
+			return pkgerrors.New("The Logical Cloud has failed terminating, please delete the Logical Cloud")
 		default:
 			log.Error("The Logical Cloud isn't in an expected status so not taking any action", log.Fields{"logicalcloud": logicalCloudName, "status": acStatus.Status})
 			return pkgerrors.New("The Logical Cloud isn't in an expected status so not taking any action")
@@ -859,8 +859,8 @@ func Terminate(project string, logicalcloud LogicalCloud, clusterList []Cluster,
 			log.Error("The Logical Cloud is still instantiating", log.Fields{"logicalcloud": logicalCloudName})
 			return pkgerrors.New("The Logical Cloud is still instantiating")
 		case appcontext.AppContextStatusEnum.TerminateFailed:
-			// try to terminate anyway
-			fallthrough
+			log.Error("The Logical Cloud has failed terminating, please delete the Logical Cloud", log.Fields{"logicalcloud": logicalCloudName})
+			return pkgerrors.New("The Logical Cloud has failed terminating, please delete the Logical Cloud")
 		case appcontext.AppContextStatusEnum.InstantiateFailed:
 			// try to terminate anyway
 			fallthrough

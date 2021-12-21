@@ -53,7 +53,7 @@ var apiErrors = []apierror.APIError{
 	{ID: "The Logical Cloud is already instantiated", Message: "The Logical Cloud is already instantiated", Status: http.StatusConflict},
 	{ID: "The Logical Cloud is already instantiating", Message: "The Logical Cloud is already instantiating", Status: http.StatusConflict},
 	{ID: "The Logical Cloud has failed instantiating before, please terminate and try again", Message: "The Logical Cloud has failed instantiating before, please terminate and try again", Status: http.StatusConflict},
-	{ID: "The Logical Cloud has failed terminating, please try to terminate again or delete the Logical Cloud", Message: "The Logical Cloud has failed terminating, please try to terminate again or delete the Logical Cloud", Status: http.StatusConflict},
+	{ID: "The Logical Cloud has failed terminating, please delete the Logical Cloud", Message: "The Logical Cloud has failed terminating, please delete the Logical Cloud", Status: http.StatusConflict},
 	{ID: "Logical cloud don't all share the same namespace", Message: "The clusters associated to this L0 logical cloud don't all share the same namespace name", Status: http.StatusConflict},
 	{ID: "Level-1 Logical Clouds require a Quota", Message: "Level-1 Logical Clouds require a Quota to be associated first", Status: http.StatusConflict},
 	{ID: "Level-1 Logical Clouds require a User Permission", Message: "Level-1 Logical Clouds require a User Permission assigned to its primary namespace", Status: http.StatusConflict},
