@@ -7,12 +7,21 @@ This document provides high level features, fixes, and known issues and limitati
 
 # Release History
 
+1. EMCO - 21.12
 1. EMCO - Seed Code
 1. EMCO - 21.03.05
 1. EMCO - 21.03
 1. EMCO - 20.12
 
 # Features for Release
+
+1. **EMCO - 21.12**
+	- EMCO's Multi Mesh Istio DTC Sub-Controller. Complex applications would have front-end microservice and backend microservices.  Backend microservices may be distributed across multiple clusters.  This feature enables connectivity among the microservices in different clusters by automating the ISTIO configuration. Also, it automates the configuration of the ingress proxy to expose the frontend microservice to external users and route the traffic from the external users to the frontend microservice. As a test case, we will use EMCO to deploy Google's Online Boutique which consists of a 10-tier microservices application. This application is a web-based e-commerce app where users can browse items, add them to the cart, and purchase them. Google uses this application to demonstrate the use of technologies like Kubernetes/GKE and Istio. The feature will ensure that EMCO can deploy these microservices properly and can set up a communication channel between these microservices seamlessly through integration with Istio.
+	- Adds framework to support GitOps. Rsync has been modified to support multiple plugins based on how the edge clusters are managed. Cluster API's are modified to take authentication information for Git, AzureArc, GoogleAnthos etc. In the current release only plugin that is supported is Kubernetes and other plugins will be added in subsequent releases.
+	- Adds support for inter-dependency between applications in a composite application. A new API was added for the app to specify its dependencies. This API also allows "optional" specification of delay after the dependent app is "Ready"/"Deployed". An app is deployed after its dependent apps are properly deployed or are in a "ready" state as specified in the API.
+	- Adds support for Helm charts that include Helm Hooks. Helm provides a hook mechanism to allow the users to specify additional action/logic at certain points in an application's life cycle. The Helm hooks that are suuported in this release are pre-install, post-install, pre-delete and post-delete Helm Hooks.
+	- Enhances EMCO SFC feature to align with latest Nodus CNI SFC enhancements - e.g. dynamic virtual networks, etc.  See [SFC Overview](docs/design/sfc-overview.md)
+	- (experimental) Introduces a status notification framework with support for orchestrator, dcm and ncm.  See [Status Notification](docs/design/Status_Notification.md)
 
 1. **EMCO - Seed Code**
 	- Updates to the code required to move repository from [OpenNess] (https://github.com/smart-edge-open/EMCO) to gitlab.
