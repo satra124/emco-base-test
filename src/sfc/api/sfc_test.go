@@ -64,8 +64,7 @@ var _ = Describe("Sfcintenthandler", func() {
 				},
 				"spec": {
 					"chainType": "Routing",
-				    "namespace": "chainspace",
-				    "networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
+				    "namespace": "chainspace"
 				}
 			}`)),
 			inStruct: model.SfcIntent{
@@ -76,9 +75,8 @@ var _ = Describe("Sfcintenthandler", func() {
 					UserData2:   "some user data 2",
 				},
 				Spec: model.SfcIntentSpec{
-					ChainType:    "Routing",
-					Namespace:    "chainspace",
-					NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+					ChainType: "Routing",
+					Namespace: "chainspace",
 				},
 			},
 			mockError: nil,
@@ -90,9 +88,8 @@ var _ = Describe("Sfcintenthandler", func() {
 					UserData2:   "some user data 2",
 				},
 				Spec: model.SfcIntentSpec{
-					ChainType:    "Routing",
-					Namespace:    "chainspace",
-					NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+					ChainType: "Routing",
+					Namespace: "chainspace",
 				},
 			},
 			client: &mocks.SfcIntentManager{},
@@ -116,8 +113,7 @@ var _ = Describe("Sfcintenthandler", func() {
 					},
 					"spec": {
 						"chainType": "Routing",
-						"namespace": "chainspace",
-						"networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
+						"namespace": "chainspace"
 					}
 				}`)),
 			inStruct:  model.SfcIntent{},
@@ -135,27 +131,7 @@ var _ = Describe("Sfcintenthandler", func() {
 						"userData2": "some user data 2"
 					},
 					"spec": {
-					    "namespace": "chainspace",
-					    "networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
-					}
-				}`)),
-			inStruct:  model.SfcIntent{},
-			mockError: nil,
-			client:    &mocks.SfcIntentManager{},
-		}),
-
-		Entry("fails due missing network chain", testCase{
-			expectedCode: http.StatusBadRequest,
-			inputReader: bytes.NewBuffer([]byte(`{
-					"metadata": {
-						"name": "testsfcintent",
-						"description": "test sfc intent",
-						"userData1": "some user data 1",
-						"userData2": "some user data 2"
-					},
-					"spec": {
-						"chainType": "Routing",
-						"namespace": "chainspace"
+					    "namespace": "chainspace"
 					}
 				}`)),
 			inStruct:  model.SfcIntent{},
@@ -175,29 +151,7 @@ var _ = Describe("Sfcintenthandler", func() {
 					},
 					"spec": {
 						"chainType": "Routing",
-					    "namespace": "chainspace",
-					    "networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
-					}
-				}`)),
-			inStruct:  model.SfcIntent{},
-			mockError: nil,
-			client:    &mocks.SfcIntentManager{},
-		}),
-
-		Entry("fails due to invalid networkChain content", testCase{
-			// name field has an '=' character
-			expectedCode: http.StatusBadRequest,
-			inputReader: bytes.NewBuffer([]byte(`{
-					"metadata": {
-						"name": "test=sfcintent",
-						"description": "test sfc intent",
-						"userData1": "some user data 1",
-						"userData2": "some user data 2"
-					},
-					"spec": {
-						"chainType": "Routing",
-					    "namespace": "chainspace",
-					    "networkChain": "net=n1,app=a1"
+					    "namespace": "chainspace"
 					}
 				}`)),
 			inStruct:  model.SfcIntent{},
@@ -216,8 +170,7 @@ var _ = Describe("Sfcintenthandler", func() {
 					},
 					"spec": {
 						"chainType": "Routing",
-						"namespace": "chainspace",
-						"networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
+						"namespace": "chainspace"
 					}
 				}`)),
 			inStruct: model.SfcIntent{
@@ -228,9 +181,8 @@ var _ = Describe("Sfcintenthandler", func() {
 					UserData2:   "some user data 2",
 				},
 				Spec: model.SfcIntentSpec{
-					ChainType:    "Routing",
-					Namespace:    "chainspace",
-					NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+					ChainType: "Routing",
+					Namespace: "chainspace",
 				},
 			},
 			mockVal:   model.SfcIntent{},
@@ -249,8 +201,7 @@ var _ = Describe("Sfcintenthandler", func() {
 					},
 					"spec": {
 						"chainType": "Routing",
-						"namespace": "chainspace",
-						"networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
+						"namespace": "chainspace"
 					}
 				}`)),
 			inStruct: model.SfcIntent{
@@ -261,9 +212,8 @@ var _ = Describe("Sfcintenthandler", func() {
 					UserData2:   "some user data 2",
 				},
 				Spec: model.SfcIntentSpec{
-					ChainType:    "Routing",
-					Namespace:    "chainspace",
-					NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+					ChainType: "Routing",
+					Namespace: "chainspace",
 				},
 			},
 			mockVal:   model.SfcIntent{},
@@ -282,8 +232,7 @@ var _ = Describe("Sfcintenthandler", func() {
 					},
 					"spec": {
 						"chainType": "Routing",
-						"namespace": "chainspace",
-						"networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
+						"namespace": "chainspace"
 					}
 				}`)),
 			inStruct: model.SfcIntent{
@@ -294,9 +243,8 @@ var _ = Describe("Sfcintenthandler", func() {
 					UserData2:   "some user data 2",
 				},
 				Spec: model.SfcIntentSpec{
-					ChainType:    "Routing",
-					Namespace:    "chainspace",
-					NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+					ChainType: "Routing",
+					Namespace: "chainspace",
 				},
 			},
 			mockVal:   model.SfcIntent{},
@@ -335,8 +283,7 @@ var _ = Describe("Sfcintenthandler", func() {
 				},
 				"spec": {
 					"chainType": "Routing",
-					"namespace": "chainspace",
-					"networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
+					"namespace": "chainspace"
 				}
 			}`)),
 			inStruct: model.SfcIntent{
@@ -347,9 +294,8 @@ var _ = Describe("Sfcintenthandler", func() {
 					UserData2:   "some user data 2",
 				},
 				Spec: model.SfcIntentSpec{
-					ChainType:    "Routing",
-					Namespace:    "chainspace",
-					NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+					ChainType: "Routing",
+					Namespace: "chainspace",
 				},
 			},
 			mockError: nil,
@@ -361,9 +307,8 @@ var _ = Describe("Sfcintenthandler", func() {
 					UserData2:   "some user data 2",
 				},
 				Spec: model.SfcIntentSpec{
-					ChainType:    "Routing",
-					Namespace:    "chainspace",
-					NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+					ChainType: "Routing",
+					Namespace: "chainspace",
 				},
 			},
 			client: &mocks.SfcIntentManager{},
@@ -389,8 +334,7 @@ var _ = Describe("Sfcintenthandler", func() {
 					},
 					"spec": {
 						"chainType": "Routing",
-						"namespace": "chainspace",
-						"networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
+						"namespace": "chainspace"
 					}
 				}`)),
 			inStruct:  model.SfcIntent{},
@@ -409,30 +353,7 @@ var _ = Describe("Sfcintenthandler", func() {
 						"userData2": "some user data 2"
 					},
 					"spec": {
-						"namespace": "chainspace",
-						"networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
-					}
-				}`)),
-			inStruct:  model.SfcIntent{},
-			mockError: nil,
-			client:    &mocks.SfcIntentManager{},
-		}),
-
-		Entry("fails due to other json validation error", testCase{
-			// comma at end of networkChain
-			expectedCode: http.StatusBadRequest,
-			inputName:    "testsfcintent",
-			inputReader: bytes.NewBuffer([]byte(`{
-					"metadata": {
-						"name": "testsfcintent",
-						"description": "test sfc intent",
-						"userData1": "some user data 1",
-						"userData2": "some user data 2"
-					},
-					"spec": {
-						"chainType": "Routing",
-						"namespace": "chainspace",
-						"networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3,"
+						"namespace": "chainspace"
 					}
 				}`)),
 			inStruct:  model.SfcIntent{},
@@ -453,8 +374,7 @@ var _ = Describe("Sfcintenthandler", func() {
 					},
 					"spec": {
 						"chainType": "Routing",
-						"namespace": "chainspace",
-						"networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
+						"namespace": "chainspace"
 					}
 				}`)),
 			inStruct:  model.SfcIntent{},
@@ -474,8 +394,7 @@ var _ = Describe("Sfcintenthandler", func() {
 					},
 					"spec": {
 						"chainType": "Routing",
-						"namespace": "chainspace",
-						"networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
+						"namespace": "chainspace"
 					}
 				}`)),
 			inStruct: model.SfcIntent{
@@ -486,9 +405,8 @@ var _ = Describe("Sfcintenthandler", func() {
 					UserData2:   "some user data 2",
 				},
 				Spec: model.SfcIntentSpec{
-					ChainType:    "Routing",
-					Namespace:    "chainspace",
-					NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+					ChainType: "Routing",
+					Namespace: "chainspace",
 				},
 			},
 			mockVal:   model.SfcIntent{},
@@ -508,8 +426,7 @@ var _ = Describe("Sfcintenthandler", func() {
 					},
 					"spec": {
 						"chainType": "Routing",
-						"namespace": "chainspace",
-						"networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
+						"namespace": "chainspace"
 					}
 				}`)),
 			inStruct: model.SfcIntent{
@@ -520,9 +437,8 @@ var _ = Describe("Sfcintenthandler", func() {
 					UserData2:   "some user data 2",
 				},
 				Spec: model.SfcIntentSpec{
-					ChainType:    "Routing",
-					Namespace:    "chainspace",
-					NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+					ChainType: "Routing",
+					Namespace: "chainspace",
 				},
 			},
 			mockVal:   model.SfcIntent{},
@@ -542,8 +458,7 @@ var _ = Describe("Sfcintenthandler", func() {
 					},
 					"spec": {
 						"chainType": "Routing",
-						"namespace": "chainspace",
-						"networkChain": "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3"
+						"namespace": "chainspace"
 					}
 				}`)),
 			inStruct: model.SfcIntent{
@@ -554,9 +469,8 @@ var _ = Describe("Sfcintenthandler", func() {
 					UserData2:   "some user data 2",
 				},
 				Spec: model.SfcIntentSpec{
-					ChainType:    "Routing",
-					Namespace:    "chainspace",
-					NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+					ChainType: "Routing",
+					Namespace: "chainspace",
 				},
 			},
 			mockVal:   model.SfcIntent{},
@@ -595,9 +509,8 @@ var _ = Describe("Sfcintenthandler", func() {
 						UserData2:   "some user data 2",
 					},
 					Spec: model.SfcIntentSpec{
-						ChainType:    "Routing",
-						Namespace:    "chainspace",
-						NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+						ChainType: "Routing",
+						Namespace: "chainspace",
 					},
 				},
 				{
@@ -608,9 +521,8 @@ var _ = Describe("Sfcintenthandler", func() {
 						UserData2:   "some user data 2",
 					},
 					Spec: model.SfcIntentSpec{
-						ChainType:    "Routing",
-						Namespace:    "chainspace",
-						NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+						ChainType: "Routing",
+						Namespace: "chainspace",
 					},
 				},
 			},
@@ -662,9 +574,8 @@ var _ = Describe("Sfcintenthandler", func() {
 					UserData2:   "some user data 2",
 				},
 				Spec: model.SfcIntentSpec{
-					ChainType:    "Routing",
-					Namespace:    "chainspace",
-					NetworkChain: "net=net0,app=a1,net=n1,app=a2,net=n2,app=a3,net=n3",
+					ChainType: "Routing",
+					Namespace: "chainspace",
 				},
 			},
 			client: &mocks.SfcIntentManager{},

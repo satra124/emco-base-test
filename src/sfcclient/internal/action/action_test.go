@@ -131,8 +131,6 @@ var _ = Describe("SFC Client Action", func() {
 
 		// make an AppContext
 		cid, _ := cacontext.CreateCompApp(TestCA1)
-		con := cacontext.MockConnector{}
-		con.Init(cid)
 		contextIdCA1 = cid
 
 		// setup the mock DB resources
@@ -190,9 +188,8 @@ var _ = Describe("SFC Client Action", func() {
 				Name: "sfcIntentName",
 			},
 			Spec: sfcmodel.SfcIntentSpec{
-				ChainType:    sfcmodel.RoutingChainType,
-				NetworkChain: "net=left-virtual,app=a1,net=dyn1,app=a2,net=right-virtual",
-				Namespace:    "chainspace",
+				ChainType: sfcmodel.RoutingChainType,
+				Namespace: "chainspace",
 			},
 		}
 

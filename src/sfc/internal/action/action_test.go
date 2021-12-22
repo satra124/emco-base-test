@@ -33,6 +33,12 @@ import (
 //    a) variation 1:  Zero SFC Intents
 //    b) variation 2:  One SFC Intent
 //    c) variation 3:  Two SFC Intents
+func init() {
+	var edb *contextdb.MockConDb
+	edb = new(contextdb.MockConDb)
+	edb.Err = nil
+	contextdb.Db = edb
+}
 
 const deployment1 = "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: td\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      t: abc\n  template:\n    metadata:\n      labels:\n        t: abc\n    spec:\n      containers:\n      - name: nginx\n        image: t:1.2\n"
 
@@ -139,11 +145,7 @@ var _ = Describe("SFCAction", func() {
 		cdb = new(contextdb.MockConDb)
 		cdb.Err = nil
 		contextdb.Db = cdb
-
-		// make an AppContext
 		cid, _ := cacontext.CreateCompApp(TestCA1)
-		con := cacontext.MockConnector{}
-		con.Init(cid)
 		contextIdCA1 = cid
 
 		// setup the mock DB resources

@@ -7,12 +7,12 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/resourcestatus"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
-	pkgerrors "github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -260,7 +260,7 @@ var _ = Describe("StatusHelper", func() {
 		expectedClusterStatusResult = status.StatusResult{
 			State:         stateInfoInstantiated,
 			Status:        appcontext.AppContextStatusEnum.Instantiated,
-			ClusterStatus: map[string]int{"Present": 6},
+			ClusterStatus: map[string]int{"Ready": 4, "NotReady": 2},
 			RsyncStatus:   map[string]int{},
 			Apps: []status.AppStatus{
 				{
@@ -272,16 +272,19 @@ var _ = Describe("StatusHelper", func() {
 							ReadyStatus:     "Unknown",
 							Resources: []status.ResourceStatus{
 								{
-									Name: "fw0-packetgen-67d8fb7b68-8g824",
-									Gvk:  schema.GroupVersionKind{Version: "v1", Kind: "Pod"},
+									Name:          "fw0-packetgen-67d8fb7b68-8g824",
+									Gvk:           schema.GroupVersionKind{Version: "v1", Kind: "Pod"},
+									ClusterStatus: "Ready",
 								},
 								{
-									Name: "packetgen-service",
-									Gvk:  schema.GroupVersionKind{Version: "v1", Kind: "Service"},
+									Name:          "packetgen-service",
+									Gvk:           schema.GroupVersionKind{Version: "v1", Kind: "Service"},
+									ClusterStatus: "NotReady",
 								},
 								{
-									Name: "fw0-packetgen",
-									Gvk:  schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
+									Name:          "fw0-packetgen",
+									Gvk:           schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
+									ClusterStatus: "Ready",
 								},
 							},
 						},
@@ -291,16 +294,19 @@ var _ = Describe("StatusHelper", func() {
 							ReadyStatus:     "Unknown",
 							Resources: []status.ResourceStatus{
 								{
-									Name: "fw0-packetgen-67d8fb7b68-8g824",
-									Gvk:  schema.GroupVersionKind{Version: "v1", Kind: "Pod"},
+									Name:          "fw0-packetgen-67d8fb7b68-8g824",
+									Gvk:           schema.GroupVersionKind{Version: "v1", Kind: "Pod"},
+									ClusterStatus: "Ready",
 								},
 								{
-									Name: "packetgen-service",
-									Gvk:  schema.GroupVersionKind{Version: "v1", Kind: "Service"},
+									Name:          "packetgen-service",
+									Gvk:           schema.GroupVersionKind{Version: "v1", Kind: "Service"},
+									ClusterStatus: "NotReady",
 								},
 								{
-									Name: "fw0-packetgen",
-									Gvk:  schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
+									Name:          "fw0-packetgen",
+									Gvk:           schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
+									ClusterStatus: "Ready",
 								},
 							},
 						},
@@ -372,13 +378,13 @@ var _ = Describe("StatusHelper", func() {
 		Expect(result).Should(Equal(expectedClusterResourcesByApp))
 	})
 
-	It("get cluster status for firewall app of instantiated vfw", func() {
+	It("get cluster status for packetgen app of instantiated vfw", func() {
 		result, err := status.PrepareStatusResult(stateInfoInstantiated, "", "cluster", "all", []string{"packetgen"}, []string{}, []string{})
 		Expect(err).To(BeNil())
 		Expect(result).Should(Equal(expectedClusterStatusResult))
 	})
 
-	It("get rsync status for firewall app of instantiated vfw", func() {
+	It("get rsync status for packetgen app of instantiated vfw", func() {
 		result, err := status.PrepareStatusResult(stateInfoInstantiated, "", "rsync", "all", []string{"packetgen"}, []string{}, []string{})
 		Expect(err).To(BeNil())
 		Expect(result).Should(Equal(expectedRsyncStatusResult))
