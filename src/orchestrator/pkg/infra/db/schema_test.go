@@ -78,7 +78,7 @@ var _ = Describe("Read schema file",
 				refSchemaFile = wd + "/test-schemas/emco-base.yaml"
 				rawBytes, _ := ioutil.ReadFile(refSchemaFile)
 				segmentId := segmentId(rawBytes)
-				Expect(segmentId).To(Equal("4010c359a6dd06ee361bdb66ffc8d3d03c3ef6db6c43e065ac9c91ba03fc9c54"))
+				Expect(segmentId).To(Equal("d2291e8f0e9fe2fe94b7e440b812448abcfa89a9801d6b78d646553b8ad0a634"))
 				clear()
 			})
 		})
@@ -173,7 +173,7 @@ func mockSchemaSegments() []map[string]map[string][]byte {
 	return []map[string]map[string][]byte{
 		{
 			DbSchemaKey{
-				SegmentId: "4010c359a6dd06ee361bdb66ffc8d3d03c3ef6db6c43e065ac9c91ba03fc9c54",
+				SegmentId: "d2291e8f0e9fe2fe94b7e440b812448abcfa89a9801d6b78d646553b8ad0a634",
 			}.String(): {
 				"segment": []byte(
 					"{" +
@@ -200,7 +200,7 @@ func mockSchemaSegments() []map[string]map[string][]byte {
 						"\"references\": null" +
 						"}" +
 						"]," +
-						"\"segmentid\": \"4010c359a6dd06ee361bdb66ffc8d3d03c3ef6db6c43e065ac9c91ba03fc9c54\"" +
+						"\"segmentid\": \"d2291e8f0e9fe2fe94b7e440b812448abcfa89a9801d6b78d646553b8ad0a634\"" +
 						"}")},
 		},
 		{
@@ -313,7 +313,7 @@ func mockSchema(controller string) DbSchema {
 					References: nil,
 				},
 			},
-			SegmentId: "4010c359a6dd06ee361bdb66ffc8d3d03c3ef6db6c43e065ac9c91ba03fc9c54"}
+			SegmentId: "d2291e8f0e9fe2fe94b7e440b812448abcfa89a9801d6b78d646553b8ad0a634"}
 
 	default:
 		return DbSchema{}
