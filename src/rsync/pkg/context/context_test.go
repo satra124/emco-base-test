@@ -52,10 +52,7 @@ var TestCA CompositeApp = CompositeApp{
 }
 
 func TestInstantiateTerminate(t *testing.T) {
-	var edb *contextdb.MockConDb
-	edb = new(contextdb.MockConDb)
-	edb.Err = nil
-	contextdb.Db = edb
+
 
 	cid, _ := CreateCompApp(TestCA)
 	con := NewProvider(cid)
@@ -389,49 +386,6 @@ func TestInstantiateRestart(t *testing.T) {
 	}
 }
 
-func TestGetAllActiveContext(t *testing.T) {
-	var edb *contextdb.MockConDb
-	edb = new(contextdb.MockConDb)
-	edb.Err = nil
-	contextdb.Db = edb
-	cid, _ := CreateCompApp(TestCA)
-	_ = NewProvider(cid)
-
-	testCases := []struct {
-		label         string
-		event         RsyncEvent
-		expectedArray []string
-		expectedError error
-	}{
-		{
-			label:         "Get all active contexts",
-			event:         InstantiateEvent,
-			expectedArray: []string{cid},
-			expectedError: nil,
-		},
-	}
-	for _, testCase := range testCases {
-		t.Run(testCase.label, func(t *testing.T) {
-			_, c := CreateAppContextData(cid)
-			_ = c.EnqueueToAppContext(cid, nil, testCase.event)
-			UpdateAppContextFlag(cid, StopFlagKey, true)
-			cids, _ := GetAllActiveContext()
-			time.Sleep(1 * time.Second)
-			if len(testCase.expectedArray) == len(cids) {
-				for i, v := range testCase.expectedArray {
-					if v == cids[i] {
-						continue
-					} else {
-						t.Error("Mismatch in elements", v, cids[i])
-					}
-				}
-			} else {
-				t.Error("Mismatch in length of AllActiveContext", len(testCase.expectedArray), len(cids), cids)
-			}
-		})
-	}
-}
-
 func TestTerminateWithInstantiate(t *testing.T) {
 
 	cid, _ := CreateCompApp(TestCA)
@@ -457,7 +411,7 @@ func TestTerminateWithInstantiate(t *testing.T) {
 			_ = HandleAppContext(cid, nil, InstantiateEvent, &con)
 			time.Sleep(1 * time.Millisecond)
 			_ = HandleAppContext(cid, nil, TerminateEvent, &con)
-			time.Sleep(1 * time.Second)
+			time.Sleep(2 * time.Second)
 			if !CompareMaps(testCase.expectedApply, LoadMap("apply")) {
 				t.Error("Apply resources doesn't match", LoadMap("apply"))
 			}
@@ -469,7 +423,6 @@ func TestTerminateWithInstantiate(t *testing.T) {
 }
 
 func TestAppDependency(t *testing.T) {
-	var edb *contextdb.MockConDb
 
 	var ca CompositeApp = CompositeApp{
 		CompMetadata: appcontext.CompositeAppMeta{Project: "proj1", CompositeApp: "ca1", Version: "v1", Release: "r1",
@@ -495,10 +448,6 @@ func TestAppDependency(t *testing.T) {
 		},
 		},
 	}
-
-	edb = new(contextdb.MockConDb)
-	edb.Err = nil
-	contextdb.Db = edb
 
 	cid, _ := CreateCompApp(ca)
 	con := NewProvider(cid)
@@ -542,7 +491,6 @@ func setSuccessForAllHooks(cid string, ca CompositeApp) {
 }
 
 func TestHooks(t *testing.T) {
-	var edb *contextdb.MockConDb
 
 	var ca CompositeApp = CompositeApp{
 		CompMetadata: appcontext.CompositeAppMeta{Project: "proj1", CompositeApp: "ca1", Version: "v1", Release: "r1",
@@ -564,10 +512,6 @@ func TestHooks(t *testing.T) {
 		},
 		},
 	}
-
-	edb = new(contextdb.MockConDb)
-	edb.Err = nil
-	contextdb.Db = edb
 
 	cid, _ := CreateCompApp(ca)
 	con := NewProvider(cid)
@@ -593,6 +537,46 @@ func TestHooks(t *testing.T) {
 			time.Sleep(5 * time.Second)
 			if !CompareMaps(testCase.expectedResources, LoadMap("resource")) {
 				t.Error("Apply resources doesn't match", LoadMap("resource"), testCase.expectedResources)
+			}
+		})
+	}
+}
+
+func TestGetAllActiveContext(t *testing.T) {
+
+	cid, _ := CreateCompApp(TestCA)
+	_ = NewProvider(cid)
+
+	testCases := []struct {
+		label         string
+		event         RsyncEvent
+		expectedArray []string
+		expectedError error
+	}{
+		{
+			label:         "Get all active contexts",
+			event:         InstantiateEvent,
+			expectedArray: []string{cid},
+			expectedError: nil,
+		},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.label, func(t *testing.T) {
+			_, c := CreateAppContextData(cid)
+			_ = c.EnqueueToAppContext(cid, nil, testCase.event)
+			UpdateAppContextFlag(cid, StopFlagKey, true)
+			cids, _ := GetAllActiveContext()
+			time.Sleep(1 * time.Second)
+			if len(testCase.expectedArray) == len(cids) {
+				for i, v := range testCase.expectedArray {
+					if v == cids[i] {
+						continue
+					} else {
+						t.Error("Mismatch in elements", v, cids[i])
+					}
+				}
+			} else {
+				t.Error("Mismatch in length of AllActiveContext", len(testCase.expectedArray), len(cids), cids)
 			}
 		})
 	}

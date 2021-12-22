@@ -524,9 +524,7 @@ func (c *Context) runCluster(ctx context.Context, op RsyncOperation, e RsyncEven
 	switch e {
 	case InstantiateEvent:
 		// Check if delete of status tracker is scheduled, if so stop and delete the timer
-		if c.timerList[key] != nil {
-			c.timerList[key].Stop()
-		}
+		c.StopDeleteStatusCRTimer(key)
 		// Based on the discussions in Helm handling of CRD's
 		// https://helm.sh/docs/chart_best_practices/custom_resource_definitions/
 		if len (c.ca.Apps[app].Clusters[cluster].Dependency["crd-install"]) > 0 {
@@ -613,12 +611,9 @@ func (c *Context) runCluster(ctx context.Context, op RsyncOperation, e RsyncEven
 
 		// Check if delete of status tracker is scheduled, if so stop and delete the timer
 		// before scheduling a new one
-		if c.timerList[key] != nil {
-			c.timerList[key].Stop()
-		}
+		c.StopDeleteStatusCRTimer(key)
 		timer := ScheduleDeleteStatusTracker(c.acID, app, cluster, level, namespace, c.con)
-		c.timerList[key] = timer
-
+		c.UpdateDeleteStatusCRTimer(key, timer)
 	case UpdateEvent, UpdateModifyEvent:
 		// Update and Rollback hooks are not supported at this time
 		var rl []string
@@ -659,7 +654,7 @@ func ScheduleDeleteStatusTracker(acID, app, cluster, level, namespace string, co
 		}
 		defer cl.CleanClientProvider()
 		if err = cl.DeleteStatusCR(b); err != nil {
-			log.Error("Failed to delete res", log.Fields{"error": err, "app": app, "label": label})
+			log.Info("Failed to delete res", log.Fields{"error": err, "app": app, "label": label})
 			return
 		}
 	}

@@ -117,7 +117,23 @@ func (c *Context) EnqueueToAppContext(a interface{}, ucid interface{}, e RsyncEv
 	c.Lock.Unlock()
 	return nil
 }
+//
+func (c *Context) StopDeleteStatusCRTimer(key string) {
+	// Acquire Mutex
+	c.Lock.Lock()
+	defer c.Lock.Unlock()
+	if c.timerList[key] != nil {
+		c.timerList[key].Stop()
+		c.timerList[key] = nil
+	}
+}
+func (c *Context) UpdateDeleteStatusCRTimer(key string, timer *time.Timer) {
+	// Acquire Mutex
+	c.Lock.Lock()
+	defer c.Lock.Unlock()
+	c.timerList[key] = timer
 
+}
 // RestartAppContext called in Restart scenario to handle an AppContext
 func RestartAppContext(a interface{}, con Connector) error {
 	var err error
