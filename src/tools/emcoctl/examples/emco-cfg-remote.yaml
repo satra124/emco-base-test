@@ -3,22 +3,25 @@
 
 orchestrator:
   host: <node-IP>
-  port: 31298
+  port: 30415
 clm:
   host: <node-IP>
-  port: 31856
+  port: 30461
 ncm:
   host: <node-IP>
-  port: 32737
+  port: 30431
 ovnaction:
   host: <node-IP>
-  port: 31181
+  port: 30471
 dcm:
   host: <node-IP>
-  port: 31877
+  port: 30477
 gac:
   host: <node-IP>
-  port: 31280
+  port: 30491
 dtc:
   host: <node-IP>
-  port: 31182
+  port: 30481
+rsync:
+  host: <node-IP>
+  port: 30441

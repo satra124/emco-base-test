@@ -184,6 +184,7 @@ spec:
   serviceName: http-service
   port: 3333
   protocol: TCP
+  serviceMesh: none
 
 ---
 #add the client intent

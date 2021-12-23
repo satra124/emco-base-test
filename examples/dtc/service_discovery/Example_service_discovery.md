@@ -30,6 +30,7 @@ Build the http-server and http-client images. Refer to [this Readme](../../test-
 Install the Kubernetes edge cluster and make sure it supports network policy. Note down the kubeconfig for the edge cluster which is required later during configuration.
 
 ## Testing scenarios
+NOTE: Public cloud scenarios are experimental and are not tested with public clouds
 
 (a) communication between two private clusters (logical cloud level 0)
 
@@ -41,7 +42,7 @@ Install the Kubernetes edge cluster and make sure it supports network policy. No
 
     (3) Compress the profile and helm files
 
-    Update the profile files with right proxy address and create tar.gz of profiles
+    Update the profile files with right image repository path, proxy address and create tar.gz of profiles
     ```shell
     $ cd examples/helm_charts/http-server/profile/service_discovery_overrides/private_cluster/http-server-profile
     $ tar -czvf ../../../../../../dtc/service_discovery/private_cluster/l0_logical_cloud/http-server-profile.tar.gz .
@@ -63,6 +64,7 @@ Install the Kubernetes edge cluster and make sure it supports network policy. No
     ```shell
     $ cd ../../../dtc/service_discovery/private_cluster/l0_logical_cloud/
     $ emcoctl --config emco-cfg-dtc.yaml apply -f emco-dtc-multiple-cluster-l0.yaml
+    $ emcoctl --config emco-cfg-dtc.yaml apply -f instantiate.yaml
     ```
 
     ## Verify network policy resource instantiation
@@ -109,7 +111,7 @@ Install the Kubernetes edge cluster and make sure it supports network policy. No
 
     (3) Compress the profile and helm files
 
-    Update the profile files with right proxy address and create tar.gz of profiles
+    Update the profile files with right image repository path, proxy address and create tar.gz of profiles
     ```shell
     $ cd examples/helm_charts/http-server/profile/service_discovery_overrides/private_cluster/http-server-profile
     $ tar -czvf ../../../../../../dtc/service_discovery/private_cluster/l1_logical_cloud/http-server-profile.tar.gz .
