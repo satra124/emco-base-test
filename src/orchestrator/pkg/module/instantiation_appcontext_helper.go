@@ -163,8 +163,8 @@ func (ah *AppHandler)addHooksToCluster(ct appcontext.AppContext, ch interface{},
 	if err != nil {
 		return err
 	}
-	// If no hooks present then return witjout adding instruction
-	if len(hk) <= 0 {
+	// If no hooks present and no crdResources then return without adding dependency instruction
+	if len(hk) <= 0 && len(crdResources) <= 0 {
 		return nil
 	}
 	var resDepInstr struct {
@@ -190,7 +190,7 @@ func (ah *AppHandler)addHooksToCluster(ct appcontext.AppContext, ch interface{},
 			}
 			resdep["crd-install"] = append(resdep["crd-install"], res.name)
 	}
-	log.Info(":: Hook resources  ::", log.Fields{"Hooks list": resdep})
+	log.Info(":: Hook and CRD resources  ::", log.Fields{"Dependency": resdep})
 	resDepInstr.Resdep = resdep
 	jresDepInstr, _ := json.Marshal(resDepInstr)
 	_, err = ct.AddInstruction(ch, "resource", "dependency", string(jresDepInstr))
