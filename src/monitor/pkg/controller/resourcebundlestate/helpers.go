@@ -155,7 +155,7 @@ func DeleteFromAllCRs(r ResourceProvider, namespacedName types.NamespacedName) e
 		return pkgerrors.Errorf("Did not find any CRs tracking this resource")
 	}
 	for _, cr := range rbStatusList.Items {
-		return DeleteFromSingleCR(r, &cr, namespacedName.Name)
+		DeleteFromSingleCR(r, &cr, namespacedName.Name)
 	}
 	return nil
 }
@@ -167,3 +167,4 @@ func ClearLastApplied(annotations map[string]string) (map[string]string) {
 	}
 	return annotations
 }
+

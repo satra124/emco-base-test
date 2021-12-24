@@ -161,7 +161,7 @@ func (c *Context) startMainThread(a interface{}, con Connector) error {
 		c.statusAcID = c.acID
 		c.scRef = c.acRef
 	} else {
-		scRef, err := utils.NewAppContextReference(acID)
+		scRef, err := utils.NewAppContextReference(c.statusAcID)
 		if err != nil {
 			return err
 		}
@@ -557,9 +557,7 @@ func (c *Context) runCluster(ctx context.Context, op RsyncOperation, e RsyncEven
 		// handle status tracking before exiting if at least one resource got handled
 		if i > 0 {
 			// Add Status tracking
-			if err := r.addStatusTracker(""); err != nil {
-				return err
-			}
+			r.addStatusTracker("")
 		}
 		if err != nil {
 			log.Error("Error installing resources for app", log.Fields{"App": app, "cluster": cluster, "resources": c.ca.Apps[app].Clusters[cluster].ResOrder})
@@ -612,7 +610,7 @@ func (c *Context) runCluster(ctx context.Context, op RsyncOperation, e RsyncEven
 		// Check if delete of status tracker is scheduled, if so stop and delete the timer
 		// before scheduling a new one
 		c.StopDeleteStatusCRTimer(key)
-		timer := ScheduleDeleteStatusTracker(c.acID, app, cluster, level, namespace, c.con)
+		timer := ScheduleDeleteStatusTracker(c.statusAcID, app, cluster, level, namespace, c.con)
 		c.UpdateDeleteStatusCRTimer(key, timer)
 	case UpdateEvent, UpdateModifyEvent:
 		// Update and Rollback hooks are not supported at this time
@@ -629,6 +627,10 @@ func (c *Context) runCluster(ctx context.Context, op RsyncOperation, e RsyncEven
 		_, err = r.handleResources(ctx, op, rl)
 		if err != nil {
 			return err
+		}
+		// Add Status tracking if not already applied for the cluster
+		if op == OpApply {
+			r.addStatusTracker("")
 		}
 	}
 	return nil

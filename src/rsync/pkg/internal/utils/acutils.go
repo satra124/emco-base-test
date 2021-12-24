@@ -416,7 +416,6 @@ func (a *AppContextReference) GetSubResApprove(name, app, cluster string) ([]byt
 
 	rh, err := a.ac.GetResourceHandle(app, cluster, name)
 	if err != nil {
-		log.Error("Error GetSubResApprove", log.Fields{"err": err})
 		return nil, nil, err
 	}
 	// Check if Subresource defined
