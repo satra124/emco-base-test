@@ -13,6 +13,7 @@ import (
 	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
 	"strings"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/k8sexp"
 )
 
 // Connection is for a cluster
@@ -57,6 +58,22 @@ func (p *Provider) GetClientProviders(app, cluster, level, namespace string) (Cl
 	switch providerType {
 	case "k8s":
 		cl, err := k8s.NewK8sProvider(p.cid, app, cluster, level, namespace)
+		if err != nil {
+			return nil, err
+		}
+		return cl, nil
+		// This case is unused at this time.
+		// In the above case K8s plugin each resource is written
+		// to the cluster individually. The disadvantage is
+		// that if any resource fails then the application is
+		// left in bad state on the cluster with some resources 
+		// already applied on the cluster. In this plugin all 
+		// application resources are collected in a temporary 
+		// file, and then applied together to the cluster.
+		// All or no resources will be applied to the cluster.
+		// More Disk space is required in this approach.
+	case "k8sExp":
+		cl, err := k8sexp.NewK8sProvider(p.cid, app, cluster, level, namespace)
 		if err != nil {
 			return nil, err
 		}
