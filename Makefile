@@ -34,6 +34,10 @@ ifndef EMCODOCKERREPO
 	$(error EMCODOCKERREPO env variable needs to be set)
 endif
 
+ifndef COMMITID
+export COMMITID=$(shell git show -s --format=%h)
+endif
+
 ifndef BRANCH
 export BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 endif
