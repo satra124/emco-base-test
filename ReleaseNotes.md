@@ -21,6 +21,16 @@ This document provides high level features, fixes, and known issues and limitati
 	- Adds support for inter-dependency between applications in a composite application. A new API was added for the app to specify its dependencies. This API also allows "optional" specification of delay after the dependent app is "Ready"/"Deployed". An app is deployed after its dependent apps are properly deployed or are in a "ready" state as specified in the API.
 	- Adds support for Helm charts that include Helm Hooks. Helm provides a hook mechanism to allow the users to specify additional action/logic at certain points in an application's life cycle. The Helm hooks that are suuported in this release are pre-install, post-install, pre-delete and post-delete Helm Hooks.
 	- Enhances EMCO SFC feature to align with latest Nodus CNI SFC enhancements - e.g. dynamic virtual networks, etc.  See [SFC Overview](docs/design/sfc-overview.md)
+	- Referential Integrity. Add support for schema registration for new controllers. Referential integrity for EMCO data resource means the following rules must be satisfied:
+		1. When a data resource is created/ updated, any resources referenced by this data resource must already exist.
+		2. The data resource can't be deleted when referenced by another resource.
+	EMCO framework allows the dynamic addition of new controllers to the EMCO control plane (for example, you can add a new GPU capacity-based placement controller). EMCO will support referential integrity associated with any new controller. EMCO will automatically build the cross-reference relationship associated with the new data resources created by the new controller and enforce the referential integrity associated with the new data resources.
+	See [ Referential Integrity ](docs/developer/ReferentialIntegrity.md)
+	- Added support for Logical Cloud labels, translating into K8s namespace labels on the instantiated clusters.
+	- Implemented Status API endpoint for Logical Clouds, to check instantiation/termination progress and result.
+	- Implemented Stop API endpoint for Logical Clouds, to allow users to stop a pending/stuck instantiation/termination and allow for graceful removal of resources.
+	- General API improvements including the inclusion of JSON schema validation for DCM, bringing it up to par with the other main microservices.
+	- General improvements and bugfixes.
 	- (experimental) Introduces a status notification framework with support for orchestrator, dcm and ncm.  See [Status Notification](docs/design/Status_Notification.md)
 
 1. **EMCO - Seed Code**
