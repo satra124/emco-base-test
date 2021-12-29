@@ -70,13 +70,13 @@ func getClusterServiceSpecs(ac appcontext.AppContext, appContextID string, rbDat
 		switch s.Spec.Type {
 		// If the service Type is NodePort, then obtain the node IP where the server app is running
 		case corev1.ServiceTypeNodePort:
-			var connector *connector.Connection
-			err := connector.Init(appContextID)
+			con := connector.Connection{}
+			err := con.Init(appContextID)
 			if err != nil {
 				return virtualService, pkgerrors.New("unable to Initialize connection")
 			}
 
-			kubeClient, err := connector.GetClient(cluster, "0", "default")
+			kubeClient, err := con.GetClient(cluster, "0", "default")
 			if err != nil {
 				log.Error("unable to connect to the cluster",
 					log.Fields{"Cluster": cluster, "Error": err})

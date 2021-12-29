@@ -233,7 +233,8 @@ func processAlertForServiceDiscovery(stream readynotifypb.ReadyNotify_AlertClien
 			} else {
 				log.Info("Server App has not been deployed yet", log.Fields{"serverApp": serverAppName})
 			}
-		} else if acStatus.Status == appcontext.AppContextStatusEnum.Instantiating {
+		} else if acStatus.Status == appcontext.AppContextStatusEnum.Instantiating ||
+			acStatus.Status == appcontext.AppContextStatusEnum.Created {
 			log.Info("Parent's app context is still in 'Instantiating' state", log.Fields{"appContextID": appContextID})
 		} else { // If the parent's appContext is "Terminating/Terminated/InstantiateFailed/TerminateFailed"
 			log.Error("Parent's app context is not in 'Instantiated' state", log.Fields{"appContextID": appContextID})
