@@ -4,11 +4,14 @@ go 1.16
 
 require (
 	github.com/fluxcd/go-git-providers v0.5.4
+	github.com/fluxcd/kustomize-controller/api v0.21.1
+	github.com/fluxcd/source-controller/api v0.21.2
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/jonboulle/clockwork v0.2.2
 	github.com/pkg/errors v0.9.1
+	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-00010101000000-000000000000
 	gitlab.com/project-emco/core/emco-base/src/monitor v0.0.0-00010101000000-000000000000
 	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-00010101000000-000000000000
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
