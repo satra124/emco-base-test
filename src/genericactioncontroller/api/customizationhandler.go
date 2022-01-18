@@ -319,13 +319,14 @@ func (ch customizationHandler) getCustomizationHandler(w http.ResponseWriter, r 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		pw, err = mpw.CreatePart(textproto.MIMEHeader{"Content-Type": {"application/octet-stream"}, "Content-Disposition": {"form-data; name=files; filename=customizationFile"}})
-		if err != nil {
-			log.Error(":: multipart/form-data :: application/octet-stream failure ::", log.Fields{"Error": err})
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		for _, content := range specFC.FileContents {
+		for index, content := range specFC.FileContents {
+			pw, err := mpw.CreatePart(textproto.MIMEHeader{"Content-Type": {"application/octet-stream"}, "Content-Disposition": {"form-data; name=files; filename=" + specFC.FileNames[index]}})
+			if err != nil {
+				log.Error(":: multipart/form-data :: application/octet-stream failure ::", log.Fields{"Error": err})
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
 			brBytes, err := base64.StdEncoding.DecodeString(content)
 			if err != nil {
 				log.Error(":: multipart/form-data :: application/octet-stream decode failure ::", log.Fields{"Error": err})
