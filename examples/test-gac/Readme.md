@@ -1,8 +1,7 @@
 #### SPDX-License-Identifier: Apache-2.0
 #### Copyright (c) 2022 Intel Corporation
 
-Please see [generic-action-controller.md](../../docs/design/generic-action-controller.md) for more information about GAC implementation. 
-This document explains the test cases for GAC.
+Please see [generic-action-controller.md](../../docs/design/generic-action-controller.md) for more information about GAC implementation. This document explains the test cases for GAC.
 
 #################################################################
 # Running GAC test with emcoctl
@@ -14,93 +13,182 @@ This document explains the test cases for GAC.
 
 2. Setup script
 
-    1. Run the setup script for creating artifacts needed to test GAC on a single cluster.
+    1. Run the setup script for creating artifacts needed to test GAC on a single cluster
 
-    `$ ./setup.sh create`
+      ```shell
+        $ sudo chmod +x setup.sh
 
-    The output of this command is
-      1. `emco-cfg.yaml` for the current environment
-      2. `prerequisites.yaml` for the test
-      3. `values.yaml` for the current environment
-      4. `helm chart and profiles tar.gz files` for all the use cases
-    
+        $ ./setup.sh create
+      ```
+
+      The output of this command is
+        1. `emco-cfg.yaml` for the current environment
+        2. `prerequisites.yaml` for the test
+        3. `values.yaml` for the current environment
+        4. `instantiate.yaml` instantiate the deployment intent group
+        5. `helm chart and profiles tar.gz files` for all the use cases
+      
     2. Cleanup artifacts generated above with the cleanup command
 
-    `$ ./setup.sh cleanup`
+      ```shell
+        $ ./setup.sh cleanup
+      ```
 
-## Running test
+## Test Kubernetes resource creation
+
 1. Create Prerequisites
 
-    `$ $bin/emcoctl apply --config emco-cfg.yaml -v values.yaml -f prerequisites.yaml`
+    ```shell
+      $ $bin/emcoctl apply --config emco-cfg.yaml -v values.yaml -f prerequisites.yaml
+    ```
 
-2. Create Resources
+2. Create Resources and Customization in the GAC
 
-    `$ $bin/emcoctl apply --config emco-cfg.yaml -v values.yaml -f test-gac.yaml`
+    ```shell
+      $ $bin/emcoctl apply --config emco-cfg.yaml -v values.yaml -f test-gac.yaml
+    ```
 
-    Once the command runs successfully, we can see the following resources on the edge cluster.
+3. Instantiate the GAC compositeApp deploymentIntentGroup
 
-    1. `networkpolicy`
-        - sample-network-policy
-        - test-network-policy
+    ```shell
+      $ $bin/emcoctl apply --config emco-cfg.yaml -v values.yaml -f instantiate.yaml
+    ```
 
-        ```shell
-        $ kubectl get netpol
-          NAME                    POD-SELECTOR    AGE
-          sample-network-policy   role=database   5s
-          test-network-policy     role=db         5s
-        ```
+Once the deploymentIntentGroup is instantiated successfully, we can see the following resources on the edge cluster.
 
-    2. `configmap`
-        - configmap-demo
-        - test-configmap
+  1. `networkpolicy`
 
-        ```shell
-        $ kubectl get cm
-          NAME             DATA   AGE
-          configmap-demo   5      5s
-          test-configmap   4      5s
-        ```
+    - netpol-db
+    - netpol-web
 
-    3. `secret`
-        - auth-secret
-        - m3db-operator-token-bxt65
-        - user-secret
+      $ kubectl get netpol
+      NAME                    POD-SELECTOR    AGE
+      netpol-db               role=database   5s
+      netpol-web              app=emco        5s
 
-        ```shell
-        $ kubectl get secret
-          NAME                        TYPE                                  DATA   AGE
-          auth-secret                 kubernetes.io/service-account-token   7      5s
-          m3db-operator-token-bxt65   kubernetes.io/service-account-token   3      5s
-          user-secret                 kubernetes.io/service-account-token   7      5s
-        ```
+  2. `configmap`
 
-    4. `statefulset`
-        - etcd
-        - m3db-operator
+    - cm-game
+    - cm-team
 
-        ```shell
-        $ kubectl get statefulset 
-          NAME            READY   AGE
-          etcd            1/1     5s
-          m3db-operator   1/1     5s
-        ```
+      $ kubectl get cm
+      NAME             DATA   AGE
+      cm-game          5      5s
+      cm-team          4      5s
 
-    <b> Note: We are using the operator app in this example. You can create resources for different apps based on the use cases. <b>
+  3. `secret`
 
-## Cleanup
+    - m3db-operator-token-bxt65
+    - secret-auth
+    - secret-user
+
+      $ kubectl get secret
+      NAME                        TYPE                                  DATA   AGE
+      m3db-operator-token-bxt65   kubernetes.io/service-account-token   3      5s
+      secret-auth                 kubernetes.io/service-account-token   7      5s
+      secret-user                 kubernetes.io/service-account-token   7      5s
+
+  4. `statefulset`
+
+    - etcd
+    - m3db-operator
+
+      $ kubectl get statefulset 
+      NAME            READY   AGE
+      etcd            1/1     5s
+      m3db-operator   1/1     5s
+    
+<b> Note: We are using the operator app in this example. You can create resources for different apps based on the use cases. <b>
+
+### Cleanup
 
 1. Delete Resources 
 
-    `$ $bin/emcoctl delete --config emco-cfg.yaml -v values.yaml -f test-gac.yaml`
+    ```shell
+      $ $bin/emcoctl delete --config emco-cfg.yaml -v values.yaml -f instantiate.yaml
+
+      $ $bin/emcoctl delete --config emco-cfg.yaml -v values.yaml -f test-gac.yaml
+    ```
 
     <b> Note: You cannot delete a record without deleting the dependent records (referential integrity). Please retry deleting the records if it fails. <b>
 
 2. Delete Prerequisites
 
-    `$ $bin/emcoctl delete --config emco-cfg.yaml -v values.yaml -f prerequisites.yaml`
+    ```shell
+      $ $bin/emcoctl delete --config emco-cfg.yaml -v values.yaml -f prerequisites.yaml
+    ```
 
     <b> Note: You cannot delete a record without deleting the dependent records (referential integrity). Please retry deleting the records if it fails. <b>
 
 3. Cleanup generated files
 
-    `$ ./setup.sh cleanup`
+    ```shell
+      $ ./setup.sh cleanup
+    ```
+
+## Test JSON patch with an external lookup URL
+1. Create Prerequisites
+
+    ```shell
+      $ $bin/emcoctl apply --config emco-cfg.yaml -v values.yaml -f prerequisites.yaml
+    ```
+
+2. Create Resources and Customization in the GAC
+
+    ```shell
+      $ $bin/emcoctl apply --config emco-cfg.yaml -v values.yaml -f test-gac-patch-with-external-url.yaml
+    ```
+
+3. Instantiate the GAC compositeApp deploymentIntentGroup
+
+    ```shell
+      $ $bin/emcoctl apply --config emco-cfg.yaml -v values.yaml -f instantiate.yaml
+    ```
+
+Once the deployment intent group is instantiated successfully, we can see the following resources on the edge cluster.
+
+  1. `configmap`
+
+    - cm-istio
+
+      $ kubectl get cm
+      NAME             DATA   AGE
+      cm-istio         4      5s
+
+  2. `secret`
+  
+    - m3db-operator-token-bxt65
+    - secret-db
+
+      $ kubectl get secret
+      NAME                        TYPE                                  DATA   AGE
+      m3db-operator-token-bxt65   kubernetes.io/service-account-token   3      5s
+      secret-db                   kubernetes.io/service-account-token   6      5s
+
+<b> Note: We are using the operator app in this example. You can create resources for different apps based on the use cases. <b>
+
+### Cleanup
+
+1. Delete Resources 
+
+    ```shell
+      $ $bin/emcoctl delete --config emco-cfg.yaml -v values.yaml -f instantiate.yaml
+
+      $ $bin/emcoctl delete --config emco-cfg.yaml -v values.yaml -f test-gac-patch-with-external-url.yaml
+    ```
+
+    <b> Note: You cannot delete a record without deleting the dependent records (referential integrity). Please retry deleting the records if it fails. <b>
+
+2. Delete Prerequisites
+
+    ```shell
+      $ $bin/emcoctl delete --config emco-cfg.yaml -v values.yaml -f prerequisites.yaml
+    ```
+
+    <b> Note: You cannot delete a record without deleting the dependent records (referential integrity). Please retry deleting the records if it fails. <b>
+
+3. Cleanup generated files
+
+    ```shell
+      $ ./setup.sh cleanup
+    ```

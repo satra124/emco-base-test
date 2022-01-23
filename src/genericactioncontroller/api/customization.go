@@ -33,12 +33,12 @@ type cVars struct {
 	version string
 }
 
-// handleCustomizationCreate handles the route for creating a new customization
+// handleCustomizationCreate handles the route for creating a new Customization
 func (h customizationHandler) handleCustomizationCreate(w http.ResponseWriter, r *http.Request) {
 	h.createOrUpdateCustomization(w, r)
 }
 
-// handleCustomizationDelete handles the route for deleting customization from the database
+// handleCustomizationDelete handles the route for deleting Customization from the database
 func (h customizationHandler) handleCustomizationDelete(w http.ResponseWriter, r *http.Request) {
 	vars := _cVars(mux.Vars(r))
 	if err := h.client.DeleteCustomization(vars.customization, vars.project, vars.compositeApp,
@@ -51,7 +51,7 @@ func (h customizationHandler) handleCustomizationDelete(w http.ResponseWriter, r
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// handleCustomizationGet handles the route for retrieving a customization from the database
+// handleCustomizationGet handles the route for retrieving a Customization from the database
 func (h customizationHandler) handleCustomizationGet(w http.ResponseWriter, r *http.Request) {
 	vars := _cVars(mux.Vars(r))
 	if len(vars.customization) == 0 {
@@ -122,12 +122,12 @@ func (h customizationHandler) handleCustomizationGet(w http.ResponseWriter, r *h
 	}
 }
 
-// handleCustomizationUpdate handles the route for updating the existing customization
+// handleCustomizationUpdate handles the route for updating the existing Customization
 func (h customizationHandler) handleCustomizationUpdate(w http.ResponseWriter, r *http.Request) {
 	h.createOrUpdateCustomization(w, r)
 }
 
-// createOrUpdateCustomization create/update the customization based on the request method
+// createOrUpdateCustomization create/update the Customization based on the request method
 func (h customizationHandler) createOrUpdateCustomization(w http.ResponseWriter, r *http.Request) {
 	const maxMemory = 16777216 // set maxSize 16MB
 
@@ -141,17 +141,12 @@ func (h customizationHandler) createOrUpdateCustomization(w http.ResponseWriter,
 	}
 
 	var customization module.Customization
-	// the multipart/form-data should contain the key `metadata` with the customization payload as the value
+	// the multipart/form-data should contain the key `metadata` with customization payload as the value
 	data := bytes.NewBuffer([]byte(r.FormValue("metadata")))
 	// validate the request body before storing it in the database
 	if code, err := validateRequestBody(data, &customization, CustomizationSchemaJson); err != nil {
 		http.Error(w, err.Error(), code)
 		return
-	}
-
-	methodPost := false
-	if r.Method == http.MethodPost {
-		methodPost = true
 	}
 
 	// validate customization specific prerequisites
@@ -185,6 +180,12 @@ func (h customizationHandler) createOrUpdateCustomization(w http.ResponseWriter,
 	}
 
 	vars := _cVars(mux.Vars(r))
+
+	methodPost := false
+	if r.Method == http.MethodPost {
+		methodPost = true
+	}
+
 	c, cExists, err := h.client.CreateCustomization(customization, customizationContent,
 		vars.project, vars.compositeApp, vars.version, vars.deploymentIntentGroup, vars.intent, vars.resource,
 		methodPost)
@@ -203,7 +204,7 @@ func (h customizationHandler) createOrUpdateCustomization(w http.ResponseWriter,
 	sendResponse(w, c, code)
 }
 
-// createCustomizationContent create the customization content from the uploaded customization files
+// createCustomizationContent create the Customization content from the uploaded Customization files
 func createCustomizationContent(files []file) module.CustomizationContent {
 	var customizationContent module.CustomizationContent
 	for _, f := range files {
@@ -217,7 +218,7 @@ func createCustomizationContent(files []file) module.CustomizationContent {
 	return customizationContent
 }
 
-// handleConfigMapCustomization handles the configmap specific customizations
+// handleConfigMapCustomization handles the ConfigMap specific customizations
 func handleConfigMapCustomization(customizationContent module.CustomizationContent, configMapOptions module.ConfigMapOptions) error {
 	if len(configMapOptions.DataKeyOptions) > 0 {
 		if err := customizeDataKey(customizationContent, configMapOptions.DataKeyOptions); err != nil {
@@ -228,7 +229,7 @@ func handleConfigMapCustomization(customizationContent module.CustomizationConte
 	return nil
 }
 
-// handleSecretCustomization handles the secret specific customizations
+// handleSecretCustomization handles the Secret specific customizations
 func handleSecretCustomization(customizationContent module.CustomizationContent, secretOptions module.SecretOptions) error {
 	if len(secretOptions.DataKeyOptions) > 0 {
 		if err := customizeDataKey(customizationContent, secretOptions.DataKeyOptions); err != nil {
@@ -239,7 +240,7 @@ func handleSecretCustomization(customizationContent module.CustomizationContent,
 	return nil
 }
 
-// validateCustomization validate the customization specific prerequisites
+// validateCustomization validate the Customization specific prerequisites
 func validateCustomization(customization module.Customization) error {
 	var err []string
 
@@ -279,7 +280,7 @@ func validateCustomization(customization module.Customization) error {
 	return nil
 }
 
-// validateCustomizationData validate the customization payload for the required values
+// validateCustomizationData validate the Customization payload for the required values
 func validateCustomizationData(customization module.Customization) error {
 	var err []string
 

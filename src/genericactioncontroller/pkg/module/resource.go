@@ -7,37 +7,36 @@ import (
 	"encoding/json"
 	"reflect"
 
-	pkgerrors "github.com/pkg/errors"
+	"github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 )
 
-// Resource consists of metadata and Spec
+// Resource holds the resource data
 type Resource struct {
 	Metadata Metadata     `json:"metadata"`
 	Spec     ResourceSpec `json:"spec"`
 }
 
-// ResourceSpec consists of AppName, NewObject, ResourceGVK
+// ResourceSpec holds the Kubernetes object details and the app using the object
 type ResourceSpec struct {
 	AppName     string      `json:"app"`
 	NewObject   string      `json:"newObject"`
 	ResourceGVK ResourceGVK `json:"resourceGVK,omitempty"`
 }
 
-// ResourceGVK consists of ApiVersion, Kind, Name
+// ResourceGVK holds the Kubernetes object details
 type ResourceGVK struct {
 	APIVersion string `json:"apiVersion"`
 	Kind       string `json:"kind"`
 	Name       string `json:"name"`
 }
 
-// ResourceContent contains the content of resource template
+// ResourceContent holds configuration data for the Kubernetes object
 type ResourceContent struct {
 	Content string `json:"filecontent"`
 }
 
-// ResourceKey consists of resourceName, ProjectName, CompAppName, CompAppVersion,
-// DeploymentIntentgroupName, GenericK8sIntentName
+// ResourceKey represents the resources associated with a Resource
 type ResourceKey struct {
 	Resource              string `json:"genericResource"`
 	Project               string `json:"project"`
@@ -47,7 +46,32 @@ type ResourceKey struct {
 	GenericK8sIntent      string `json:"genericK8sIntent"`
 }
 
-// ResourceManager is an interface that exposes resource related functionalities
+// ResourceClient holds the client properties
+type ResourceClient struct {
+	db ClientDbInfo
+}
+
+// Convert the key to string to preserve the underlying structure
+func (k ResourceKey) String() string {
+	out, err := json.Marshal(k)
+	if err != nil {
+		return ""
+	}
+	return string(out)
+}
+
+// NewResourceClient returns an instance of the ResourceClient which implements the Manager
+func NewResourceClient() *ResourceClient {
+	return &ResourceClient{
+		db: ClientDbInfo{
+			storeName:  "resources",
+			tagMeta:    "data",
+			tagContent: "resourcecontent",
+		},
+	}
+}
+
+// ResourceManager exposes all the functionalities related to Resource
 type ResourceManager interface {
 	CreateResource(res Resource, resContent ResourceContent,
 		project, compositeApp, compositeAppVersion, deploymentIntentGroup, genericK8sIntent string,
@@ -58,41 +82,8 @@ type ResourceManager interface {
 	GetResourceContent(resource, project, compositeApp, compositeAppVersion, deploymentIntentGroup, genericK8sIntent string) (ResourceContent, error)
 }
 
-type clientDbInfo struct {
-	storeName  string // name of the mongodb collection to use for client documents
-	tagMeta    string // attribute key name for the json data of a client document
-	tagContent string // attribute key name for the file data of a client document
-}
-
-// ResourceClient implements the resourceManager
-type ResourceClient struct {
-	db clientDbInfo
-}
-
-// We will use json marshalling to convert to string to
-// preserve the underlying structure.
-func (k ResourceKey) String() string {
-	out, err := json.Marshal(k)
-	if err != nil {
-		return ""
-	}
-	return string(out)
-}
-
-// NewResourceClient returns an instance of the ResourceClient
-// which implements the Manager
-func NewResourceClient() *ResourceClient {
-	return &ResourceClient{
-		db: clientDbInfo{
-			storeName:  "resources",
-			tagMeta:    "data",
-			tagContent: "resourcecontent",
-		},
-	}
-}
-
-// CreateResource creates a resource
-func (rc *ResourceClient) CreateResource(res Resource, content ResourceContent,
+// CreateResource creates a Resource
+func (rc *ResourceClient) CreateResource(res Resource, resContent ResourceContent,
 	project, compositeApp, compositeAppVersion, deploymentIntentGroup, genericK8sIntent string,
 	failIfExists bool) (Resource, bool, error) {
 
@@ -114,15 +105,15 @@ func (rc *ResourceClient) CreateResource(res Resource, content ResourceContent,
 
 	if rExists &&
 		failIfExists {
-		return Resource{}, rExists, pkgerrors.New("Resource already exists")
+		return Resource{}, rExists, errors.New("Resource already exists")
 	}
 
 	if err = db.DBconn.Insert(rc.db.storeName, key, nil, rc.db.tagMeta, res); err != nil {
 		return Resource{}, rExists, err
 	}
 
-	if !reflect.DeepEqual(content, ResourceContent{}) {
-		if err = db.DBconn.Insert(rc.db.storeName, key, nil, rc.db.tagContent, content); err != nil {
+	if len(resContent.Content) > 0 {
+		if err = db.DBconn.Insert(rc.db.storeName, key, nil, rc.db.tagContent, resContent); err != nil {
 			return Resource{}, rExists, err
 		}
 	}
@@ -130,7 +121,7 @@ func (rc *ResourceClient) CreateResource(res Resource, content ResourceContent,
 	return res, rExists, nil
 }
 
-// GetResource returns a resource
+// GetResource returns a Resource
 func (rc *ResourceClient) GetResource(resource, project, compositeApp, compositeAppVersion, deploymentIntentGroup, genericK8sIntent string) (Resource, error) {
 
 	key := ResourceKey{
@@ -148,7 +139,7 @@ func (rc *ResourceClient) GetResource(resource, project, compositeApp, composite
 	}
 
 	if len(value) == 0 {
-		return Resource{}, pkgerrors.New("Resource not found")
+		return Resource{}, errors.New("Resource not found")
 	}
 
 	if value != nil {
@@ -159,10 +150,10 @@ func (rc *ResourceClient) GetResource(resource, project, compositeApp, composite
 		return r, nil
 	}
 
-	return Resource{}, pkgerrors.New("Unknown Error")
+	return Resource{}, errors.New("Unknown Error")
 }
 
-// GetAllResources shall return all the resources for the intent
+// GetAllResources returns all the Resources for an Intent
 func (rc *ResourceClient) GetAllResources(project, compositeApp, compositeAppVersion, deploymentIntentGroup,
 	genericK8sIntent string) ([]Resource, error) {
 
@@ -192,7 +183,7 @@ func (rc *ResourceClient) GetAllResources(project, compositeApp, compositeAppVer
 	return resources, nil
 }
 
-// GetResourceContent returns the content of the resource template
+// GetResourceContent returns the content of the Resource template
 func (rc *ResourceClient) GetResourceContent(resource, project, compositeApp, compositeAppVersion,
 	deploymentIntentGroup, genericK8sIntent string) (ResourceContent, error) {
 
@@ -222,7 +213,7 @@ func (rc *ResourceClient) GetResourceContent(resource, project, compositeApp, co
 	return ResourceContent{}, nil
 }
 
-// DeleteResource deletes a given resource
+// DeleteResource deletes a given Resource
 func (rc *ResourceClient) DeleteResource(resource, project, compositeApp, compositeAppVersion,
 	deploymentIntentGroup, genericK8sIntent string) error {
 

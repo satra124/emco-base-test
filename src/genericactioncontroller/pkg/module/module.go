@@ -11,13 +11,14 @@ type Client struct {
 	Resource         *ResourceClient
 }
 
-// ClientDbInfo consists of storeName, tagMeta
+// ClientDbInfo holds the MongoDB collection and attributes info
 type ClientDbInfo struct {
-	storeName string // name of the mongodb collection to use for client documents
-	tagMeta   string // attribute key name for the json data of a client document
+	storeName  string // name of the mongodb collection to use for client documents
+	tagMeta    string // attribute key name for the json data of a client document
+	tagContent string // attribute key name for the file data of a client document
 }
 
-// Metadata consists of Name, description, userData1, userData2
+// Metadata holds the data
 type Metadata struct {
 	Name        string `json:"name" yaml:"name"`
 	Description string `json:"description" yaml:"-"`

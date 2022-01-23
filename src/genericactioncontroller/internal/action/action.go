@@ -98,7 +98,7 @@ func (o *updateOptions) createOrUpdateResource() error {
 		}
 
 		if err = o.updateExistingResource(); err != nil {
-			return err // hwo to test this case ? is this a valid use case ?
+			return err
 		}
 	}
 
@@ -142,6 +142,11 @@ func (o *updateOptions) createK8sResource() error {
 
 	if strings.ToLower(o.customization.Spec.PatchType) == "json" &&
 		len(o.customization.Spec.PatchJSON) > 0 {
+		// validate the JSON patch value before applying
+		if err := o.validateJSONPatchValue(); err != nil {
+			return err
+		}
+
 		modifiedPatch, err := applyPatch(o.customization.Spec.PatchJSON, value)
 		if err != nil {
 			return err
@@ -159,17 +164,17 @@ func (o *updateOptions) createK8sResource() error {
 // create adds the resource under the app and cluster
 // also add instruction under the given handle and instruction type
 func (o *updateOptions) create(data []byte) error {
-	clusterSpecific := strings.ToLower(o.customization.Spec.ClusterSpecific)
-	scope := strings.ToLower(o.customization.Spec.ClusterInfo.Scope)
-	provider := o.customization.Spec.ClusterInfo.ClusterProvider
-	clusterName := o.customization.Spec.ClusterInfo.ClusterName
-	label := o.customization.Spec.ClusterInfo.ClusterLabel
-	mode := strings.ToLower(o.customization.Spec.ClusterInfo.Mode)
-
 	clusters, err := o.getClusterNames()
 	if err != nil {
 		return err
 	}
+
+	clusterName := o.customization.Spec.ClusterInfo.ClusterName
+	clusterSpecific := strings.ToLower(o.customization.Spec.ClusterSpecific)
+	label := o.customization.Spec.ClusterInfo.ClusterLabel
+	mode := strings.ToLower(o.customization.Spec.ClusterInfo.Mode)
+	provider := o.customization.Spec.ClusterInfo.ClusterProvider
+	scope := strings.ToLower(o.customization.Spec.ClusterInfo.Scope)
 
 	for _, cluster := range clusters {
 		if clusterSpecific == "true" && scope == "label" {
@@ -198,6 +203,7 @@ func (o *updateOptions) create(data []byte) error {
 		}
 
 		resource := o.resource.Spec.ResourceGVK.Name + SEPARATOR + o.resource.Spec.ResourceGVK.Kind
+
 		if err = o.addResource(handle, resource, string(data)); err != nil {
 			return err
 		}
@@ -218,17 +224,31 @@ func (o *updateOptions) create(data []byte) error {
 
 // updateExistingResource update the existing k8s object
 func (o *updateOptions) updateExistingResource() error {
-	clusterSpecific := strings.ToLower(o.customization.Spec.ClusterSpecific)
-	scope := strings.ToLower(o.customization.Spec.ClusterInfo.Scope)
-	provider := o.customization.Spec.ClusterInfo.ClusterProvider
-	clusterName := o.customization.Spec.ClusterInfo.ClusterName
-	label := o.customization.Spec.ClusterInfo.ClusterLabel
-	mode := strings.ToLower(o.customization.Spec.ClusterInfo.Mode)
+	// make sure we have a valid JSON patch to update the resource
+	if strings.ToLower(o.customization.Spec.PatchType) != "json" ||
+		len(o.customization.Spec.PatchJSON) == 0 {
+		o.logUpdateError(
+			updateError{
+				message: "invalid json patch"})
+		return errors.New("invalid json patch")
+	}
+
+	// validate the JSON patch value before applying
+	if err := o.validateJSONPatchValue(); err != nil {
+		return err
+	}
 
 	clusters, err := o.getClusterNames()
 	if err != nil {
 		return err
 	}
+
+	clusterName := o.customization.Spec.ClusterInfo.ClusterName
+	clusterSpecific := strings.ToLower(o.customization.Spec.ClusterSpecific)
+	label := o.customization.Spec.ClusterInfo.ClusterLabel
+	mode := strings.ToLower(o.customization.Spec.ClusterInfo.Mode)
+	provider := o.customization.Spec.ClusterInfo.ClusterProvider
+	scope := strings.ToLower(o.customization.Spec.ClusterInfo.Scope)
 
 	for _, cluster := range clusters {
 		if clusterSpecific == "true" && scope == "label" {

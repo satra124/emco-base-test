@@ -36,12 +36,12 @@ type rVars struct {
 	project string
 }
 
-// handleResourceCreate handles the route for creating a new resource
+// handleResourceCreate handles the route for creating a new Resource
 func (h resourceHandler) handleResourceCreate(w http.ResponseWriter, r *http.Request) {
 	h.createOrUpdateResource(w, r)
 }
 
-// handleResourceDelete handles the route for deleting resource from the database
+// handleResourceDelete handles the route for deleting Resource from the database
 func (h resourceHandler) handleResourceDelete(w http.ResponseWriter, r *http.Request) {
 	vars := _rVars(mux.Vars(r))
 	if err := h.client.DeleteResource(vars.resource, vars.project, vars.compositeApp, vars.version,
@@ -54,7 +54,7 @@ func (h resourceHandler) handleResourceDelete(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// handleResourceGet handles the route for retrieving a resource from the database
+// handleResourceGet handles the route for retrieving a Resource from the database
 func (h resourceHandler) handleResourceGet(w http.ResponseWriter, r *http.Request) {
 	vars := _rVars(mux.Vars(r))
 	if len(vars.resource) == 0 {
@@ -123,12 +123,12 @@ func (h resourceHandler) handleResourceGet(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-// handleResourceUpdate handles the route for updating the existing resource
+// handleResourceUpdate handles the route for updating the existing Resource
 func (h resourceHandler) handleResourceUpdate(w http.ResponseWriter, r *http.Request) {
 	h.createOrUpdateResource(w, r)
 }
 
-// createOrUpdateResource create/update the resource based on the request method
+// createOrUpdateResource create/update the Resource based on the request method
 func (h resourceHandler) createOrUpdateResource(w http.ResponseWriter, r *http.Request) {
 	const maxMemory = 16777216 // set maxSize 16MB
 
@@ -142,7 +142,7 @@ func (h resourceHandler) createOrUpdateResource(w http.ResponseWriter, r *http.R
 	}
 
 	var resource module.Resource
-	// the multipart/form-data should contain the key `metadata` with the resource payload as the value
+	// the multipart/form-data should contain the key `metadata` with resource payload as the value
 	data := bytes.NewBuffer([]byte(r.FormValue("metadata")))
 	// validate the request body before storing it in the database
 	if code, err := validateRequestBody(data, &resource, ResourceSchemaJson); err != nil {
@@ -164,8 +164,8 @@ func (h resourceHandler) createOrUpdateResource(w http.ResponseWriter, r *http.R
 	newObject := strings.ToLower(resource.Spec.NewObject)
 	objectKind := strings.ToLower(resource.Spec.ResourceGVK.Kind)
 
-	// if the template file is missing and the object is not a ConfigMap or Secret, return an error
-	// a template file is mandatory for objects other than ConfigMap or Secret
+	// if the template file is missing and the object is not a ConfigMap/Secret, return an error
+	// a template file is mandatory for objects other than ConfigMap/Secret
 	if err == http.ErrMissingFile &&
 		objectKind != "configmap" &&
 		objectKind != "secret" &&
@@ -210,7 +210,7 @@ func (h resourceHandler) createOrUpdateResource(w http.ResponseWriter, r *http.R
 	sendResponse(w, res, code)
 }
 
-// createResourceContent create the resource content from the uploaded resource template file
+// createResourceContent create the Resource content from the uploaded Resource template file
 func createResourceContent(w http.ResponseWriter, file multipart.File) (string, error) {
 	if file != nil {
 		defer file.Close()
@@ -241,7 +241,7 @@ func createResourceContent(w http.ResponseWriter, file multipart.File) (string, 
 	return "", nil
 }
 
-// validateResourceData validate the resource payload for the required values
+// validateResourceData validate the Resource payload for the required values
 func validateResourceData(r module.Resource) error {
 	var err []string
 

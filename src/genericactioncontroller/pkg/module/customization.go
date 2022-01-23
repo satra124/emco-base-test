@@ -11,13 +11,13 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 )
 
-// Customization consists of metadata and Spec
+// Customization holds the customization data
 type Customization struct {
 	Metadata Metadata          `json:"metadata"`
 	Spec     CustomizationSpec `json:"spec"`
 }
 
-// CustomizationSpec consists of ClusterSpecific and ClusterInfo
+// CustomizationSpec holds the cluster-specific customization data
 type CustomizationSpec struct {
 	ClusterSpecific  string                   `json:"clusterSpecific"`
 	ClusterInfo      ClusterInfo              `json:"clusterInfo"`
@@ -27,7 +27,7 @@ type CustomizationSpec struct {
 	SecretOptions    SecretOptions            `json:"secretOptions,omitempty"`
 }
 
-// ClusterInfo consists of scope, Clusterprovider, ClusterName, ClusterLabel and Mode
+// ClusterInfo holds the cluster info
 type ClusterInfo struct {
 	Scope           string `json:"scope"`
 	ClusterProvider string `json:"clusterProvider"`
@@ -36,39 +36,35 @@ type ClusterInfo struct {
 	Mode            string `json:"mode"`
 }
 
-// ConfigMapOptions holds properties for customizing configmap
+// ConfigMapOptions holds properties for customizing ConfigMap
 type ConfigMapOptions struct {
 	DataKeyOptions []KeyOptions `json:"dataKeyOptions,omitempty"`
 }
 
-// SecretOptions holds properties for customizing secret
+// SecretOptions holds properties for customizing Secret
 type SecretOptions struct {
 	DataKeyOptions []KeyOptions `json:"dataKeyOptions,omitempty"`
 }
 
-// KeyOptions holds properties for customizing configmap/secret data keys
+// KeyOptions holds properties for customizing ConfigMap/Secret configuration data keys
 type KeyOptions struct {
 	FileName string `json:"fileName"`
 	KeyName  string `json:"keyName"`
 }
 
-// Content represent either a merge content or a JSON patch
-// and its targets. The content of the patch can either be from a file
-// or from an inline string.
+// Content holds the configuration data for a ConfigMap/Secret
 type Content struct {
 	FileName string
 	Content  string
 	KeyName  string
 }
 
-// CustomizationContent is a list of patches, where each one can be either a
-// merge content or a JSON patch.
+// CustomizationContent is a list of configuration data for a ConfigMap/Secret
 type CustomizationContent struct {
 	Content []Content
 }
 
-// CustomizationKey consists of CustomizationName, project, CompApp, CompAppVersion,
-// DeploymentIntentGroupName, GenericIntentName, ResourceName
+// CustomizationKey represents the resources associated with a Customization
 type CustomizationKey struct {
 	Customization         string `json:"customization"`
 	Project               string `json:"project"`
@@ -79,7 +75,32 @@ type CustomizationKey struct {
 	Resource              string `json:"genericResource"`
 }
 
-// CustomizationManager exposes all the functionalities of customization
+// CustomizationClient holds the client properties
+type CustomizationClient struct {
+	db ClientDbInfo
+}
+
+// Convert the key to string to preserve the underlying structure
+func (k CustomizationKey) String() string {
+	out, err := json.Marshal(k)
+	if err != nil {
+		return ""
+	}
+	return string(out)
+}
+
+// NewCustomizationClient returns an instance of the CustomizationClient which implements the Manager
+func NewCustomizationClient() *CustomizationClient {
+	return &CustomizationClient{
+		db: ClientDbInfo{
+			storeName:  "resources",
+			tagMeta:    "data",
+			tagContent: "customizationcontent",
+		},
+	}
+}
+
+// CustomizationManager exposes all the functionalities related to Customization
 type CustomizationManager interface {
 	CreateCustomization(customization Customization, content CustomizationContent,
 		project, compositeApp, version, deploymentIntentGroup, intent, resource string,
@@ -90,41 +111,8 @@ type CustomizationManager interface {
 	GetCustomizationContent(customization, project, compositeApp, version, deploymentIntentGroup, intent, resource string) (CustomizationContent, error)
 }
 
-// CustomizationClientDbInfo consists of tableName and columns
-type CustomizationClientDbInfo struct {
-	storeName  string // name of the mongodb collection to use for client documents
-	tagMeta    string // attribute key name for the json data of a client document
-	tagContent string // attribute key name for the file data of a client document
-}
-
-// CustomizationClient consists of CustomizationClientDbInfo
-type CustomizationClient struct {
-	db CustomizationClientDbInfo
-}
-
-// We will use json marshalling to convert to string to
-// preserve the underlying structure.
-func (k CustomizationKey) String() string {
-	out, err := json.Marshal(k)
-	if err != nil {
-		return ""
-	}
-	return string(out)
-}
-
-// NewCustomizationClient returns an instance of the CustomizationClient
-func NewCustomizationClient() *CustomizationClient {
-	return &CustomizationClient{
-		db: CustomizationClientDbInfo{
-			storeName:  "resources",
-			tagMeta:    "data",
-			tagContent: "customizationcontent",
-		},
-	}
-}
-
-// CreateCustomization creates a new Customization
-func (cc *CustomizationClient) CreateCustomization(customization Customization, content CustomizationContent,
+// CreateCustomization creates a Customization
+func (cc *CustomizationClient) CreateCustomization(customization Customization, customizationContent CustomizationContent,
 	project, compositeApp, version, deploymentIntentGroup, intent, resource string,
 	failIfExists bool) (Customization, bool, error) {
 
@@ -155,8 +143,8 @@ func (cc *CustomizationClient) CreateCustomization(customization Customization, 
 		return Customization{}, cExists, err
 	}
 
-	if !reflect.DeepEqual(content, CustomizationContent{}) {
-		if err = db.DBconn.Insert(cc.db.storeName, key, nil, cc.db.tagContent, content); err != nil {
+	if len(customizationContent.Content) > 0 {
+		if err = db.DBconn.Insert(cc.db.storeName, key, nil, cc.db.tagContent, customizationContent); err != nil {
 			return Customization{}, cExists, err
 		}
 	}
@@ -164,7 +152,7 @@ func (cc *CustomizationClient) CreateCustomization(customization Customization, 
 	return customization, cExists, nil
 }
 
-// GetCustomization returns Customization
+// GetCustomization returns a Customization
 func (cc *CustomizationClient) GetCustomization(
 	customization, project, compositeApp, version, deploymentIntentGroup, intent, resource string) (Customization, error) {
 
@@ -198,7 +186,7 @@ func (cc *CustomizationClient) GetCustomization(
 	return Customization{}, errors.New("Unknown Error")
 }
 
-// GetAllCustomization returns all the customization objects
+// GetAllCustomization returns all the Customizations for an Intent and Resource
 func (cc *CustomizationClient) GetAllCustomization(
 	project, compositeApp, version, deploymentIntentGroup, intent, resource string) ([]Customization, error) {
 
@@ -229,7 +217,7 @@ func (cc *CustomizationClient) GetAllCustomization(
 	return customizations, nil
 }
 
-// GetCustomizationContent returns the customizationContent
+// GetCustomizationContent returns the content of the Customization files
 func (cc *CustomizationClient) GetCustomizationContent(
 	customization, project, compositeApp, version, deploymentIntentGroup, intent, resource string) (CustomizationContent, error) {
 
@@ -260,7 +248,7 @@ func (cc *CustomizationClient) GetCustomizationContent(
 	return CustomizationContent{}, nil
 }
 
-// DeleteCustomization deletes Customization
+// DeleteCustomization deletes a given Customization
 func (cc *CustomizationClient) DeleteCustomization(
 	customization, project, compositeApp, version, deploymentIntentGroup, intent, resource string) error {
 

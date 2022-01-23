@@ -222,7 +222,7 @@ func sendOctetStreamResponse(w http.ResponseWriter, files []file) {
 	}
 }
 
-// validateContent validate the resource template content serialized to a byte array
+// validateContent validate the Resource template content serialized to a byte array
 func validateContent(data []byte) error {
 	out, err := yaml.ToJSON(data)
 	if err != nil {
@@ -259,7 +259,7 @@ func validateContent(data []byte) error {
 	return nil
 }
 
-// validateObjectVersionKind validate the resource template content for the required version/kind fields
+// validateObjectVersionKind validate the Resource template content for the required version/kind fields
 func validateObjectVersionKind(fields map[string]interface{}) error {
 	apiVersion := fields["apiVersion"]
 	if apiVersion == nil {
@@ -296,7 +296,7 @@ func validateObjectVersionKind(fields map[string]interface{}) error {
 	return nil
 }
 
-// validateObjectMetadata validate the resource template content for the required metadata fields
+// validateObjectMetadata validate the Resource template content for the required metadata fields
 func validateObjectMetadata(fields map[string]interface{}) error {
 	metadata := fields["metadata"]
 	if metadata == nil {

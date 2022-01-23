@@ -63,6 +63,9 @@ func createMultiPartFormData(input io.Reader, body *bytes.Buffer) (string, error
 	)
 
 	w := multipart.NewWriter(body)
+
+	defer w.Close()
+
 	if fw, err = w.CreateFormField("metadata"); err != nil {
 		return "", err
 	}
@@ -70,8 +73,6 @@ func createMultiPartFormData(input io.Reader, body *bytes.Buffer) (string, error
 	if _, err = io.Copy(fw, input); err != nil {
 		return "", err
 	}
-
-	w.Close()
 
 	return w.FormDataContentType(), nil
 }

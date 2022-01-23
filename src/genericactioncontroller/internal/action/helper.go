@@ -6,9 +6,13 @@ package action
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
 	"strings"
 
 	jsonpatch "github.com/evanphx/json-patch"
+	"github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/clm/pkg/cluster"
 	"gitlab.com/project-emco/core/emco-base/src/genericactioncontroller/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
@@ -138,7 +142,7 @@ func decodeString(s string) ([]byte, error) {
 	return data, nil
 }
 
-// getResourceContent retrieves the resource template from the db
+// getResourceContent retrieves the content of the Resource template from the db
 func (o *updateOptions) getResourceContent() error {
 	resourceContent, err := module.NewResourceClient().GetResourceContent(o.resource.Metadata.Name, o.appMeta.Project,
 		o.appMeta.CompositeApp, o.appMeta.Version, o.appMeta.DeploymentIntentGroup, o.intent)
@@ -155,7 +159,7 @@ func (o *updateOptions) getResourceContent() error {
 	return nil
 }
 
-// getAllCustomization returns all the customizations
+// getAllCustomization returns all the Customizations for the given Intent and Resource
 func (o *updateOptions) getAllCustomization() ([]module.Customization, error) {
 	customizations, err := module.NewCustomizationClient().GetAllCustomization(o.appMeta.Project,
 		o.appMeta.CompositeApp, o.appMeta.Version, o.appMeta.DeploymentIntentGroup, o.intent, o.resource.Metadata.Name)
@@ -176,7 +180,7 @@ func (o *updateOptions) getAllCustomization() ([]module.Customization, error) {
 	return customizations, nil
 }
 
-// getCustomizationContent retrieves the customization template from the db
+// getCustomizationContent retrieves the content of the Customization files from the db
 func (o *updateOptions) getCustomizationContent() error {
 	customizationContent, err := module.NewCustomizationClient().GetCustomizationContent(o.customization.Metadata.Name, o.appMeta.Project,
 		o.appMeta.CompositeApp, o.appMeta.Version, o.appMeta.DeploymentIntentGroup, o.intent, o.resource.Metadata.Name)
@@ -224,8 +228,7 @@ func (o *updateOptions) getClusterHandle(cluster string) (interface{}, error) {
 
 // addResource add the resource under the app and cluster
 func (o *updateOptions) addResource(handle interface{}, resource, value string) error {
-	_, err := o.appContext.AddResource(handle, resource, value)
-	if err != nil {
+	if _, err := o.appContext.AddResource(handle, resource, value); err != nil {
 		o.logUpdateError(
 			updateError{
 				message: "Failed to add the resource",
@@ -308,8 +311,7 @@ func (o *updateOptions) getValue(handle interface{}) (interface{}, error) {
 
 // updateResourceValue updates the resource value using the given handle
 func (o *updateOptions) updateResourceValue(handle interface{}, value string) error {
-	err := o.appContext.UpdateResourceValue(handle, value)
-	if err != nil {
+	if err := o.appContext.UpdateResourceValue(handle, value); err != nil {
 		o.logUpdateError(
 			updateError{
 				message: "Failed to update resource value",
@@ -367,4 +369,88 @@ func (o *updateOptions) logUpdateError(uError updateError) {
 
 	log.Error(uError.message, fields)
 
+}
+
+// validateJSONPatchValue looks for any HTTP URL in the JSON patch value
+// and replace it with the URL response, if needed
+func (o *updateOptions) validateJSONPatchValue() error {
+	var (
+		err          []string
+		placeholders = []string{"{clusterProvider}", "{cluster}"} // supported placeholders in the URL
+	)
+
+	for _, p := range o.customization.Spec.PatchJSON {
+		switch value := p["value"].(type) {
+		case string:
+			if strings.HasPrefix(value, "$(http") &&
+				strings.HasSuffix(value, ")$") {
+				// replace the patch value with the URL response
+				rawURL := strings.ReplaceAll(strings.ReplaceAll(value, "$(", ""), ")$", "")
+				if strings.Contains(rawURL, "/{") {
+					// look for placeholders in the URL and replace it, if needed
+					for _, ph := range placeholders {
+						if strings.Contains(rawURL, ph) {
+							switch {
+							case ph == "{clusterProvider}":
+								rawURL = strings.Replace(rawURL, ph, o.customization.Spec.ClusterInfo.ClusterProvider, -1) // -1-> replace all the instances
+							case ph == "{cluster}":
+								rawURL = strings.Replace(rawURL, ph, o.customization.Spec.ClusterInfo.ClusterName, -1) // -1-> replace all the instances
+							}
+						}
+					}
+				}
+
+				val, e := getJSONPatchValueFromExternalService(rawURL)
+				if e != nil {
+					err = append(err, e.Error())
+					continue // verify the value for all the patches and capture errors if there are any
+				}
+				// update the patch value with the response
+				p["value"] = val
+			}
+		}
+	}
+
+	if len(err) > 0 {
+		return errors.New(strings.Join(err, "\n"))
+	}
+
+	return nil
+}
+
+// getJSONPatchValueFromExternalService invoke the URL and returns the value
+func getJSONPatchValueFromExternalService(rawURL string) (interface{}, error) {
+	u, err := url.ParseRequestURI(rawURL)
+	if err != nil {
+		log.Error("Failed to parse the raw URL into a URL structure",
+			log.Fields{
+				"URL":   rawURL,
+				"Error": err.Error()})
+		return nil, err
+	}
+
+	resp, err := http.Get(u.String())
+	if err != nil {
+		log.Error("Failed to get the URL response",
+			log.Fields{
+				"URL":   u.String(),
+				"Error": err.Error()})
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Error("Unexpected status code when reading patch value from the URL",
+			log.Fields{
+				"URL":        u.String(),
+				"Status":     resp.Status,
+				"StatusCode": resp.StatusCode})
+		return nil, fmt.Errorf("unexpected status code when reading patch value from %s. response: %v, code: %d", u.String(), resp.Status, resp.StatusCode)
+	}
+
+	var v map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&v); err != nil {
+		return nil, err
+	}
+
+	return v["value"], nil
 }

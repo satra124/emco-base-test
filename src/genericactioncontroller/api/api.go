@@ -50,7 +50,7 @@ func NewRouter(mockClient interface{}) *mux.Router {
 
 // setClient set the client and its corresponding manager interface
 // If the mockClient parameter is not nil and implements the manager interface
-// corresponding to the client return the mockClient. Otherwise, return the client
+// corresponding to the client, return the mockClient. Otherwise, return the client
 func setClient(client, mockClient interface{}) interface{} {
 	switch cl := client.(type) {
 	case *module.GenericK8sIntentClient:

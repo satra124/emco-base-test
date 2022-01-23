@@ -10,12 +10,12 @@ import (
 
 	"github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/genericactioncontroller/pkg/module"
-	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	yamlV2 "gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
-// ConfigMap holds the configuration data
+// ConfigMap holds the configuration data for pods to consume
 type ConfigMap struct {
 	APIVersion string            `yaml:"apiVersion"`
 	Kind       string            `yaml:"kind"`
@@ -23,7 +23,7 @@ type ConfigMap struct {
 	Data       map[string]string `yaml:"data,omitempty"`
 }
 
-// createConfigMap create the ConfigMap configurations based on the JSON  patch,
+// createConfigMap create the ConfigMap based on the JSON  patch,
 // content in the template file, and the customization file, if any
 func (o *updateOptions) createConfigMap() error {
 	// create a new ConfigMap object based on the template file
@@ -41,8 +41,8 @@ func (o *updateOptions) createConfigMap() error {
 
 	value, err := yamlV2.Marshal(configMap)
 	if err != nil {
-		log.Error("Failed to serialize the configMap object into a yaml document",
-			log.Fields{
+		logutils.Error("Failed to serialize the configMap object into a yaml document",
+			logutils.Fields{
 				"ConfigMap": configMap,
 				"Error ":    err.Error()})
 		return err
@@ -50,6 +50,11 @@ func (o *updateOptions) createConfigMap() error {
 
 	if strings.ToLower(o.customization.Spec.PatchType) == "json" &&
 		len(o.customization.Spec.PatchJSON) > 0 {
+		// validate the JSON patch value before applying
+		if err := o.validateJSONPatchValue(); err != nil {
+			return err
+		}
+
 		// apply the JSON patch associated with the ConfigMap customization
 		modifiedPatch, err := applyPatch(o.customization.Spec.PatchJSON, value)
 		if err != nil {
@@ -72,18 +77,18 @@ func newConfigMap(template, name string) (*ConfigMap, error) {
 		// set the base struct from the associated template file
 		value, err := base64.StdEncoding.DecodeString(template)
 		if err != nil {
-			log.Error("Failed to decode the configMap template content",
-				log.Fields{
+			logutils.Error("Failed to decode the configMap template content",
+				logutils.Fields{
 					"Error": err.Error()})
 			return &ConfigMap{}, err
 		}
 
 		if len(value) > 0 {
 			configMap := ConfigMap{}
-			err = yamlV2.Unmarshal(value, &configMap)
-			if err != nil {
-				log.Error("Failed to unmarshal the configMap template content",
-					log.Fields{
+			configMap.Data = map[string]string{} // initialize to avoid nil value
+			if err = yamlV2.Unmarshal(value, &configMap); err != nil {
+				logutils.Error("Failed to unmarshal the configMap template content",
+					logutils.Fields{
 						"Error": err.Error()})
 				return &ConfigMap{}, err
 			}
@@ -111,9 +116,8 @@ func newConfigMap(template, name string) (*ConfigMap, error) {
 func handleConfigMapCustomization(cm *ConfigMap, customizations []module.Content) error {
 	// the number of customization file contents and filenames should be equal and in the same order
 	for _, c := range customizations {
-		// checks whether the key name is valid
-		err := validateConfigMapDataKey(cm, c.KeyName)
-		if err != nil {
+		// check whether the key name is valid
+		if err := validateConfigMapDataKey(cm, c.KeyName); err != nil {
 			return err
 		}
 
@@ -130,25 +134,31 @@ func handleConfigMapCustomization(cm *ConfigMap, customizations []module.Content
 
 // validateConfigMapDataKey checks whether the data key name is valid
 func validateConfigMapDataKey(cm *ConfigMap, key string) error {
+	//  check whether the key is a valid key for the ConfigMap
 	if errs := validation.IsConfigMapKey(key); len(errs) > 0 {
 		return fmt.Errorf("%q is not a valid key name for a ConfigMap: %s", key, strings.Join(errs, ","))
 	}
+
 	if _, exists := cm.Data[key]; exists {
 		return fmt.Errorf("cannot add key %q, another key by that name already exists in Data for ConfigMap %q", key, cm.MetaData.Name)
 	}
+
 	return nil
 }
 
-// validateConfigMap checks whether the configmap has basic configurations
+// validateConfigMap checks whether the ConfigMap has basic configurations
 func validateConfigMap(cm ConfigMap) error {
 	var err []string
+
 	if len(cm.APIVersion) == 0 {
 		err = append(err, "apiVersion not set for configmap")
 	}
+
 	if len(cm.Kind) == 0 ||
 		strings.ToLower(cm.Kind) != "configmap" {
 		err = append(err, "kind not set for configmap")
 	}
+
 	if len(cm.MetaData.Name) == 0 {
 		err = append(err, "configmap name may not be empty")
 	}

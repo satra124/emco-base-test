@@ -10,12 +10,12 @@ import (
 
 	"github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/genericactioncontroller/pkg/module"
-	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	yamlV2 "gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
-// Secret holds the secret data
+// Secret holds secret data of a certain type
 type Secret struct {
 	APIVersion string            `yaml:"apiVersion"`
 	Kind       string            `yaml:"kind"`
@@ -24,7 +24,7 @@ type Secret struct {
 	Data       map[string]string `yaml:"data"`
 }
 
-// createSecret create the Secret data based on the JSON  patch,
+// createSecret create the Secret based on the JSON  patch,
 // content in the template file, and the customization file, if any
 func (o *updateOptions) createSecret() error {
 	// create a new Secret object based on the template file
@@ -42,8 +42,8 @@ func (o *updateOptions) createSecret() error {
 
 	value, err := yamlV2.Marshal(secret)
 	if err != nil {
-		log.Error("Failed to serialize the secret object into a YAML document",
-			log.Fields{
+		logutils.Error("Failed to serialize the secret object into a YAML document",
+			logutils.Fields{
 				"Secret": secret,
 				"Error ": err.Error()})
 		return err
@@ -51,6 +51,11 @@ func (o *updateOptions) createSecret() error {
 
 	if strings.ToLower(o.customization.Spec.PatchType) == "json" &&
 		len(o.customization.Spec.PatchJSON) > 0 {
+		// validate the JSON patch value before applying
+		if err := o.validateJSONPatchValue(); err != nil {
+			return err
+		}
+
 		// apply the JSON patch associated with the Secret customization
 		modifiedPatch, err := applyPatch(o.customization.Spec.PatchJSON, value)
 		if err != nil {
@@ -73,19 +78,18 @@ func newSecret(template, name string) (*Secret, error) {
 		// set the base struct from the associated template file
 		value, err := base64.StdEncoding.DecodeString(template)
 		if err != nil {
-			log.Error("Failed to decode the secret template content",
-				log.Fields{
+			logutils.Error("Failed to decode the secret template content",
+				logutils.Fields{
 					"Error": err.Error()})
 			return &Secret{}, err
 		}
 
 		if len(value) > 0 {
 			secret := Secret{}
-			// if the Secret template is available, then it should be YAML
-			err = yamlV2.Unmarshal(value, &secret)
-			if err != nil {
-				log.Error("Failed to unmarshal the secret template content",
-					log.Fields{
+			secret.Data = map[string]string{} // initialize to avoid nil value
+			if err = yamlV2.Unmarshal(value, &secret); err != nil {
+				logutils.Error("Failed to unmarshal the secret template content",
+					logutils.Fields{
 						"Error": err.Error()})
 				return &Secret{}, err
 			}
@@ -118,9 +122,8 @@ func newSecret(template, name string) (*Secret, error) {
 func handleSecretCustomization(s *Secret, customizations []module.Content) error {
 	// the number of customization file contents and filenames should be equal and in the same order
 	for _, c := range customizations {
-		// checks whether the key name is valid
-		err := validateSecretDataKey(s, c.KeyName)
-		if err != nil {
+		// check whether the key name is valid
+		if err := validateSecretDataKey(s, c.KeyName); err != nil {
 			return err
 		}
 
@@ -132,25 +135,31 @@ func handleSecretCustomization(s *Secret, customizations []module.Content) error
 
 // validateSecretDataKey checks whether the data key name is valid
 func validateSecretDataKey(s *Secret, key string) error {
+	//  check whether the key is a valid key for the Secret
 	if errs := validation.IsConfigMapKey(key); len(errs) > 0 {
 		return fmt.Errorf("%q is not a valid key name for a Secret: %s", key, strings.Join(errs, ","))
 	}
+
 	if _, exists := s.Data[key]; exists {
 		return fmt.Errorf("cannot add key %q, another key by that name already exists in Data for Secret %q", key, s.MetaData.Name)
 	}
+
 	return nil
 }
 
-// validateSecret checks whether the secret has basic configurations
+// validateSecret checks whether the Secret has basic configurations
 func validateSecret(s Secret) error {
 	var err []string
+
 	if len(s.APIVersion) == 0 {
 		err = append(err, "apiVersion not set for secret")
 	}
+
 	if len(s.Kind) == 0 ||
 		strings.ToLower(s.Kind) != "secret" {
 		err = append(err, "kind not set for secret")
 	}
+
 	if len(s.MetaData.Name) == 0 {
 		err = append(err, "secret name may not be empty")
 	}
