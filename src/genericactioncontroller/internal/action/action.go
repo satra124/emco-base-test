@@ -4,200 +4,273 @@ package action
 // Copyright (c) 2020 Intel Corporation
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"strings"
 
-	jh "gitlab.com/project-emco/core/emco-base/src/genericactioncontroller/pkg/jsonapihelper"
+	"github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/genericactioncontroller/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
-	pkgerrors "github.com/pkg/errors"
 )
 
 // SEPARATOR used while creating resourceNames to store in etcd
 const SEPARATOR = "+"
 
-// UpdateAppContext is the method which calls the backend logic of this controller.
-func UpdateAppContext(intentName, appContextID string) error {
-	log.Info("Begin updating app context ", log.Fields{"intent-name": intentName, "appcontext": appContextID})
+// updateOptions
+type updateOptions struct {
+	appContext           appcontext.AppContext
+	appMeta              appcontext.CompositeAppMeta
+	customization        module.Customization
+	customizationContent module.CustomizationContent
+	intent               string
+	objectKind           string
+	resource             module.Resource
+	resourceContent      module.ResourceContent
+}
 
-	var ac appcontext.AppContext
-	_, err := ac.LoadAppContext(appContextID)
-	if err != nil {
-		log.Error("Loading AppContext failed ", log.Fields{"intent-name": intentName, "appcontext": appContextID, "Error": err.Error()})
-		return pkgerrors.Errorf("Internal error")
+// UpdateAppContext creates/updates the k8s resources in the given appContext and intent
+func UpdateAppContext(intent, appContextID string) error {
+	log.Info("Begin app context update",
+		log.Fields{
+			"AppContext": appContextID,
+			"Intent":     intent})
+
+	var appContext appcontext.AppContext
+	if _, err := appContext.LoadAppContext(appContextID); err != nil {
+		logError("failed to load appContext", appContextID, intent, appcontext.CompositeAppMeta{}, err)
+		return err
 	}
 
-	caMeta, err := ac.GetCompositeAppMeta()
+	appMeta, err := appContext.GetCompositeAppMeta()
 	if err != nil {
-		log.Error("Error getting metadata for AppContext ", log.Fields{"intent-name": intentName, "appcontext": appContextID, "Error": err.Error()})
-		return pkgerrors.Errorf("Internal error")
+		logError("failed to get compositeApp meta", appContextID, intent, appcontext.CompositeAppMeta{}, err)
+		return err
 	}
 
-	p := caMeta.Project
-	ca := caMeta.CompositeApp
-	cv := caMeta.Version
-	dig := caMeta.DeploymentIntentGroup
-
-	// get all the resources under this intent
-	resources, err := module.NewResourceClient().GetAllResources(p, ca, cv, dig, intentName)
+	resources, err := module.NewResourceClient().GetAllResources(
+		appMeta.Project, appMeta.CompositeApp, appMeta.Version, appMeta.DeploymentIntentGroup, intent)
 	if err != nil {
-		log.Error("Error GetAllResources", log.Fields{"project": p, "CompApp": ca, "CompVer": cv, "DepIntentGrp": dig, "IntentName": intentName})
-		return pkgerrors.Errorf("Internal error")
+		logError("failed to get resources", appContextID, intent, appMeta, err)
+		return err
 	}
 
-	for _, rs := range resources {
+	for _, resource := range resources {
+		o := updateOptions{
+			appContext: appContext,
+			appMeta:    appMeta,
+			intent:     intent,
+		}
+		o.objectKind = strings.ToLower(resource.Spec.ResourceGVK.Kind)
+		o.resource = resource
+		if err := o.createOrUpdateResource(); err != nil {
+			return err
+		}
+	}
 
-		// if resource is either configMap or secret, it must have customization files.
-		// go through each customization, find customization content, get the patchfiles,
-		// generate the modified contentfiles and update context for each of the valid cluster
-		czs, err := module.NewCustomizationClient().GetAllCustomization(p, ca, cv, dig, intentName, rs.Metadata.Name)
+	return nil
+}
+
+// createOrUpdateResource creates a new k8s object or updates the existing one
+func (o *updateOptions) createOrUpdateResource() error {
+	if err := o.getResourceContent(); err != nil {
+		return err
+	}
+
+	customizations, err := o.getAllCustomization()
+	if err != nil {
+		return err
+	}
+
+	for _, customization := range customizations {
+		o.customization = customization
+		if o.objectKind == "configmap" ||
+			o.objectKind == "secret" {
+			// customization using files is supported only for ConfigMap/Secret
+			if err = o.getCustomizationContent(); err != nil {
+				return err
+			}
+		}
+
+		if strings.ToLower(o.resource.Spec.NewObject) == "true" {
+			if err = o.createNewResource(); err != nil {
+				return err
+			}
+			continue
+		}
+
+		if err = o.updateExistingResource(); err != nil {
+			return err // hwo to test this case ? is this a valid use case ?
+		}
+	}
+
+	return nil
+}
+
+// createNewResource creates a new k8s object
+func (o *updateOptions) createNewResource() error {
+	switch o.objectKind {
+	case "configmap":
+		if err := o.createConfigMap(); err != nil {
+			return err
+		}
+	case "secret":
+		if err := o.createSecret(); err != nil {
+			return err
+		}
+	default:
+		if err := o.createK8sResource(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// createK8sResource creates a new k8s object
+func (o *updateOptions) createK8sResource() error {
+	if len(o.resourceContent.Content) == 0 {
+		o.logUpdateError(
+			updateError{
+				message: "resources content is empty"})
+		return errors.New("resources content is empty")
+	}
+
+	// decode the template value
+	value, err := decodeString(o.resourceContent.Content)
+	if err != nil {
+		return err
+	}
+
+	if strings.ToLower(o.customization.Spec.PatchType) == "json" &&
+		len(o.customization.Spec.PatchJSON) > 0 {
+		modifiedPatch, err := applyPatch(o.customization.Spec.PatchJSON, value)
 		if err != nil {
-			log.Error("Error GetAllCustomization", log.Fields{"project": p, "CompApp": ca, "CompVer": cv, "DepIntentGrp": dig, "intentName": intentName, "resourceName": rs.Metadata.Name})
-			return pkgerrors.Errorf("Internal error")
+			return err
+		}
+		value = modifiedPatch // use the merge patch to create the resource
+	}
+
+	if err = o.create(value); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// create adds the resource under the app and cluster
+// also add instruction under the given handle and instruction type
+func (o *updateOptions) create(data []byte) error {
+	clusterSpecific := strings.ToLower(o.customization.Spec.ClusterSpecific)
+	scope := strings.ToLower(o.customization.Spec.ClusterInfo.Scope)
+	provider := o.customization.Spec.ClusterInfo.ClusterProvider
+	clusterName := o.customization.Spec.ClusterInfo.ClusterName
+	label := o.customization.Spec.ClusterInfo.ClusterLabel
+	mode := strings.ToLower(o.customization.Spec.ClusterInfo.Mode)
+
+	clusters, err := o.getClusterNames()
+	if err != nil {
+		return err
+	}
+
+	for _, cluster := range clusters {
+		if clusterSpecific == "true" && scope == "label" {
+			isValid, err := isValidClusterToApplyByLabel(provider, cluster, label, mode)
+			if err != nil {
+				return err
+			}
+			if !isValid {
+				continue
+			}
 		}
 
-		var cSpecific, cScope, cProvider, cName, cLabel, cMode string
-
-		for _, cz := range czs {
-
-			// check if clusterSpecific is true, and then get everything from the clusterInfo
-			if strings.ToLower(cz.Spec.ClusterSpecific) == "true" && (module.ClusterInfo{}) != cz.Spec.ClusterInfo {
-				cSpecific = strings.ToLower(cz.Spec.ClusterSpecific)
-				cScope = strings.ToLower(cz.Spec.ClusterInfo.Scope)
-				cProvider = cz.Spec.ClusterInfo.ClusterProvider
-				cName = cz.Spec.ClusterInfo.ClusterName
-				cLabel = cz.Spec.ClusterInfo.ClusterLabel
-				cMode = strings.ToLower(cz.Spec.ClusterInfo.Mode)
+		if clusterSpecific == "true" && scope == "name" {
+			isValid, err := isValidClusterToApplyByName(provider, cluster, clusterName, mode)
+			if err != nil {
+				return err
 			}
-
-			// if resource kind is neither configMap nor secret, directly update the context
-			if strings.ToLower(rs.Spec.ResourceGVK.Kind) != "configmap" && strings.ToLower(rs.Spec.ResourceGVK.Kind) != "secret" && strings.ToLower(rs.Spec.NewObject) == "true" {
-				err := UpdateContextDirectly(p, ca, cv, dig, intentName, rs, ac, cz)
-				if err != nil {
-					log.Error("Error UpdateAppContext", log.Fields{"Error": err, "project": p, "CompApp": ca, "CompVer": cv, "DepIntentGrp": dig, "intentName": intentName, "resourceName": rs.Metadata.Name})
-					return pkgerrors.Wrap(err, "Error in updating context for new resource")
-				}
+			if !isValid {
 				continue
 			}
+		}
 
-			if strings.ToLower(cz.Spec.PatchType) == "json" && strings.ToLower(rs.Spec.NewObject) == "false" {
-				err := UpdateContextExistingResourceUsingPatchArray(p, ca, cv, dig, intentName, rs, ac, cz)
-				if err != nil {
-					log.Error("Error UpdateAppContext", log.Fields{"Error": err, "project": p, "CompApp": ca, "CompVer": cv, "DepIntentGrp": dig, "intentName": intentName, "resourceName": rs.Metadata.Name})
-					return pkgerrors.Wrap(err, "Error in updating context for existing resource")
-				}
+		handle, err := o.getClusterHandle(cluster)
+		if err != nil {
+			return err
+		}
+
+		resource := o.resource.Spec.ResourceGVK.Name + SEPARATOR + o.resource.Spec.ResourceGVK.Kind
+		if err = o.addResource(handle, resource, string(data)); err != nil {
+			return err
+		}
+
+		resorder, err := o.getResourceInstruction(cluster)
+		if err != nil {
+			return err
+		}
+
+		if err = o.addInstruction(handle, resorder, cluster, resource); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+// updateExistingResource update the existing k8s object
+func (o *updateOptions) updateExistingResource() error {
+	clusterSpecific := strings.ToLower(o.customization.Spec.ClusterSpecific)
+	scope := strings.ToLower(o.customization.Spec.ClusterInfo.Scope)
+	provider := o.customization.Spec.ClusterInfo.ClusterProvider
+	clusterName := o.customization.Spec.ClusterInfo.ClusterName
+	label := o.customization.Spec.ClusterInfo.ClusterLabel
+	mode := strings.ToLower(o.customization.Spec.ClusterInfo.Mode)
+
+	clusters, err := o.getClusterNames()
+	if err != nil {
+		return err
+	}
+
+	for _, cluster := range clusters {
+		if clusterSpecific == "true" && scope == "label" {
+			isValid, err := isValidClusterToApplyByLabel(provider, cluster, label, mode)
+			if err != nil {
+				return err
+			}
+			if !isValid {
 				continue
 			}
+		}
 
-			dataArr, err := module.NewCustomizationClient().GetCustomizationContent(cz.Metadata.Name, p, ca, cv, dig, intentName, rs.Metadata.Name)
+		if clusterSpecific == "true" && scope == "name" {
+			isValid, err := isValidClusterToApplyByName(provider, cluster, clusterName, mode)
 			if err != nil {
-				log.Error("Error GetCustomizationContent", log.Fields{
-					"CustomizationName": cz.Metadata.Name,
-					"project":           p, "CompApp": ca,
-					"CompVer":      cv,
-					"DepIntentGrp": dig,
-					"intentName":   intentName,
-					"resourceName": rs.Metadata.Name})
-				return pkgerrors.Errorf("Internal error")
+				return err
 			}
-			var dataBytes []byte
-			var dataFiles [][]byte
-
-			for _, content := range dataArr.FileContents {
-				
-				if strings.ToLower(rs.Spec.ResourceGVK.Kind) == "secret" {
-					dataBytes = []byte(content)
-				} else {
-					dataBytes, err = base64.StdEncoding.DecodeString(content)
-				}
-				
-				if err != nil {
-					log.Error(":: Base64 encoding error ::", log.Fields{"Error": err})
-					return pkgerrors.Errorf("Internal error")
-				}
-				dataFiles = append(dataFiles, dataBytes)
+			if !isValid {
+				continue
 			}
+		}
 
-			byteValuePatchJSON, err := jh.GetPatchFromFile(dataArr.FileNames)
-			if err != nil {
-				log.Error(":: Error GetPatchFromFile ::", log.Fields{"Error": err})
-				return pkgerrors.Errorf("Internal error")
-			}
-			modifiedConfigMap, err := jh.GenerateModifiedConfigFile(dataFiles, byteValuePatchJSON, dataArr.FileNames, rs.Spec.ResourceGVK.Name, rs.Spec.ResourceGVK.Kind)
-			if err != nil {
-				log.Error(":: Error GenerateModifiedConfigFile ::", log.Fields{"Error": err})
-				return pkgerrors.Errorf("Internal error")
-			}
+		handle, err := o.getResourceHandle(cluster, strings.Join([]string{o.resource.Spec.ResourceGVK.Name,
+			o.resource.Spec.ResourceGVK.Kind}, SEPARATOR))
+		if err != nil {
+			continue
+		}
 
-			appName := rs.Spec.AppName
-			clusters, err := ac.GetClusterNames(appName)
-			if err != nil {
-				log.Error("Error GetClusterNames", log.Fields{"appName": appName, "project": p, "CompApp": ca, "CompVer": cv, "DepIntentGrp": dig, "intentName": intentName, "resourceName": rs.Metadata.Name})
-				return pkgerrors.Errorf("Internal error")
-			}
+		val, err := o.getValue(handle)
+		if err != nil {
+			continue
+		}
 
-			for _, c := range clusters {
-				if cSpecific == "true" && cScope == "label" {
-					allow, err := isValidClusterToApplyByLabel(cProvider, c, cLabel, cMode)
-					if err != nil {
-						log.Error("Error ApplyToClusterByLabel", log.Fields{"Provider": cProvider, "ClusterName": cName, "ClusterLabel": cLabel, "Mode": cMode})
-						return pkgerrors.Errorf("Internal error")
-					}
-					if !allow {
-						continue
-					}
-				}
-				if cSpecific == "true" && cScope == "name" {
-					allow, err := isValidClusterToApplyByName(cProvider, c, cName, cMode)
-					if err != nil {
-						log.Error("Error ApplyClusterByName", log.Fields{"Provider": cProvider, "GivenClusterName": cName, "AutheticatingForCluste": c, "Mode": cMode})
-						return pkgerrors.Errorf("Internal error")
-					}
-					if !allow {
-						continue
-					}
-				}
-				ch, err := ac.GetClusterHandle(appName, c)
-				if err != nil {
-					log.Error("Error GetClusterHandle", log.Fields{"appName": appName, "project": p, "CompApp": ca, "CompVer": cv, "DepIntentGrp": dig, "intentName": intentName, "resourceName": rs.Metadata.Name})
-					return pkgerrors.Errorf("Internal error")
-				}
+		modifiedPatch, err := applyPatch(o.customization.Spec.PatchJSON, []byte(val.(string)))
+		if err != nil {
+			return err
+		}
 
-				resName := rs.Spec.ResourceGVK.Name + SEPARATOR + rs.Spec.ResourceGVK.Kind
-				// Add the new resource
-				_, err = ac.AddResource(ch, resName, string(modifiedConfigMap))
-				if err != nil {
-					log.Error("Error AddResource", log.Fields{"appName": appName, "project": p, "CompApp": ca, "CompVer": cv, "DepIntentGrp": dig, "intentName": intentName, "resourceName": rs.Metadata.Name})
-					return pkgerrors.Errorf("Internal error")
-				}
-				// update the resource order
-				resorder, err := ac.GetResourceInstruction(appName, c, "order")
-				if err != nil {
-					log.Error("Error getting Resource order", log.Fields{
-						"error":        err,
-						"app name":     appName,
-						"cluster name": c,
-					})
-					return pkgerrors.Errorf("Internal error")
-				}
-				aov := make(map[string][]string)
-				json.Unmarshal([]byte(resorder.(string)), &aov)
-				aov["resorder"] = append(aov["resorder"], resName)
-				jresord, _ := json.Marshal(aov)
-
-				_, err = ac.AddInstruction(ch, "resource", "order", string(jresord))
-				if err != nil {
-					log.Error("Error updating Resource order", log.Fields{
-						"error":        err,
-						"app name":     appName,
-						"cluster name": c,
-					})
-					return pkgerrors.Errorf("Internal error")
-				}
-			}
+		if err = o.updateResourceValue(handle, string(modifiedPatch)); err != nil {
+			return err
 		}
 	}
+
 	return nil
 }

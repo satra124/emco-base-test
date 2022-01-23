@@ -4,11 +4,13 @@ require (
 	github.com/evanphx/json-patch v4.12.0+incompatible
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
+	github.com/onsi/ginkgo v1.16.5
+	github.com/onsi/gomega v1.18.1
 	github.com/pkg/errors v0.9.1
 	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-00010101000000-000000000000
 	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-00010101000000-000000000000
-	google.golang.org/grpc v1.43.0
 	gopkg.in/yaml.v2 v2.4.0
+	k8s.io/apimachinery v0.23.3
 	sigs.k8s.io/yaml v1.3.0
 )
 
