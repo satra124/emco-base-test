@@ -1,13 +1,8 @@
 package emcogithub
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -35,7 +30,6 @@ func CreateClient(githubToken string) (gitprovider.Client, error) {
 	params : context, github client, Repository Name, User Name, description
 	return : nil/error
 */
-
 func CreateRepo(ctx context.Context, c gitprovider.Client, repoName string, userName string, desc string) error {
 
 	// create repo reference
@@ -62,58 +56,10 @@ func CreateRepo(ctx context.Context, c gitprovider.Client, repoName string, user
 }
 
 /*
-iterate through all the files and create a file array with path and contents
-params : path string
-return : []gitprovider.CommitFile
-*/
-func Iterate(path string) []gitprovider.CommitFile {
-	files := []gitprovider.CommitFile{}
-	length := len([]rune(path))
-	filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-		// check if the path is a directory
-		if !info.IsDir() {
-
-			fmt.Printf("File Name: %s\n", info.Name())
-			//Get the contents of the file
-			content := GetContent(path)
-			//get the relative path of the file
-			relativePath := path[length+1:]
-			fmt.Println(relativePath)
-			// append to array of files
-			files = append(files, gitprovider.CommitFile{Path: &relativePath, Content: &content})
-		}
-		return nil
-	})
-	fmt.Println(len(files))
-	return files
-}
-
-/*
-	Function to get the contents of the file
-	params : filepath (string)
-	return : contents (string)
-*/
-func GetContent(filePath string) string {
-
-	// Open file on disk.
-	f, _ := os.Open(filePath)
-
-	// Read entire file into byte slice.
-	reader := bufio.NewReader(f)
-	content, _ := ioutil.ReadAll(reader)
-
-	return string(content)
-}
-
-/*
 	Function to commit multiple files to the github repo
 	params : context, github client, User Name, Repo Name, Branch Name, Commit Message, files ([]gitprovider.CommitFile)
 	return : nil/error
 */
-
 func CommitFiles(ctx context.Context, c gitprovider.Client, userName string, repoName string, branch string, commitMessage string, files []gitprovider.CommitFile) error {
 
 	// create repo reference
@@ -158,7 +104,6 @@ func DeleteRepo(ctx context.Context, c gitprovider.Client, userName string, repo
 	params : user name, repo name
 	return : repo reference
 */
-
 func getRepoRef(userName string, repoName string) gitprovider.UserRepositoryRef {
 	// Create the user reference
 	userRef := gitprovider.UserRef{
