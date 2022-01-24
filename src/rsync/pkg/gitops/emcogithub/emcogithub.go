@@ -2,10 +2,10 @@ package emcogithub
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 )
 
 const (
@@ -50,7 +50,7 @@ func CreateRepo(ctx context.Context, c gitprovider.Client, repoName string, user
 	if err != nil {
 		return err
 	}
-	fmt.Println("Repo Created")
+	log.Info("Repo Created", log.Fields{})
 
 	return nil
 }
@@ -94,7 +94,11 @@ func DeleteRepo(ctx context.Context, c gitprovider.Client, userName string, repo
 		return err
 	}
 	//delete repo
-	fmt.Println(userRepo.Delete(ctx))
+	err = userRepo.Delete(ctx)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
