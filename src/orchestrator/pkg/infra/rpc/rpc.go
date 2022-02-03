@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
+	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
-	pkgerrors "github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials"
@@ -213,8 +213,8 @@ func createClientConn(Host string, Port int) (*grpc.ClientConn, error) {
 		opts = append(opts, grpc.WithInsecure())
 	}
 
-	dialOpts := getGrpcDialOpts()
-	opts = append(opts, dialOpts...)
+	//dialOpts := getGrpcDialOpts()
+	//opts = append(opts, dialOpts...)
 	conn, err := grpc.Dial(serverAddr, opts...)
 	if err != nil {
 		pkgerrors.Wrap(err, "Grpc Connection Initialization failed with error")

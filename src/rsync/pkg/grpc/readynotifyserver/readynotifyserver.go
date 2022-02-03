@@ -5,10 +5,9 @@ package readynotifyserver
 
 import (
 	"context"
-	"log"
 	"sync"
 
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	pb "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/readynotify"
 )
 
@@ -29,15 +28,25 @@ var notifServer *readyNotifyServer
 func (s *readyNotifyServer) Alert(topic *pb.Topic, stream pb.ReadyNotify_AlertServer) error {
 	client := topic.GetClientName()
 	appContextID := topic.GetAppContext()
-	log.Printf("[ReadyNotify gRPC] Received an Alert subscription request (%s, %s)", client, appContextID)
+	log.Info("[ReadyNotify gRPC] Received an Alert subscription request",
+		log.Fields{"client": client, "appContextID": appContextID})
 
 	// Adding the appContextID entry to the map
 	s.mutex.Lock()
 	if len(s.alertNotify[appContextID]) == 0 {
 		s.alertNotify[appContextID] = make(map[string]pb.ReadyNotify_AlertServer)
+		log.Info("[ReadyNotify gRPC] (TODO DEBUG) Adding alertNotify Map for AppContextID",
+			log.Fields{"client": client, "appContextID": appContextID})
 	}
 	s.alertNotify[appContextID][client] = stream
 	s.streamChannel[stream] = make(chan int)
+	log.Info("[ReadyNotify gRPC] (TODO DEBUG) Lengths of structure elements",
+		log.Fields{
+			"client":                          client,
+			"appContextID":                    appContextID,
+			"Length of streamChannel map":     len(s.streamChannel),
+			"Length of appContext client map": len(s.alertNotify[appContextID]),
+		})
 	c := s.streamChannel[stream]
 	ctx := stream.Context()
 	s.mutex.Unlock()
@@ -46,10 +55,10 @@ func (s *readyNotifyServer) Alert(topic *pb.Topic, stream pb.ReadyNotify_AlertSe
 	for {
 		select {
 		case <-ctx.Done():
-			logutils.Info("[ReadyNotify gRPC] Client has disconnected", logutils.Fields{"client": client})
+			log.Info("[ReadyNotify gRPC] Client has disconnected", log.Fields{"client": client})
 			return nil
 		case <-c:
-			log.Printf("[ReadyNotify gRPC] stop channel got triggered for the client = %s\n", client)
+			log.Info("[ReadyNotify gRPC] stop channel got triggered for the client", log.Fields{"client": client})
 			return nil
 		}
 	}
@@ -62,10 +71,10 @@ func SendAppContextNotification(appContextID string) error {
 	for _, stream := range streams {
 		err := stream.Send(&pb.Notification{AppContext: appContextID})
 		if err != nil {
-			logutils.Error("[ReadyNotify gRPC] Notification back to client failed to be sent", logutils.Fields{"err": err})
+			log.Error("[ReadyNotify gRPC] Notification back to client failed to be sent", log.Fields{"err": err, "appContextID": appContextID})
 			// return pkgerrors.New("Notification failed")
 		} else {
-			logutils.Info("[ReadyNotify gRPC] Notified the subscriber about appContext status changes", logutils.Fields{"appContextID": appContextID})
+			log.Info("[ReadyNotify gRPC] Notified the subscriber about appContext status changes", log.Fields{"appContextID": appContextID})
 		}
 	}
 	return err
