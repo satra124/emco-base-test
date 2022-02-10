@@ -224,7 +224,15 @@ func UpdateAppContext(intentName, appContextId string) error {
 
 				servers[index].Clients[i].ClusterData[cci].ClusterName = c
 				servers[index].Clients[i].ClusterData[cci].Reslist = make([]map[string][]byte, 0)
-				err = createClientResources(is, c, servers , namespace, index, i, cci, ips)
+				ip, err := ips.getIpAddress()
+				if err != nil {
+					log.Error("Error getting cluster ip", log.Fields{
+						"error":    err,
+						"svc name": ic.Spec.ServiceName,
+					})
+					return err
+				}
+				err = createClientResources(is, c, servers , namespace, index, i, cci, ip)
 				if err != nil {
 					log.Error("Error creating client resources", log.Fields{
 						"error":    err,
@@ -251,7 +259,7 @@ func UpdateAppContext(intentName, appContextId string) error {
 			if !create {
 				continue
 			}
-			err = createServerResources(is, scd.ClusterName, servers, namespace, index, ci, ips)
+			err = createServerResources(is, scd.ClusterName, servers, namespace, index, ci)
 			if err != nil {
 				log.Error("Error creating server resources", log.Fields{
 					"error":    err,
@@ -376,7 +384,7 @@ func getProviderAndCluster(c string) (string, string, error) {
 
 	return s[0], s[1], nil
 }
-func createServerResources(is module.InboundServerIntent, c string, servers []serverData, namespace string,index, ci int, ips newIP)(error) {
+func createServerResources(is module.InboundServerIntent, c string, servers []serverData, namespace string,index, ci int)(error) {
 	pro, clu, err := getProviderAndCluster(c)
 	if err != nil {
 		log.Error("Not a valid cluster name", log.Fields{
@@ -454,7 +462,7 @@ func createGateway(svcname string, hosts []string, gwport uint32)(map[string][]b
 func createServerServiceEntry(is module.InboundServerIntent, hosts []string, namespace string)(map[string][]byte, error){
 	addresses := []string{}
 	wle := []WorkloadEntry{}
-	addr := is.Spec.ServiceName + "." + namespace + "." + "svc.cluster.local"
+	addr := is.Spec.ServiceName + "." + namespace
 	wle = []WorkloadEntry{{Address: addr,},}
 
 	ports := []Port{{Name: "tcp", Number: uint32(is.Spec.Port), Protocol: is.Spec.Protocol,},}
@@ -500,9 +508,8 @@ func createDestinationRule(svcname, host, namespace string)(map[string][]byte, e
 	res[resname] = out
 	return res, nil
 }
-func createClientServiceEntry(is module.InboundServerIntent, hosts[]string, gwaddr string, gwextport uint32, namespace string, ips newIP, rescount string)(map[string][]byte, error){
+func createClientServiceEntry(is module.InboundServerIntent, hosts[]string, gwaddr string, gwextport uint32, namespace string, ip net.IP, rescount string)(map[string][]byte, error){
 	//Create se resource
-	ip, err := ips.getIpAddress()
 	addresses := []string{ip.String(),}
 	pmap := make(map[string]uint32)
 	pmap["tcp"] = gwextport
@@ -525,7 +532,7 @@ func createClientServiceEntry(is module.InboundServerIntent, hosts[]string, gwad
 
 	return res, nil
 }
-func createClientResources(is module.InboundServerIntent, c string, servers []serverData, namespace string,index, ci, cci int, ips newIP)(error) {
+func createClientResources(is module.InboundServerIntent, c string, servers []serverData, namespace string,index, ci, cci int, ip net.IP)(error) {
 	le := len(servers[index].ClusterData)
 	hosts := make([]string, le)
 	for i, sc := range servers[index].ClusterData {
@@ -541,7 +548,7 @@ func createClientResources(is module.InboundServerIntent, c string, servers []se
 	}
 	gwaddr := servers[index].ClusterData[ci].GwAddress
 	gwextport := servers[index].ClusterData[ci].GwExternalPort
-	res, err := createClientServiceEntry(is, hosts, gwaddr, gwextport, namespace, ips, "0")
+	res, err := createClientServiceEntry(is, hosts, gwaddr, gwextport, namespace, ip, "0")
 	if err != nil {
 		log.Error("Error creating client Servie Entry", log.Fields{
 			"error":        err,
@@ -553,7 +560,7 @@ func createClientResources(is module.InboundServerIntent, c string, servers []se
 
 	hs := make([]string, 1)
 	hs[0] = is.Spec.ServiceName
-	res, err = createClientServiceEntry(is, hs, gwaddr, gwextport, namespace, ips, "1")
+	res, err = createClientServiceEntry(is, hs, gwaddr, gwextport, namespace, ip, "1")
 	if err != nil {
 		log.Error("Error creating client named Servie Entry", log.Fields{
 			"error":        err,
