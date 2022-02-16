@@ -223,29 +223,41 @@ func createRoleBindings(logicalcloud LogicalCloud, userpermissions []UserPermiss
 	return datas, names, nil
 }
 
-func createQuota(quota []Quota, namespace string) (string, string, error) {
+func createQuotas(quotaList []Quota, namespace string) ([]string, []string, error) {
 
-	lcQuota := quota[0]
-	name := lcQuota.MetaData.QuotaName
+	var name string
+	var datas []string
+	var names []string
 
-	q := Resource{
-		ApiVersion: "v1",
-		Kind:       "ResourceQuota",
-		MetaData: MetaDatas{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Specification: Specs{
-			Hard: lcQuota.Specification,
-		},
+	quotaCount := len(quotaList)
+	datas = make([]string, quotaCount, quotaCount)
+	names = make([]string, quotaCount, quotaCount)
+
+	for i, lcQuota := range quotaList {
+
+		name = lcQuota.MetaData.QuotaName
+
+		q := Resource{
+			ApiVersion: "v1",
+			Kind:       "ResourceQuota",
+			MetaData: MetaDatas{
+				Name:      name,
+				Namespace: namespace,
+			},
+			Specification: Specs{
+				Hard: lcQuota.Specification,
+			},
+		}
+
+		qData, err := yaml.Marshal(&q)
+		if err != nil {
+			return []string{}, []string{}, err
+		}
+		datas[i] = string(qData)
+		names[i] = strings.Join([]string{name, "+ResourceQuota"}, "")
 	}
 
-	qData, err := yaml.Marshal(&q)
-	if err != nil {
-		return "", "", err
-	}
-
-	return string(qData), strings.Join([]string{name, "+ResourceQuota"}, ""), nil
+	return datas, names, nil
 }
 
 func createUserCSR(logicalcloud LogicalCloud) (string, string, string, error) {
@@ -590,10 +602,6 @@ func Instantiate(project string, logicalcloud LogicalCloud, clusterList []Cluste
 		return pkgerrors.New("Level-1 Logical Clouds require a User Permission assigned to its primary namespace")
 	}
 
-	if len(quotaList) == 0 {
-		return pkgerrors.New("Level-1 Logical Clouds require a Quota to be associated first")
-	}
-
 	// Get resources to be added
 	namespace, namespaceName, err := createNamespace(logicalcloud)
 	if err != nil {
@@ -610,9 +618,9 @@ func Instantiate(project string, logicalcloud LogicalCloud, clusterList []Cluste
 		return pkgerrors.Wrap(err, "Error Creating RoleBindings/ClusterRoleBindings YAMLs for logical cloud")
 	}
 
-	quota, quotaName, err := createQuota(quotaList, logicalcloud.Specification.NameSpace)
+	quotas, quotaNames, err := createQuotas(quotaList, logicalcloud.Specification.NameSpace)
 	if err != nil {
-		return pkgerrors.Wrap(err, "Error Creating Quota YAML for logical cloud")
+		return pkgerrors.Wrap(err, "Error Creating Quota YAMLs for logical cloud")
 	}
 
 	csr, key, csrName, err := createUserCSR(logicalcloud)
@@ -712,10 +720,12 @@ func Instantiate(project string, logicalcloud LogicalCloud, clusterList []Cluste
 			}
 		}
 
-		// Add quota resource to each cluster
-		_, err = context.AddResource(clusterHandle, quotaName, quota)
-		if err != nil {
-			return cleanupCompositeApp(context, err, "Error adding quota Resource to AppContext", details)
+		// Add quota resources to each cluster
+		for i, quotaName := range quotaNames {
+			_, err = context.AddResource(clusterHandle, quotaName, quotas[i])
+			if err != nil {
+				return cleanupCompositeApp(context, err, "Error adding quota Resource to AppContext", details)
+			}
 		}
 
 		// Add Subresource Order and Subresource Dependency
@@ -723,29 +733,16 @@ func Instantiate(project string, logicalcloud LogicalCloud, clusterList []Cluste
 		if err != nil {
 			return pkgerrors.Wrap(err, "Error creating subresource order JSON")
 		}
-		subresDependency, err := json.Marshal(map[string]map[string]string{"subresdependency": map[string]string{"approval": "go"}})
 
 		// Add Resource Order
-		resorderList := []string{namespaceName, quotaName, csrName}
+		resorderList := []string{namespaceName, csrName}
+		resorderList = append(resorderList, quotaNames...)
 		resorderList = append(resorderList, roleNames...)
 		resorderList = append(resorderList, roleBindingNames...)
 		resOrder, err := json.Marshal(map[string][]string{"resorder": resorderList})
 		if err != nil {
 			return pkgerrors.Wrap(err, "Error creating resource order JSON")
 		}
-
-		// Add Resource Dependency
-		resdep := map[string]string{namespaceName: "go",
-			quotaName: strings.Join(
-				[]string{"wait on ", namespaceName}, ""),
-			csrName: strings.Join(
-				[]string{"wait on ", quotaName}, "")}
-		// Add [Cluster]Role and [Cluster]RoleBinding resources to dependency graph
-		for i, roleName := range roleNames {
-			resdep[roleName] = strings.Join([]string{"wait on ", csrName}, "")
-			resdep[roleBindingNames[i]] = strings.Join([]string{"wait on ", roleName}, "")
-		}
-		resDependency, err := json.Marshal(map[string]map[string]string{"resdependency": resdep})
 
 		// Add App Order and App Dependency
 		appOrder, err := json.Marshal(map[string][]string{"apporder": []string{APP}})
@@ -757,22 +754,14 @@ func Instantiate(project string, logicalcloud LogicalCloud, clusterList []Cluste
 			return pkgerrors.Wrap(err, "Error creating app dependency JSON")
 		}
 
-		// Add Resource-level Order and Dependency
+		// Add Resource-level Order
 		_, err = context.AddInstruction(clusterHandle, "resource", "order", string(resOrder))
 		if err != nil {
 			return cleanupCompositeApp(context, err, "Error adding instruction order to AppContext", details)
 		}
-		_, err = context.AddInstruction(clusterHandle, "resource", "dependency", string(resDependency))
-		if err != nil {
-			return cleanupCompositeApp(context, err, "Error adding instruction dependency to AppContext", details)
-		}
 		_, err = context.AddInstruction(csrHandle, "subresource", "order", string(subresOrder))
 		if err != nil {
 			return cleanupCompositeApp(context, err, "Error adding instruction order to AppContext", details)
-		}
-		_, err = context.AddInstruction(csrHandle, "subresource", "dependency", string(subresDependency))
-		if err != nil {
-			return cleanupCompositeApp(context, err, "Error adding instruction dependency to AppContext", details)
 		}
 
 		// Add App-level Order and Dependency
