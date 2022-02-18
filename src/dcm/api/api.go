@@ -71,7 +71,7 @@ func NewRouter(
 		logicalCloudHandler.stopHandler).Methods("POST")
 	lcRouter.HandleFunc("/logical-clouds/{logicalCloud}/status", logicalCloudHandler.statusHandler).Methods("GET")
 	lcRouter.HandleFunc("/logical-clouds/{logicalCloud}/status",
-		logicalCloudHandler.statusHandler).Queries("type", "{type}", "output", "{output}", "cluster", "{cluster}", "clusters", "{clusters}")
+		logicalCloudHandler.statusHandler).Queries("status", "{status}", "type", "{type}", "output", "{output}", "cluster", "{cluster}", "clusters", "{clusters}")
 
 	// Set up Cluster API
 	clusterHandler := clusterHandler{client: clusterClient}

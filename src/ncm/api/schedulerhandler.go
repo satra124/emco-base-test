@@ -105,6 +105,15 @@ func (h schedulerHandler) statusSchedulerHandler(w http.ResponseWriter, r *http.
 		queryType = "rsync" // default type
 	}
 
+	if t, found := qParams["status"]; found {
+		queryType = t[0]
+		if queryType != "ready" && queryType != "deployed" {
+			log.Error("Invalid query status", log.Fields{})
+			http.Error(w, "Invalid query status", http.StatusBadRequest)
+			return
+		}
+	}
+
 	var queryOutput string
 	if o, found := qParams["output"]; found {
 		queryOutput = o[0]

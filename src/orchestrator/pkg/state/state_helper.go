@@ -31,6 +31,32 @@ func GetCurrentStateFromStateInfo(s StateInfo) (StateValue, error) {
 	return s.Actions[alen-1].State, nil
 }
 
+// GetStatusContextForContextEd  gets the status context id associated with the
+// input context id.  This will be the context id of the most recent "Instantiated"
+// state.  If the provided 'ctxid' is not found, then that is an error
+func GetStatusContextIdForContextId(s StateInfo, ctxid string) (string, error) {
+	found := false
+	var pos int
+	for i, entry := range s.Actions {
+		if ctxid == entry.ContextId {
+			found = true
+			pos = i
+			break
+		}
+	}
+	if !found {
+		return "", pkgerrors.Errorf("No state information for %v", ctxid)
+	}
+
+	for i := pos; i >= 0; i-- {
+		if s.Actions[i].State == StateEnum.Instantiated ||
+			s.Actions[i].State == StateEnum.Applied {
+			return s.Actions[i].ContextId, nil
+		}
+	}
+	return "", pkgerrors.Errorf("Status context ID not found for %v", ctxid)
+}
+
 // GetLastContextFromStatInfo gets the last (most recent) context id from StateInfo
 func GetLastContextIdFromStateInfo(s StateInfo) string {
 	alen := len(s.Actions)
@@ -61,12 +87,12 @@ func GetMatchingContextIDforRevision(s StateInfo, r int64) (string, error) {
 	if alen == 0 {
 		return "", pkgerrors.Errorf("No state information")
 	}
-	for _, eachActionEntry := range s.Actions{
-		if(eachActionEntry.Revision==r){
-			logutils.Info("Found the matching revisionID", logutils.Fields{"Revision": eachActionEntry.Revision, "ContextID":eachActionEntry.ContextId})
+	for _, eachActionEntry := range s.Actions {
+		if eachActionEntry.Revision == r {
+			logutils.Info("Found the matching revisionID", logutils.Fields{"Revision": eachActionEntry.Revision, "ContextID": eachActionEntry.ContextId})
 			return eachActionEntry.ContextId, nil
 		}
-			
+
 	}
 	logutils.Info("No the matching revisionID found", logutils.Fields{"Revision": r})
 	return "", pkgerrors.Errorf("No matching ContextId found")
@@ -139,6 +165,7 @@ func UpdateAppContextStopFlag(ctxid string, sf bool) error {
 	}
 	return nil
 }
+
 // UpdateAppContextStatusContextID updates status context id in the AppContext
 func UpdateAppContextStatusContextID(ctxid string, sctxid string) error {
 	ac, err := GetAppContextFromId(ctxid)

@@ -133,6 +133,7 @@ func (h instantiationHandler) statusHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	var queryType string
+	// the type= parameter is deprecated - and will be replaced by the status flag
 	if t, found := qParams["type"]; found {
 		queryType = t[0]
 		if queryType != "cluster" && queryType != "rsync" {
@@ -141,7 +142,15 @@ func (h instantiationHandler) statusHandler(w http.ResponseWriter, r *http.Reque
 			return
 		}
 	} else {
-		queryType = "rsync" // default type
+		queryType = "rsync" // default type (deprecated)
+	}
+	if t, found := qParams["status"]; found {
+		queryType = t[0]
+		if queryType != "ready" && queryType != "deployed" {
+			log.Error("Invalid query status", log.Fields{})
+			http.Error(w, "Invalid query status", http.StatusBadRequest)
+			return
+		}
 	}
 
 	var queryOutput string

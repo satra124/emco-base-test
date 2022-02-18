@@ -62,12 +62,16 @@ func updateNotPresentCount(increment bool, cnts map[string]int) {
 	if increment {
 		cnts["NotPresent"] = cnt + 1
 	} else {
-		cnts["NotPresent"] = cnt - 1
+		if cnt-1 == 0 {
+			delete(cnts, "NotPresent")
+		} else {
+			cnts["NotPresent"] = cnt - 1
+		}
 	}
 }
 
 // return true if resource is added, false if already present and just updated
-func updateResourceList(resourceList *[]ResourceStatus, r ResourceStatus) bool {
+func updateResourceList(resourceList *[]ResourceStatus, r ResourceStatus, qType string) bool {
 	// see if resource is already in the list - then just update it
 	for i, re := range *resourceList {
 		if re.Name == r.Name &&
@@ -75,7 +79,11 @@ func updateResourceList(resourceList *[]ResourceStatus, r ResourceStatus) bool {
 			re.Gvk.Version == r.Gvk.Version &&
 			re.Gvk.Kind == r.Gvk.Kind {
 			(*resourceList)[i].Detail = r.Detail
-			(*resourceList)[i].ClusterStatus = r.ClusterStatus
+			if qType == "cluster" {
+				(*resourceList)[i].ClusterStatus = r.ClusterStatus
+			} else {
+				(*resourceList)[i].ReadyStatus = r.ReadyStatus
+			}
 			return false
 		}
 	}
@@ -84,8 +92,8 @@ func updateResourceList(resourceList *[]ResourceStatus, r ResourceStatus) bool {
 	return true
 }
 
-// GetClusterResources takes in a ResourceBundleStateStatus CR and resturns a list of ResourceStatus elments
-func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fResources []string,
+// getClusterResources takes in a ResourceBundleStateStatus CR and returns a list of ResourceStatus elments
+func getClusterResources(rbData rb.ResourceBundleStateStatus, qType, qOutput string, fResources []string,
 	resourceList *[]ResourceStatus, cnts map[string]int) (int, error) {
 
 	readyChecker := status.NewReadyChecker(status.PausedAsReady(true), status.CheckJobs(true))
@@ -102,8 +110,12 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 		if qOutput == "detail" {
 			r.Detail = p
 		}
-		r.ClusterStatus = updateReadyCounts(readyChecker.PodReady(&p), cnts)
-		if updateResourceList(resourceList, r) {
+		if qType == "cluster" {
+			r.ClusterStatus = updateReadyCounts(readyChecker.PodReady(&p), cnts)
+		} else {
+			r.ReadyStatus = updateReadyCounts(readyChecker.PodReady(&p), cnts)
+		}
+		if updateResourceList(resourceList, r, qType) {
 			count++
 		} else {
 			updateNotPresentCount(false, cnts)
@@ -120,8 +132,12 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 		if qOutput == "detail" {
 			r.Detail = s
 		}
-		r.ClusterStatus = updateReadyCounts(readyChecker.ServiceReady(&s), cnts)
-		if updateResourceList(resourceList, r) {
+		if qType == "cluster" {
+			r.ClusterStatus = updateReadyCounts(readyChecker.ServiceReady(&s), cnts)
+		} else {
+			r.ReadyStatus = updateReadyCounts(readyChecker.ServiceReady(&s), cnts)
+		}
+		if updateResourceList(resourceList, r, qType) {
 			count++
 		} else {
 			updateNotPresentCount(false, cnts)
@@ -138,8 +154,12 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 		if qOutput == "detail" {
 			r.Detail = d
 		}
-		r.ClusterStatus = updateReadyCounts(readyChecker.DeploymentReady(&d), cnts)
-		if updateResourceList(resourceList, r) {
+		if qType == "cluster" {
+			r.ClusterStatus = updateReadyCounts(readyChecker.DeploymentReady(&d), cnts)
+		} else {
+			r.ReadyStatus = updateReadyCounts(readyChecker.DeploymentReady(&d), cnts)
+		}
+		if updateResourceList(resourceList, r, qType) {
 			count++
 		} else {
 			updateNotPresentCount(false, cnts)
@@ -156,8 +176,12 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 		if qOutput == "detail" {
 			r.Detail = c
 		}
-		r.ClusterStatus = updateReadyCounts(true, cnts)
-		if updateResourceList(resourceList, r) {
+		if qType == "cluster" {
+			r.ClusterStatus = updateReadyCounts(true, cnts)
+		} else {
+			r.ReadyStatus = updateReadyCounts(true, cnts)
+		}
+		if updateResourceList(resourceList, r, qType) {
 			count++
 		} else {
 			updateNotPresentCount(false, cnts)
@@ -174,8 +198,12 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 		if qOutput == "detail" {
 			r.Detail = d
 		}
-		r.ClusterStatus = updateReadyCounts(readyChecker.DaemonSetReady(&d), cnts)
-		if updateResourceList(resourceList, r) {
+		if qType == "cluster" {
+			r.ClusterStatus = updateReadyCounts(readyChecker.DaemonSetReady(&d), cnts)
+		} else {
+			r.ReadyStatus = updateReadyCounts(readyChecker.DaemonSetReady(&d), cnts)
+		}
+		if updateResourceList(resourceList, r, qType) {
 			count++
 		} else {
 			updateNotPresentCount(false, cnts)
@@ -192,8 +220,12 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 		if qOutput == "detail" {
 			r.Detail = j
 		}
-		r.ClusterStatus = updateReadyCounts(readyChecker.JobReady(&j), cnts)
-		if updateResourceList(resourceList, r) {
+		if qType == "cluster" {
+			r.ClusterStatus = updateReadyCounts(readyChecker.JobReady(&j), cnts)
+		} else {
+			r.ReadyStatus = updateReadyCounts(readyChecker.JobReady(&j), cnts)
+		}
+		if updateResourceList(resourceList, r, qType) {
 			count++
 		} else {
 			updateNotPresentCount(false, cnts)
@@ -210,8 +242,12 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 		if qOutput == "detail" {
 			r.Detail = s
 		}
-		r.ClusterStatus = updateReadyCounts(readyChecker.StatefulSetReady(&s), cnts)
-		if updateResourceList(resourceList, r) {
+		if qType == "cluster" {
+			r.ClusterStatus = updateReadyCounts(readyChecker.StatefulSetReady(&s), cnts)
+		} else {
+			r.ReadyStatus = updateReadyCounts(readyChecker.StatefulSetReady(&s), cnts)
+		}
+		if updateResourceList(resourceList, r, qType) {
 			count++
 		} else {
 			updateNotPresentCount(false, cnts)
@@ -228,8 +264,12 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 		if qOutput == "detail" {
 			r.Detail = s
 		}
-		r.ClusterStatus = updateReadyCounts(true, cnts)
-		if updateResourceList(resourceList, r) {
+		if qType == "cluster" {
+			r.ClusterStatus = updateReadyCounts(true, cnts)
+		} else {
+			r.ReadyStatus = updateReadyCounts(true, cnts)
+		}
+		if updateResourceList(resourceList, r, qType) {
 			count++
 		} else {
 			updateNotPresentCount(false, cnts)
@@ -426,11 +466,18 @@ func getAppContextResources(ac, sac appcontext.AppContext, ch interface{}, qOutp
 		if qOutput == "detail" {
 			r.Detail = unstruct.Object
 		}
-		if qType == "rsync" {
+		if qType == "rsync" { // deprecated
 			r.RsyncStatus = fmt.Sprintf("%v", rstatus.Status)
 			cnt := statusCnts[rstatus.Status]
 			statusCnts[rstatus.Status] = cnt + 1
-		} else {
+		} else if qType == "deployed" {
+			r.DeployedStatus = fmt.Sprintf("%v", rstatus.Status)
+			cnt := statusCnts[rstatus.Status]
+			statusCnts[rstatus.Status] = cnt + 1
+		} else if qType == "ready" {
+			r.ReadyStatus = "NotPresent"
+			updateNotPresentCount(true, clusterStatusCnts)
+		} else { // qType is "cluster" - deprecated
 			r.ClusterStatus = "NotPresent"
 			updateNotPresentCount(true, clusterStatusCnts)
 		}
@@ -485,12 +532,25 @@ func PrepareClusterStatusResult(stateInfo state.StateInfo, qInstance, qType, qOu
 	if err != nil {
 		return ClusterStatusResult{}, err
 	} else {
-		rval := ClusterStatusResult{
-			Name:          status.Name,
-			State:         status.State,
-			Status:        status.Status,
-			RsyncStatus:   status.RsyncStatus,
-			ClusterStatus: status.ClusterStatus,
+		var rval ClusterStatusResult
+		// "rsync" and "cluster" variants are deprecated
+		if qType == "rsync" || qType == "cluster" {
+			rval = ClusterStatusResult{
+				Name:          status.Name,
+				State:         status.State,
+				Status:        status.Status,
+				RsyncStatus:   status.RsyncStatus,
+				ClusterStatus: status.ClusterStatus,
+			}
+		} else {
+			rval = ClusterStatusResult{
+				Name:           status.Name,
+				State:          status.State,
+				DeployedStatus: status.DeployedStatus,
+				ReadyStatus:    status.ReadyStatus,
+				DeployedCounts: status.DeployedCounts,
+				ReadyCounts:    status.ReadyCounts,
+			}
 		}
 		if len(status.Apps) > 0 && len(status.Apps[0].Clusters) > 0 {
 			rval.Cluster = status.Apps[0].Clusters[0]
@@ -503,15 +563,18 @@ func PrepareClusterStatusResult(stateInfo state.StateInfo, qInstance, qType, qOu
 // It then fills out the StatusResult structure appropriately from information in the AppContext
 func PrepareLCStatusResult(stateInfo state.StateInfo) (LCStatusResult, error) {
 	var emptyList []string
-	status, err := prepareStatusResult(lcStatus, stateInfo, "", "", "", emptyList, emptyList, emptyList)
+	// NOTE - dcm should eventually support (and pass in) the set of status query attributes
+	status, err := prepareStatusResult(lcStatus, stateInfo, "", "deployed", "", emptyList, emptyList, emptyList)
 	if err != nil {
 		return LCStatusResult{}, err
 	} else {
 		rval := LCStatusResult{
-			Name:        status.Name,
-			State:       status.State,
-			Status:      status.Status,
-			RsyncStatus: status.RsyncStatus,
+			Name:           status.Name,
+			State:          status.State,
+			DeployedStatus: status.DeployedStatus,
+			ReadyStatus:    status.ReadyStatus,
+			DeployedCounts: status.DeployedCounts,
+			ReadyCounts:    status.ReadyCounts,
 		}
 		return rval, nil
 	}
@@ -540,13 +603,14 @@ func prepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance
 
 	var currentCtxId, statusCtxId string
 	if qInstance != "" {
-		// ToDo: Locate the context id that is current. Different in
-		// case update or rollback scenario
+		var err error
+		statusCtxId, err = state.GetStatusContextIdForContextId(stateInfo, qInstance)
+		if err != nil {
+			return StatusResult{}, err
+		}
 		currentCtxId = qInstance
-		statusCtxId = qInstance
 	} else {
 		currentCtxId = state.GetLastContextIdFromStateInfo(stateInfo)
-		// For App and cluster level status use status AppContext
 		statusCtxId = state.GetStatusContextIdFromStateInfo(stateInfo)
 	}
 
@@ -584,7 +648,11 @@ func prepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance
 		return StatusResult{}, pkgerrors.Wrap(err, "Invalid AppContext status value format")
 	}
 
-	statusResult.Status = acStatus.Status
+	if qType == "rsync" || qType == "cluster" {
+		statusResult.Status = acStatus.Status
+	} else {
+		statusResult.DeployedStatus = acStatus.Status
+	}
 	// Get the StatusAppContext
 	sac, err := state.GetAppContextFromId(statusCtxId)
 	if err != nil {
@@ -645,7 +713,11 @@ func prepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance
 			pc := strings.Split(cluster, "+")
 			clusterStatus.ClusterProvider = pc[0]
 			clusterStatus.Cluster = pc[1]
-			clusterStatus.ReadyStatus = getClusterReadyStatus(sac, app, cluster)
+			if qType == "rsync" || qType == "cluster" {
+				clusterStatus.ReadyStatus = getClusterReadyStatus(sac, app, cluster)
+			} else {
+				clusterStatus.Connectivity = getClusterReadyStatus(sac, app, cluster)
+			}
 
 			ch, err := ac.GetClusterHandle(app, cluster)
 			if err != nil {
@@ -665,13 +737,13 @@ func prepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance
 			appCount += cnt
 			clusterCount += cnt
 
-			if qType == "cluster" {
+			if qType == "cluster" || qType == "ready" {
 				rbValue, err := getResourceBundleStateStatus(sac, app, cluster)
 				if err != nil {
 					continue
 				}
 
-				cnt, err := GetClusterResources(rbValue, qOutput, fResources, &clusterStatus.Resources, clusterStatusCnts)
+				cnt, err := getClusterResources(rbValue, qType, qOutput, fResources, &clusterStatus.Resources, clusterStatusCnts)
 				if err != nil {
 					log.Info(":: Error gathering cluster resources for cluster, app ::",
 						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
@@ -681,7 +753,7 @@ func prepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance
 
 				appCount += cnt
 				clusterCount += cnt
-			} else if qType != "rsync" {
+			} else if qType != "rsync" && qType != "deployed" {
 				log.Info(":: Invalid status type ::", log.Fields{"Status Type": qType})
 				continue
 			}
@@ -694,8 +766,22 @@ func prepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance
 			statusResult.Apps = append(statusResult.Apps, appStatus)
 		}
 	}
-	statusResult.RsyncStatus = rsyncStatusCnts
-	statusResult.ClusterStatus = clusterStatusCnts
+
+	if qType == "rsync" || qType == "cluster" {
+		statusResult.RsyncStatus = rsyncStatusCnts
+		statusResult.ClusterStatus = clusterStatusCnts
+	} else {
+		statusResult.DeployedCounts = rsyncStatusCnts
+		statusResult.ReadyCounts = clusterStatusCnts
+	}
+
+	if cnt, ok := clusterStatusCnts["NotPresent"]; ok && cnt > 0 {
+		statusResult.ReadyStatus = "NotReady"
+	} else if cnt, ok := clusterStatusCnts["NotReady"]; ok && cnt > 0 {
+		statusResult.ReadyStatus = "NotReady"
+	} else if qType != "rsync" && qType != "deployed" {
+		statusResult.ReadyStatus = "Ready"
+	}
 
 	return statusResult, nil
 }
@@ -731,6 +817,11 @@ func PrepareAppsListStatusResult(stateInfo state.StateInfo, qInstance string) (A
 
 	var currentCtxId string
 	if qInstance != "" {
+		// verifies that qInstance is a valid context id
+		_, err := state.GetStatusContextIdForContextId(stateInfo, qInstance)
+		if err != nil {
+			return statusResult, err
+		}
 		currentCtxId = qInstance
 	} else {
 		currentCtxId = state.GetLastContextIdFromStateInfo(stateInfo)
@@ -763,6 +854,11 @@ func PrepareClustersByAppStatusResult(stateInfo state.StateInfo, qInstance strin
 
 	var currentCtxId string
 	if qInstance != "" {
+		// verifies that qInstance is a valid context id
+		_, err := state.GetStatusContextIdForContextId(stateInfo, qInstance)
+		if err != nil {
+			return statusResult, err
+		}
 		currentCtxId = qInstance
 	} else {
 		currentCtxId = state.GetLastContextIdFromStateInfo(stateInfo)
@@ -828,6 +924,13 @@ func PrepareResourcesByAppStatusResult(stateInfo state.StateInfo, qInstance, qTy
 
 	var currentCtxId, statusCtxId string
 	if qInstance != "" {
+		var err error
+		statusCtxId, err = state.GetStatusContextIdForContextId(stateInfo, qInstance)
+		if err != nil {
+			statusResult := ResourcesByAppResult{}
+			statusResult.ResourcesByApp = make([]ResourcesByAppEntry, 0)
+			return statusResult, err
+		}
 		currentCtxId = qInstance
 	} else {
 		currentCtxId = state.GetLastContextIdFromStateInfo(stateInfo)
@@ -930,19 +1033,19 @@ func prepareResourcesByAppStatusResult(ac, sac appcontext.AppContext, qType stri
 			}
 
 			// find any additional resources on the cluster
-			if qType == "cluster" {
+			if qType == "cluster" || qType == "ready" {
 				rbValue, err := getResourceBundleStateStatus(sac, app, cluster)
 				if err != nil {
 					continue
 				}
 
-				_, err = GetClusterResources(rbValue, "all", make([]string, 0), &resources, clusterStatusCnts)
+				_, err = getClusterResources(rbValue, qType, "all", make([]string, 0), &resources, clusterStatusCnts)
 				if err != nil {
 					log.Info(":: Error gathering cluster resources for cluster, app ::",
 						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
 					continue
 				}
-			} else if qType != "rsync" {
+			} else if qType != "rsync" && qType != "deployed" {
 				log.Info(":: Invalid status type ::", log.Fields{"Status Type": qType})
 				continue
 			}

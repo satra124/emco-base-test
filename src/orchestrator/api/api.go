@@ -187,7 +187,17 @@ func NewRouter(projectClient moduleLib.ProjectManager,
 	router.HandleFunc("/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/stop", instantiationHandler.stopHandler).Methods("POST")
 	router.HandleFunc("/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/status", instantiationHandler.statusHandler).Methods("GET")
 	router.HandleFunc("/projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/status",
-		instantiationHandler.statusHandler).Queries("instance", "{instance}", "type", "{type}", "output", "{output}", "app", "{app}", "cluster", "{cluster}", "resource", "{resource}", "apps", "{apps}", "clusters", "{clusters}", "resources", "{resources}")
+		instantiationHandler.statusHandler).Queries(
+		"instance", "{instance}",
+		"type", "{type}", // deprecated - to be replaced with "status" parameter
+		"status", "{status}",
+		"output", "{output}",
+		"app", "{app}",
+		"cluster", "{cluster}",
+		"resource", "{resource}",
+		"apps", "{apps}",
+		"clusters", "{clusters}",
+		"resources", "{resources}")
 
 	// setting routes for Update
 	updateHandler := updateHandler{

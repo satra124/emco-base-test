@@ -41,29 +41,41 @@ var StatusQueryEnum = &queryparams{
 }
 
 type ClusterStatusResult struct {
-	Name          string                 `json:"name,omitempty,inline"`
-	State         state.StateInfo        `json:"states,omitempty,inline"`
-	Status        appcontext.StatusValue `json:"status,omitempty,inline"`
-	RsyncStatus   map[string]int         `json:"rsyncStatus,omitempty,inline"`
-	ClusterStatus map[string]int         `json:"clusterStatus,omitempty,inline"`
-	Cluster       ClusterStatus          `json:"cluster,omitempty,inline"`
+	Name           string                 `json:"name,omitempty,inline"`
+	State          state.StateInfo        `json:"states,omitempty,inline"`
+	Status         appcontext.StatusValue `json:"status,omitempty,inline"` // deprecated - to be replaced with DeployedStatus
+	DeployedStatus appcontext.StatusValue `json:"deployedStatus,omitempty,inline"`
+	ReadyStatus    string                 `json:"readyStatus,omitempty,inline"`
+	RsyncStatus    map[string]int         `json:"rsyncStatus,omitempty,inline"`   // deprecated - to be replaced with DeployedCounts
+	ClusterStatus  map[string]int         `json:"clusterStatus,omitempty,inline"` // deprecated - to be replaced with ClusterCounts
+	DeployedCounts map[string]int         `json:"deployedCounts,omitempty,inline"`
+	ReadyCounts    map[string]int         `json:"readyCounts,omitempty,inline"`
+	Cluster        ClusterStatus          `json:"cluster,omitempty,inline"`
 }
 
 type LCStatusResult struct {
-	Name          string                 `json:"name,omitempty,inline"`
-	State         state.StateInfo        `json:"states,omitempty,inline"`
-	Status        appcontext.StatusValue `json:"status,omitempty,inline"`
-	RsyncStatus   map[string]int         `json:"rsyncStatus,omitempty,inline"`
-	ClusterStatus map[string]int         `json:"clusterStatus,omitempty,inline"`
-	LogicalCloud  LogicalCloudStatus     `json:"logicalCloud,omitempty,inline"`
+	Name           string                 `json:"name,omitempty,inline"`
+	State          state.StateInfo        `json:"states,omitempty,inline"`
+	Status         appcontext.StatusValue `json:"status,omitempty,inline"` // deprecated
+	DeployedStatus appcontext.StatusValue `json:"deployedStatus,omitempty,inline"`
+	ReadyStatus    string                 `json:"readyStatus,omitempty,inline"`
+	RsyncStatus    map[string]int         `json:"rsyncStatus,omitempty,inline"`   // deprecated
+	ClusterStatus  map[string]int         `json:"clusterStatus,omitempty,inline"` // deprecated
+	DeployedCounts map[string]int         `json:"deployedCounts,omitempty,inline"`
+	ReadyCounts    map[string]int         `json:"readyCounts,omitempty,inline"`
+	LogicalCloud   LogicalCloudStatus     `json:"logicalCloud,omitempty,inline"`
 }
 
 type StatusResult struct {
 	Name            string                 `json:"name,omitempty,inline"`
 	State           state.StateInfo        `json:"states,omitempty,inline"`
-	Status          appcontext.StatusValue `json:"status,omitempty,inline"`
-	RsyncStatus     map[string]int         `json:"rsyncStatus,omitempty,inline"`
-	ClusterStatus   map[string]int         `json:"clusterStatus,omitempty,inline"`
+	Status          appcontext.StatusValue `json:"status,omitempty,inline"` // deprecated
+	DeployedStatus  appcontext.StatusValue `json:"deployedStatus,omitempty,inline"`
+	ReadyStatus     string                 `json:"readyStatus,omitempty,inline"`
+	RsyncStatus     map[string]int         `json:"rsyncStatus,omitempty,inline"`   // deprecated
+	ClusterStatus   map[string]int         `json:"clusterStatus,omitempty,inline"` // deprecated
+	DeployedCounts  map[string]int         `json:"deployedCounts,omitempty,inline"`
+	ReadyCounts     map[string]int         `json:"readyCounts,omitempty,inline"`
 	Apps            []AppStatus            `json:"apps,omitempty,inline"`
 	ChildContextIDs []string               `json:"ChildContextIDs,omitempty,inline"`
 }
@@ -76,7 +88,8 @@ type AppStatus struct {
 type ClusterStatus struct {
 	ClusterProvider string           `json:"clusterProvider,omitempty"`
 	Cluster         string           `json:"cluster,omitempty"`
-	ReadyStatus     string           `json:"readyStatus,omitempty"`
+	ReadyStatus     string           `json:"readyStatus,omitempty"` // deprecated - to be replaced with Connectivity
+	Connectivity    string           `json:"connectivity,omitempty"`
 	Resources       []ResourceStatus `json:"resources,omitempty"`
 }
 
@@ -86,11 +99,13 @@ type LogicalCloudStatus struct {
 }
 
 type ResourceStatus struct {
-	Gvk           schema.GroupVersionKind `json:"GVK,omitempty"`
-	Name          string                  `json:"name,omitempty"`
-	Detail        interface{}             `json:"detail,omitempty"`
-	RsyncStatus   string                  `json:"rsyncStatus,omitempty"`
-	ClusterStatus string                  `json:"clusterStatus,omitempty"`
+	Gvk            schema.GroupVersionKind `json:"GVK,omitempty"`
+	Name           string                  `json:"name,omitempty"`
+	Detail         interface{}             `json:"detail,omitempty"`
+	RsyncStatus    string                  `json:"rsyncStatus,omitempty"`   // deprecate - to be replaced with DeployedStatus
+	ClusterStatus  string                  `json:"clusterStatus,omitempty"` // deprecated - to be replaced with ReadyStatus
+	DeployedStatus string                  `json:"deployedStatus,omitempty"`
+	ReadyStatus    string                  `json:"readyStatus,omitempty"`
 }
 
 // AppsListResult returns a list of Apps for the given AppContext

@@ -185,7 +185,9 @@ var _ = Describe("StatusHelper", func() {
 		expectedRsyncResourcesByApp = status.ResourcesByAppResult{
 			ResourcesByApp: []status.ResourcesByAppEntry{
 				{
-					App: "firewall",
+					App:             "firewall",
+					ClusterProvider: "vfw-cluster-provider",
+					Cluster:         "edge01",
 					Resources: []status.ResourceEntry{
 						{
 							Name: "fw0-firewall",
@@ -194,7 +196,20 @@ var _ = Describe("StatusHelper", func() {
 					},
 				},
 				{
-					App: "packetgen",
+					App:             "firewall",
+					ClusterProvider: "vfw-cluster-provider",
+					Cluster:         "edge02",
+					Resources: []status.ResourceEntry{
+						{
+							Name: "fw0-firewall",
+							Gvk:  schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
+						},
+					},
+				},
+				{
+					App:             "packetgen",
+					ClusterProvider: "vfw-cluster-provider",
+					Cluster:         "edge01",
 					Resources: []status.ResourceEntry{
 						{
 							Name: "fw0-packetgen",
@@ -203,7 +218,31 @@ var _ = Describe("StatusHelper", func() {
 					},
 				},
 				{
-					App: "sink",
+					App:             "packetgen",
+					ClusterProvider: "vfw-cluster-provider",
+					Cluster:         "edge02",
+					Resources: []status.ResourceEntry{
+						{
+							Name: "fw0-packetgen",
+							Gvk:  schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
+						},
+					},
+				},
+				{
+					App:             "sink",
+					ClusterProvider: "vfw-cluster-provider",
+					Cluster:         "edge01",
+					Resources: []status.ResourceEntry{
+						{
+							Name: "fw0-sink",
+							Gvk:  schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
+						},
+					},
+				},
+				{
+					App:             "sink",
+					ClusterProvider: "vfw-cluster-provider",
+					Cluster:         "edge02",
 					Resources: []status.ResourceEntry{
 						{
 							Name: "fw0-sink",
@@ -222,16 +261,16 @@ var _ = Describe("StatusHelper", func() {
 					Cluster:         "edge01",
 					Resources: []status.ResourceEntry{
 						{
+							Name: "fw0-packetgen",
+							Gvk:  schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
+						},
+						{
 							Name: "fw0-packetgen-67d8fb7b68-8g824",
 							Gvk:  schema.GroupVersionKind{Version: "v1", Kind: "Pod"},
 						},
 						{
 							Name: "packetgen-service",
 							Gvk:  schema.GroupVersionKind{Version: "v1", Kind: "Service"},
-						},
-						{
-							Name: "fw0-packetgen",
-							Gvk:  schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
 						},
 					},
 				},
@@ -241,16 +280,16 @@ var _ = Describe("StatusHelper", func() {
 					Cluster:         "edge02",
 					Resources: []status.ResourceEntry{
 						{
+							Name: "fw0-packetgen",
+							Gvk:  schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
+						},
+						{
 							Name: "fw0-packetgen-67d8fb7b68-8g824",
 							Gvk:  schema.GroupVersionKind{Version: "v1", Kind: "Pod"},
 						},
 						{
 							Name: "packetgen-service",
 							Gvk:  schema.GroupVersionKind{Version: "v1", Kind: "Service"},
-						},
-						{
-							Name: "fw0-packetgen",
-							Gvk:  schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
 						},
 					},
 				},
@@ -260,6 +299,7 @@ var _ = Describe("StatusHelper", func() {
 		expectedClusterStatusResult = status.StatusResult{
 			State:         stateInfoInstantiated,
 			Status:        appcontext.AppContextStatusEnum.Instantiated,
+			ReadyStatus:   "NotReady",
 			ClusterStatus: map[string]int{"Ready": 4, "NotReady": 2},
 			RsyncStatus:   map[string]int{},
 			Apps: []status.AppStatus{
@@ -272,6 +312,11 @@ var _ = Describe("StatusHelper", func() {
 							ReadyStatus:     "Unknown",
 							Resources: []status.ResourceStatus{
 								{
+									Name:          "fw0-packetgen",
+									Gvk:           schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
+									ClusterStatus: "Ready",
+								},
+								{
 									Name:          "fw0-packetgen-67d8fb7b68-8g824",
 									Gvk:           schema.GroupVersionKind{Version: "v1", Kind: "Pod"},
 									ClusterStatus: "Ready",
@@ -280,11 +325,6 @@ var _ = Describe("StatusHelper", func() {
 									Name:          "packetgen-service",
 									Gvk:           schema.GroupVersionKind{Version: "v1", Kind: "Service"},
 									ClusterStatus: "NotReady",
-								},
-								{
-									Name:          "fw0-packetgen",
-									Gvk:           schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
-									ClusterStatus: "Ready",
 								},
 							},
 						},
@@ -294,6 +334,11 @@ var _ = Describe("StatusHelper", func() {
 							ReadyStatus:     "Unknown",
 							Resources: []status.ResourceStatus{
 								{
+									Name:          "fw0-packetgen",
+									Gvk:           schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
+									ClusterStatus: "Ready",
+								},
+								{
 									Name:          "fw0-packetgen-67d8fb7b68-8g824",
 									Gvk:           schema.GroupVersionKind{Version: "v1", Kind: "Pod"},
 									ClusterStatus: "Ready",
@@ -302,11 +347,6 @@ var _ = Describe("StatusHelper", func() {
 									Name:          "packetgen-service",
 									Gvk:           schema.GroupVersionKind{Version: "v1", Kind: "Service"},
 									ClusterStatus: "NotReady",
-								},
-								{
-									Name:          "fw0-packetgen",
-									Gvk:           schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
-									ClusterStatus: "Ready",
 								},
 							},
 						},
