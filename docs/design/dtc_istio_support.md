@@ -436,4 +436,160 @@ Repeat this request several times and verify that the HelloWorld version should 
 Hello version: v2, instance: helloworld-v2-758dd55874-6x4t8
 Hello version: v1, instance: helloworld-v1-86f77cd7bd-cpxhv
 ```
+### Example configuration httpbin cluster external access using mutual tls
 
+# Install httpbin app
+```shell
+$ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.10.3 TARGET_ARCH=x86_64 sh -
+$ kubectl apply -f istio-1.10.3/samples/httpbin/httpbin.yaml
+```
+
+# Create root cert and private key
+```shell
+$ openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=example Inc./CN=example.com' -keyout example.com.key -out example.com.crt
+```
+
+# Create certificate and private key for httpbin.example.com
+```shell
+openssl req -out httpbin.example.com.csr -newkey rsa:2048 -nodes -keyout httpbin.example.com.key -subj "/CN=httpbin.example.com/O=httpbin organization"
+openssl x509 -req -sha256 -days 365 -CA example.com.crt -CAkey example.com.key -set_serial 0 -in httpbin.example.com.csr -out httpbin.example.com.crt
+```
+
+# Create client certificate and private key
+```shell
+openssl req -out client.example.com.csr -newkey rsa:2048 -nodes -keyout client.example.com.key -subj "/CN=client.example.com/O=client organization"
+openssl x509 -req -sha256 -days 365 -CA example.com.crt -CAkey example.com.key -set_serial 1 -in client.example.com.csr -out client.example.com.crt
+```
+
+# Create secret
+```shell
+kubectl create -n istio-system secret generic httpbin-credential --from-file=tls.key=httpbin.example.com.key \
+--from-file=tls.crt=httpbin.example.com.crt --from-file=ca.crt=example.com.crt
+```
+
+# Create gateway
+```shell
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: mygateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default ingress gateway
+  servers:
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: MUTUAL
+      credentialName: httpbin-credential # must be the same as secret
+    hosts:
+    - httpbin.example.com
+```
+
+# Create virtual service
+```shell
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: httpbin
+spec:
+  hosts:
+  - "httpbin.example.com"
+  gateways:
+  - mygateway
+  http:
+  - match:
+    - port: 443
+    route:
+    - destination:
+        port:
+          number: 8000
+        host: httpbin
+```
+
+# Curl from outside the cluster
+NOTE: Get the ingress port and host address from the cluster
+```shell
+curl -v -HHost:httpbin.example.com --resolve "httpbin.example.com:$SECURE_INGRESS_PORT:$INGRESS_HOST" \
+--cacert example.com.crt --cert client.example.com.crt --key client.example.com.key \
+"https://httpbin.example.com:$SECURE_INGRESS_PORT/status/418"
+```
+
+# Expected output
+```shell
+* Added httpbin.example.com:30830:172.16.16.200 to DNS cache
+* Hostname httpbin.example.com was found in DNS cache
+*   Trying 172.16.16.200...
+* TCP_NODELAY set
+* Connected to httpbin.example.com (172.16.16.200) port 30830 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: ../example.com.crt
+  CApath: /etc/ssl/certs
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.3 (IN), TLS Unknown, Certificate Status (22):
+* TLSv1.3 (IN), TLS handshake, Unknown (8):
+* TLSv1.3 (IN), TLS handshake, Request CERT (13):
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+* TLSv1.3 (OUT), TLS change cipher, Client hello (1):
+* TLSv1.3 (OUT), TLS Unknown, Certificate Status (22):
+* TLSv1.3 (OUT), TLS handshake, Certificate (11):
+* TLSv1.3 (OUT), TLS Unknown, Certificate Status (22):
+* TLSv1.3 (OUT), TLS handshake, CERT verify (15):
+* TLSv1.3 (OUT), TLS Unknown, Certificate Status (22):
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384
+* ALPN, server accepted to use h2
+* Server certificate:
+*  subject: CN=httpbin.example.com; O=httpbin organization
+*  start date: Feb 22 16:36:41 2022 GMT
+*  expire date: Feb 22 16:36:41 2023 GMT
+*  common name: httpbin.example.com (matched)
+*  issuer: O=example Inc.; CN=example.com
+*  SSL certificate verify ok.
+* Using HTTP2, server supports multi-use
+* Connection state changed (HTTP/2 confirmed)
+* Copying HTTP/2 data in stream buffer to connection buffer after upgrade: len=0
+* TLSv1.3 (OUT), TLS Unknown, Unknown (23):
+* TLSv1.3 (OUT), TLS Unknown, Unknown (23):
+* TLSv1.3 (OUT), TLS Unknown, Unknown (23):
+* Using Stream ID: 1 (easy handle 0x55f9e4bcb620)
+* TLSv1.3 (OUT), TLS Unknown, Unknown (23):
+> GET /status/418 HTTP/2
+> Host:httpbin.example.com
+> User-Agent: curl/7.58.0
+> Accept: */*
+>
+* TLSv1.3 (IN), TLS Unknown, Certificate Status (22):
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+* TLSv1.3 (IN), TLS Unknown, Unknown (23):
+* Connection state changed (MAX_CONCURRENT_STREAMS updated)!
+* TLSv1.3 (OUT), TLS Unknown, Unknown (23):
+* TLSv1.3 (IN), TLS Unknown, Unknown (23):
+< HTTP/2 418
+< server: istio-envoy
+< date: Wed, 23 Feb 2022 15:23:57 GMT
+< x-more-info: http://tools.ietf.org/html/rfc2324
+< access-control-allow-origin: *
+< access-control-allow-credentials: true
+< content-length: 135
+< x-envoy-upstream-service-time: 15
+<
+
+    -=[ teapot ]=-
+
+       _...._
+     .'  _ _ `.
+    | ."` ^ `". _,
+    \_;`"---"`|//
+      |       ;/
+      \_     _/
+        `"""`
+* Connection #0 to host httpbin.example.com left intact
