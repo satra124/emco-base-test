@@ -57,6 +57,33 @@ func updateReadyCounts(ready bool, cnts map[string]int) string {
 	}
 }
 
+func updateNotPresentCount(increment bool, cnts map[string]int) {
+	cnt := cnts["NotPresent"]
+	if increment {
+		cnts["NotPresent"] = cnt + 1
+	} else {
+		cnts["NotPresent"] = cnt - 1
+	}
+}
+
+// return true if resource is added, false if already present and just updated
+func updateResourceList(resourceList *[]ResourceStatus, r ResourceStatus) bool {
+	// see if resource is already in the list - then just update it
+	for i, re := range *resourceList {
+		if re.Name == r.Name &&
+			re.Gvk.Group == r.Gvk.Group &&
+			re.Gvk.Version == r.Gvk.Version &&
+			re.Gvk.Kind == r.Gvk.Kind {
+			(*resourceList)[i].Detail = r.Detail
+			(*resourceList)[i].ClusterStatus = r.ClusterStatus
+			return false
+		}
+	}
+
+	*resourceList = append(*resourceList, r)
+	return true
+}
+
 // GetClusterResources takes in a ResourceBundleStateStatus CR and resturns a list of ResourceStatus elments
 func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fResources []string,
 	resourceList *[]ResourceStatus, cnts map[string]int) (int, error) {
@@ -76,8 +103,11 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 			r.Detail = p
 		}
 		r.ClusterStatus = updateReadyCounts(readyChecker.PodReady(&p), cnts)
-		*resourceList = append(*resourceList, r)
-		count++
+		if updateResourceList(resourceList, r) {
+			count++
+		} else {
+			updateNotPresentCount(false, cnts)
+		}
 	}
 
 	for _, s := range rbData.ServiceStatuses {
@@ -91,8 +121,11 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 			r.Detail = s
 		}
 		r.ClusterStatus = updateReadyCounts(readyChecker.ServiceReady(&s), cnts)
-		*resourceList = append(*resourceList, r)
-		count++
+		if updateResourceList(resourceList, r) {
+			count++
+		} else {
+			updateNotPresentCount(false, cnts)
+		}
 	}
 
 	for _, d := range rbData.DeploymentStatuses {
@@ -106,8 +139,11 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 			r.Detail = d
 		}
 		r.ClusterStatus = updateReadyCounts(readyChecker.DeploymentReady(&d), cnts)
-		*resourceList = append(*resourceList, r)
-		count++
+		if updateResourceList(resourceList, r) {
+			count++
+		} else {
+			updateNotPresentCount(false, cnts)
+		}
 	}
 
 	for _, c := range rbData.ConfigMapStatuses {
@@ -121,8 +157,11 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 			r.Detail = c
 		}
 		r.ClusterStatus = updateReadyCounts(true, cnts)
-		*resourceList = append(*resourceList, r)
-		count++
+		if updateResourceList(resourceList, r) {
+			count++
+		} else {
+			updateNotPresentCount(false, cnts)
+		}
 	}
 
 	for _, d := range rbData.DaemonSetStatuses {
@@ -136,8 +175,11 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 			r.Detail = d
 		}
 		r.ClusterStatus = updateReadyCounts(readyChecker.DaemonSetReady(&d), cnts)
-		*resourceList = append(*resourceList, r)
-		count++
+		if updateResourceList(resourceList, r) {
+			count++
+		} else {
+			updateNotPresentCount(false, cnts)
+		}
 	}
 
 	for _, j := range rbData.JobStatuses {
@@ -151,8 +193,11 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 			r.Detail = j
 		}
 		r.ClusterStatus = updateReadyCounts(readyChecker.JobReady(&j), cnts)
-		*resourceList = append(*resourceList, r)
-		count++
+		if updateResourceList(resourceList, r) {
+			count++
+		} else {
+			updateNotPresentCount(false, cnts)
+		}
 	}
 
 	for _, s := range rbData.StatefulSetStatuses {
@@ -166,8 +211,11 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 			r.Detail = s
 		}
 		r.ClusterStatus = updateReadyCounts(readyChecker.StatefulSetReady(&s), cnts)
-		*resourceList = append(*resourceList, r)
-		count++
+		if updateResourceList(resourceList, r) {
+			count++
+		} else {
+			updateNotPresentCount(false, cnts)
+		}
 	}
 
 	for _, s := range rbData.CsrStatuses {
@@ -181,8 +229,11 @@ func GetClusterResources(rbData rb.ResourceBundleStateStatus, qOutput string, fR
 			r.Detail = s
 		}
 		r.ClusterStatus = updateReadyCounts(true, cnts)
-		*resourceList = append(*resourceList, r)
-		count++
+		if updateResourceList(resourceList, r) {
+			count++
+		} else {
+			updateNotPresentCount(false, cnts)
+		}
 	}
 
 	return count, nil
@@ -216,6 +267,27 @@ func isResourceHandle(ch, h interface{}) bool {
 	}
 }
 
+// getParallelHandle - return the handle h with the original contextId replaced with ac's contextId
+func getParallelHandle(h interface{}, ac appcontext.AppContext) string {
+	ph := fmt.Sprintf("%v", h)
+	oldHs := strings.SplitN(ph, "/", -1)
+	if len(oldHs) < 3 {
+		return ""
+	}
+
+	ch, err := ac.GetCompositeAppHandle()
+	if err != nil {
+		return ""
+	}
+
+	newHs := strings.SplitN(fmt.Sprintf("%v", ch), "/", -1)
+	if len(newHs) < 3 {
+		return ""
+	}
+
+	return strings.Replace(ph, oldHs[2], newHs[2], 1)
+}
+
 // keepResource keeps a resource if the filter list is empty or if the resource is part of the list
 func keepResource(r string, rList []string) bool {
 	if len(rList) == 0 {
@@ -231,13 +303,16 @@ func keepResource(r string, rList []string) bool {
 
 // For status get the resource from reference appContext
 // In case of no update it'll refer back to the same appContext
-func getResourceFromReference(ac appcontext.AppContext, h interface{}, appName, cluster string) (unstructured.Unstructured, error) {
+// 'ac' is the target appcontext, 'sac' is the status appcontext
+// and 'h' is the resource handle in the StatusAppContext
+func getResourceFromReference(ac, sac appcontext.AppContext, h interface{}, appName, cluster string) (unstructured.Unstructured, error) {
+
 	var val = ""
 	var err error
-	// Read refernce appContext value
-	sh, err := ac.GetLevelHandle(h, "reference")
+	// Read reference appContext value
+	sh, err := sac.GetLevelHandle(h, "reference")
 	if err == nil {
-		s, err := ac.GetValue(sh)
+		s, err := sac.GetValue(sh)
 		if err == nil {
 			js, err := json.Marshal(s)
 			if err == nil {
@@ -275,6 +350,14 @@ func getResourceFromReference(ac appcontext.AppContext, h interface{}, appName, 
 		log.Error(":: Error getting resource value ::", log.Fields{"app": appName, "cluster": cluster, "resource": resource})
 		return unstructured.Unstructured{}, err
 	}
+
+	// If ac == sac and ref != ac - then no error, but return empty resource
+	acH, _ := ac.GetCompositeAppHandle()
+	sacH, _ := sac.GetCompositeAppHandle()
+	refH, _ := ref.GetCompositeAppHandle()
+	if acH == sacH && refH != acH {
+		return unstructured.Unstructured{}, nil
+	}
 	// Get the unstructured object
 	unstruct, err := getUnstruct([]byte(res.(string)))
 	if err != nil {
@@ -284,8 +367,8 @@ func getResourceFromReference(ac appcontext.AppContext, h interface{}, appName, 
 	return unstruct, nil
 }
 
-// GetAppContextResources collects the resource status of all resources in an AppContext subject to the filter parameters
-func GetAppContextResources(ac appcontext.AppContext, ch interface{}, qOutput string, fResources []string, resourceList *[]ResourceStatus, statusCnts map[string]int, app, cluster string) (int, error) {
+// getAppContextResources collects the resource status of all resources in an AppContext subject to the filter parameters
+func getAppContextResources(ac, sac appcontext.AppContext, ch interface{}, qOutput, qType string, fResources []string, resourceList *[]ResourceStatus, statusCnts map[string]int, clusterStatusCnts map[string]int, app, cluster string) (int, error) {
 	count := 0
 
 	// Get all Resources for the Cluster
@@ -301,12 +384,23 @@ func GetAppContextResources(ac appcontext.AppContext, ch interface{}, qOutput st
 			continue
 		}
 
-		// Get Resource Status from AppContext
+		// Get the resource handle for the status appcontext
+		statusH := getParallelHandle(h, sac)
+		if statusH == "" {
+			log.Error(":: Error getting status app context handle::",
+				log.Fields{
+					"handle":  fmt.Sprintf("%v", h),
+					"app":     app,
+					"cluster": cluster})
+			return 0, pkgerrors.Errorf("Error getting status handle for resource handle: %v", fmt.Sprintf("%v", h))
+		}
+
+		// Get Resource Status from status AppContext
 		// Default to "Pending" if this key does not yet exist (or any other error occurs)
 		rstatus := resourcestatus.ResourceStatus{Status: resourcestatus.RsyncStatusEnum.Pending}
-		sh, err := ac.GetLevelHandle(h, "status")
+		sh, err := sac.GetLevelHandle(statusH, "status")
 		if err == nil {
-			s, err := ac.GetValue(sh)
+			s, err := sac.GetValue(sh)
 			if err == nil {
 				js, err := json.Marshal(s)
 				if err == nil {
@@ -314,9 +408,12 @@ func GetAppContextResources(ac appcontext.AppContext, ch interface{}, qOutput st
 				}
 			}
 		}
-		unstruct, err := getResourceFromReference(ac, h, app, cluster)
+		unstruct, err := getResourceFromReference(ac, sac, statusH, app, cluster)
 		if err != nil {
 			log.Error(":: Error getting GVK ::", log.Fields{"error": err})
+			continue
+		}
+		if len(unstruct.Object) == 0 {
 			continue
 		}
 		if !keepResource(unstruct.GetName(), fResources) {
@@ -329,10 +426,15 @@ func GetAppContextResources(ac appcontext.AppContext, ch interface{}, qOutput st
 		if qOutput == "detail" {
 			r.Detail = unstruct.Object
 		}
-		r.RsyncStatus = fmt.Sprintf("%v", rstatus.Status)
+		if qType == "rsync" {
+			r.RsyncStatus = fmt.Sprintf("%v", rstatus.Status)
+			cnt := statusCnts[rstatus.Status]
+			statusCnts[rstatus.Status] = cnt + 1
+		} else {
+			r.ClusterStatus = "NotPresent"
+			updateNotPresentCount(true, clusterStatusCnts)
+		}
 		*resourceList = append(*resourceList, r)
-		cnt := statusCnts[rstatus.Status]
-		statusCnts[rstatus.Status] = cnt + 1
 		count++
 	}
 
@@ -340,17 +442,10 @@ func GetAppContextResources(ac appcontext.AppContext, ch interface{}, qOutput st
 }
 
 // getListOfApps gets the list of apps from the app context
-func getListOfApps(appContextId string) []string {
-	var ac appcontext.AppContext
+func getListOfApps(ac appcontext.AppContext) []string {
+	ch, err := ac.GetCompositeAppHandle()
+
 	apps := make([]string, 0)
-
-	_, err := ac.LoadAppContext(appContextId)
-	if err != nil {
-		log.Info(":: Error loading the app context::", log.Fields{"appContextId": appContextId, "error": err})
-		return apps
-	}
-
-	ch := "/context/" + appContextId + "/"
 
 	// Get all handles
 	hs, err := ac.GetAllHandles(ch)
@@ -490,14 +585,14 @@ func prepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance
 	}
 
 	statusResult.Status = acStatus.Status
-	// For App and cluster level status use status AppContext
-	ac, err = state.GetAppContextFromId(statusCtxId)
+	// Get the StatusAppContext
+	sac, err := state.GetAppContextFromId(statusCtxId)
 	if err != nil {
 		return StatusResult{}, pkgerrors.Wrap(err, "AppContext for status query not found")
 	}
 
 	// Get the composite app meta
-	caMeta, err := ac.GetCompositeAppMeta()
+	caMeta, err := sac.GetCompositeAppMeta()
 
 	if statusType != lcStatus && statusType != clusterStatus {
 		if err != nil {
@@ -513,7 +608,7 @@ func prepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance
 	clusterStatusCnts := make(map[string]int)
 
 	// Get the list of apps from the app context
-	apps := getListOfApps(currentCtxId)
+	apps := getListOfApps(ac)
 
 	// If filter-apps list is provided, ensure that every app to be
 	// filtered is part of this composite app
@@ -550,57 +645,43 @@ func prepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance
 			pc := strings.Split(cluster, "+")
 			clusterStatus.ClusterProvider = pc[0]
 			clusterStatus.Cluster = pc[1]
-			clusterStatus.ReadyStatus = getClusterReadyStatus(ac, app, cluster)
+			clusterStatus.ReadyStatus = getClusterReadyStatus(sac, app, cluster)
+
+			ch, err := ac.GetClusterHandle(app, cluster)
+			if err != nil {
+				log.Error(":: No handle for cluster, app ::",
+					log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
+				continue
+			}
+
+			clusterStatus.Resources = make([]ResourceStatus, 0)
+			cnt, err := getAppContextResources(ac, sac, ch, qOutput, qType, fResources, &clusterStatus.Resources, rsyncStatusCnts, clusterStatusCnts, app, cluster)
+			if err != nil {
+				log.Info(":: Error gathering appcontext resources for cluster, app ::",
+					log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
+				continue
+			}
+			log.Info(":: Found some rsync appcontext resources ", log.Fields{"cnt": cnt, "app": app, "cluster": cluster})
+			appCount += cnt
+			clusterCount += cnt
 
 			if qType == "cluster" {
-				csh, err := ac.GetClusterStatusHandle(app, cluster)
+				rbValue, err := getResourceBundleStateStatus(sac, app, cluster)
 				if err != nil {
-					log.Info(":: No cluster status handle for cluster, app ::",
-						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
-					continue
-				}
-				clusterRbValue, err := ac.GetValue(csh)
-				if err != nil {
-					log.Info(":: No cluster status value for cluster, app ::",
-						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
-					continue
-				}
-				var rbValue rb.ResourceBundleStateStatus
-				err = json.Unmarshal([]byte(clusterRbValue.(string)), &rbValue)
-				if err != nil {
-					log.Info(":: Error unmarshalling cluster status value for cluster, app ::",
-						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
 					continue
 				}
 
-				clusterStatus.Resources = make([]ResourceStatus, 0)
 				cnt, err := GetClusterResources(rbValue, qOutput, fResources, &clusterStatus.Resources, clusterStatusCnts)
 				if err != nil {
 					log.Info(":: Error gathering cluster resources for cluster, app ::",
 						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
 					continue
 				}
-				appCount += cnt
-				clusterCount += cnt
-			} else if qType == "rsync" {
-				ch, err := ac.GetClusterHandle(app, cluster)
-				if err != nil {
-					log.Info(":: No handle for cluster, app ::",
-						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
-					continue
-				}
+				log.Info(":: Found cluster status appcontext resources ", log.Fields{"cnt": cnt, "app": app, "cluster": cluster})
 
-				/* code to get status for resources from AppContext */
-				clusterStatus.Resources = make([]ResourceStatus, 0)
-				cnt, err := GetAppContextResources(ac, ch, qOutput, fResources, &clusterStatus.Resources, rsyncStatusCnts, app, cluster)
-				if err != nil {
-					log.Info(":: Error gathering appcontext resources for cluster, app ::",
-						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
-					continue
-				}
 				appCount += cnt
 				clusterCount += cnt
-			} else {
+			} else if qType != "rsync" {
 				log.Info(":: Invalid status type ::", log.Fields{"Status Type": qType})
 				continue
 			}
@@ -619,6 +700,30 @@ func prepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance
 	return statusResult, nil
 }
 
+func getResourceBundleStateStatus(ac appcontext.AppContext, app, cluster string) (rb.ResourceBundleStateStatus, error) {
+	csh, err := ac.GetClusterStatusHandle(app, cluster)
+	if err != nil {
+		log.Info(":: No cluster status handle for cluster, app ::",
+			log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
+		return rb.ResourceBundleStateStatus{}, err
+	}
+	clusterRbValue, err := ac.GetValue(csh)
+	if err != nil {
+		log.Info(":: No cluster status value for cluster, app ::",
+			log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
+		return rb.ResourceBundleStateStatus{}, err
+	}
+	var rbValue rb.ResourceBundleStateStatus
+	err = json.Unmarshal([]byte(clusterRbValue.(string)), &rbValue)
+	if err != nil {
+		log.Error(":: Error unmarshalling cluster status value for cluster, app ::",
+			log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
+		return rb.ResourceBundleStateStatus{}, err
+	}
+
+	return rbValue, nil
+}
+
 // PrepareAppsListStatusResult takes in a resource stateInfo object, the list of apps and the query parameters.
 // It then fills out the StatusResult structure appropriately from information in the AppContext
 func PrepareAppsListStatusResult(stateInfo state.StateInfo, qInstance string) (AppsListResult, error) {
@@ -628,7 +733,7 @@ func PrepareAppsListStatusResult(stateInfo state.StateInfo, qInstance string) (A
 	if qInstance != "" {
 		currentCtxId = qInstance
 	} else {
-		currentCtxId = state.GetStatusContextIdFromStateInfo(stateInfo)
+		currentCtxId = state.GetLastContextIdFromStateInfo(stateInfo)
 	}
 
 	// If currentCtxId is still an empty string, an AppContext has not yet been
@@ -638,8 +743,13 @@ func PrepareAppsListStatusResult(stateInfo state.StateInfo, qInstance string) (A
 		return statusResult, nil
 	}
 
+	ac, err := state.GetAppContextFromId(currentCtxId)
+	if err != nil {
+		return AppsListResult{}, pkgerrors.Wrap(err, "AppContext for Apps List status query not found")
+	}
+
 	// Get the list of apps from the app context
-	statusResult.Apps = getListOfApps(currentCtxId)
+	statusResult.Apps = getListOfApps(ac)
 
 	return statusResult, nil
 }
@@ -655,7 +765,7 @@ func PrepareClustersByAppStatusResult(stateInfo state.StateInfo, qInstance strin
 	if qInstance != "" {
 		currentCtxId = qInstance
 	} else {
-		currentCtxId = state.GetStatusContextIdFromStateInfo(stateInfo)
+		currentCtxId = state.GetLastContextIdFromStateInfo(stateInfo)
 	}
 
 	// If currentCtxId is still an empty string, an AppContext has not yet been
@@ -670,7 +780,7 @@ func PrepareClustersByAppStatusResult(stateInfo state.StateInfo, qInstance strin
 	}
 
 	// Get the list of apps from the app context
-	apps := getListOfApps(currentCtxId)
+	apps := getListOfApps(ac)
 
 	// Loop through each app and get the clusters for the app
 	for _, app := range apps {
@@ -715,20 +825,20 @@ func PrepareClustersByAppStatusResult(stateInfo state.StateInfo, qInstance strin
 // PrepareResourcesByAppStatusResult takes in a resource stateInfo object, the list of apps and the query parameters.
 // It then fills out the ResourcesByAppStatusResult structure appropriately from information in the AppContext
 func PrepareResourcesByAppStatusResult(stateInfo state.StateInfo, qInstance, qType string, fApps, fClusters []string) (ResourcesByAppResult, error) {
-	statusResult := ResourcesByAppResult{}
 
-	statusResult.ResourcesByApp = make([]ResourcesByAppEntry, 0)
-
-	var currentCtxId string
+	var currentCtxId, statusCtxId string
 	if qInstance != "" {
 		currentCtxId = qInstance
 	} else {
-		currentCtxId = state.GetStatusContextIdFromStateInfo(stateInfo)
+		currentCtxId = state.GetLastContextIdFromStateInfo(stateInfo)
+		statusCtxId = state.GetStatusContextIdFromStateInfo(stateInfo)
 	}
 
 	// If currentCtxId is still an empty string, an AppContext has not yet been
-	// created for this resource.  Just return the statusResult with the stateInfo.
+	// created for this resource.  Just an empty status result
 	if currentCtxId == "" {
+		statusResult := ResourcesByAppResult{}
+		statusResult.ResourcesByApp = make([]ResourcesByAppEntry, 0)
 		return statusResult, nil
 	}
 
@@ -737,8 +847,20 @@ func PrepareResourcesByAppStatusResult(stateInfo state.StateInfo, qInstance, qTy
 		return ResourcesByAppResult{}, pkgerrors.Wrap(err, "AppContext for status query not found")
 	}
 
+	sac, err := state.GetAppContextFromId(statusCtxId)
+	if err != nil {
+		return ResourcesByAppResult{}, pkgerrors.Wrap(err, "Status AppContext for status query not found")
+	}
+
+	return prepareResourcesByAppStatusResult(ac, sac, qType, fApps, fClusters)
+}
+
+func prepareResourcesByAppStatusResult(ac, sac appcontext.AppContext, qType string, fApps, fClusters []string) (ResourcesByAppResult, error) {
+	statusResult := ResourcesByAppResult{}
+	statusResult.ResourcesByApp = make([]ResourcesByAppEntry, 0)
+
 	// Get the list of apps from the app context
-	apps := getListOfApps(currentCtxId)
+	apps := getListOfApps(ac)
 
 	// Loop through each app and get the status data for each cluster in the app
 	for _, app := range apps {
@@ -764,12 +886,10 @@ func PrepareResourcesByAppStatusResult(stateInfo state.StateInfo, qInstance, qTy
 		appStatus.Name = app
 		appStatus.Clusters = make([]ClusterStatus, 0)
 
-		doneOneCluster := false
 		for _, cluster := range clusters {
 
-			// if query type is "cluster", then apply the
-			// cluster filter
-			if qType == "cluster" && len(fClusters) > 0 {
+			// apply the cluster filter
+			if len(fClusters) > 0 {
 				found := false
 				for _, c := range fClusters {
 					if c == cluster {
@@ -782,88 +902,56 @@ func PrepareResourcesByAppStatusResult(stateInfo state.StateInfo, qInstance, qTy
 				}
 			}
 
-			// if query type is not "cluster", then return
-			// after collecting the resources for the first cluster.
-			// (they are assumed to be the same for all clusters)
-			if qType != "cluster" && doneOneCluster {
-				break
-			}
-
 			rsyncStatusCnts := make(map[string]int)
 			clusterStatusCnts := make(map[string]int)
 
+			pc := strings.Split(cluster, "+")
 			resourcesByAppEntry := ResourcesByAppEntry{
-				App: app,
+				ClusterProvider: pc[0],
+				Cluster:         pc[1],
+				App:             app,
 			}
 			resourcesByAppEntry.Resources = make([]ResourceEntry, 0)
 
+			ch, err := ac.GetClusterHandle(app, cluster)
+			if err != nil {
+				log.Error(":: No handle for cluster, app ::",
+					log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
+				continue
+			}
+
+			resources := make([]ResourceStatus, 0)
+			// Get all resources from the appcontext for the given app/cluster
+			_, err = getAppContextResources(ac, sac, ch, "all", qType, make([]string, 0), &resources, rsyncStatusCnts, clusterStatusCnts, app, cluster)
+			if err != nil {
+				log.Info(":: Error gathering appcontext resources for cluster, app ::",
+					log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
+				continue
+			}
+
+			// find any additional resources on the cluster
 			if qType == "cluster" {
-				pc := strings.Split(cluster, "+")
-				resourcesByAppEntry.ClusterProvider = pc[0]
-				resourcesByAppEntry.Cluster = pc[1]
-
-				csh, err := ac.GetClusterStatusHandle(app, cluster)
+				rbValue, err := getResourceBundleStateStatus(sac, app, cluster)
 				if err != nil {
-					log.Info(":: No cluster status handle for cluster, app ::",
-						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
-					continue
-				}
-				clusterRbValue, err := ac.GetValue(csh)
-				if err != nil {
-					log.Info(":: No cluster status value for cluster, app ::",
-						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
-					continue
-				}
-				var rbValue rb.ResourceBundleStateStatus
-				err = json.Unmarshal([]byte(clusterRbValue.(string)), &rbValue)
-				if err != nil {
-					log.Info(":: Error unmarshalling cluster status value for cluster, app ::",
-						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
 					continue
 				}
 
-				resources := make([]ResourceStatus, 0)
 				_, err = GetClusterResources(rbValue, "all", make([]string, 0), &resources, clusterStatusCnts)
 				if err != nil {
 					log.Info(":: Error gathering cluster resources for cluster, app ::",
 						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
 					continue
 				}
-
-				for _, r := range resources {
-					resourcesByAppEntry.Resources = append(resourcesByAppEntry.Resources, ResourceEntry{
-						Name: r.Name,
-						Gvk:  r.Gvk,
-					})
-				}
-				doneOneCluster = true
-			} else if qType == "rsync" {
-				ch, err := ac.GetClusterHandle(app, cluster)
-				if err != nil {
-					log.Info(":: No handle for cluster, app ::",
-						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
-					continue
-				}
-
-				/* code to get status for resources from AppContext */
-				resources := make([]ResourceStatus, 0)
-				_, err = GetAppContextResources(ac, ch, "all", make([]string, 0), &resources, rsyncStatusCnts, app, cluster)
-				if err != nil {
-					log.Info(":: Error gathering appcontext resources for cluster, app ::",
-						log.Fields{"Cluster": cluster, "AppName": app, "Error": err})
-					continue
-				}
-
-				for _, r := range resources {
-					resourcesByAppEntry.Resources = append(resourcesByAppEntry.Resources, ResourceEntry{
-						Name: r.Name,
-						Gvk:  r.Gvk,
-					})
-				}
-				doneOneCluster = true
-			} else {
+			} else if qType != "rsync" {
 				log.Info(":: Invalid status type ::", log.Fields{"Status Type": qType})
 				continue
+			}
+
+			for _, r := range resources {
+				resourcesByAppEntry.Resources = append(resourcesByAppEntry.Resources, ResourceEntry{
+					Name: r.Name,
+					Gvk:  r.Gvk,
+				})
 			}
 			statusResult.ResourcesByApp = append(statusResult.ResourcesByApp, resourcesByAppEntry)
 		}
@@ -875,13 +963,14 @@ func PrepareResourcesByAppStatusResult(stateInfo state.StateInfo, qInstance, qTy
 // Read readystatus from reference
 func getClusterReadyStatus(ac appcontext.AppContext, app, cluster string) string {
 
+	// the appcontext here is the status appcontext - follow the reference to get the readystatus
 	ch, err := ac.GetClusterHandle(app, cluster)
 	if err != nil {
 		log.Error("Cluster handle not found", log.Fields{"cluster": cluster})
 		return string(appcontext.ClusterReadyStatusEnum.Unknown)
 	}
 	var val = ""
-	// Read refernce appContext value
+	// Read reference appContext value
 	sh, err := ac.GetLevelHandle(ch, "reference")
 	if err == nil {
 		s, err := ac.GetValue(sh)
