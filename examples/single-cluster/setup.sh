@@ -7,14 +7,35 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-HOST_IP=${HOST_IP:-"oops"}
-KUBE_PATH=${KUBE_PATH:-"oops"}
-PRIVILEGED=${2:-"admin"}
+# for the Logical Cloud level (LOGICAL_CLOUD_LEVEL), supported values are: admin, privileged and standard.
+echo "Reading config file"
+CONFIG_HOST_IP=$(cat ./config | grep HOST_IP | cut -d'=' -f2)
+CONFIG_KUBE_PATH=$(cat ./config | grep KUBE_PATH | cut -d'=' -f2)
+CONFIG_LOGICAL_CLOUD_LEVEL=$(cat ./config | grep LOGICAL_CLOUD_LEVEL | cut -d'=' -f2)
+CLM_SERVICE_PORT=$(cat ./config | grep CLM_SERVICE_PORT | cut -d'=' -f2)
+DCM_SERVICE_PORT=$(cat ./config | grep DCM_SERVICE_PORT | cut -d'=' -f2)
+DCM_STATUS_PORT=$(cat ./config | grep DCM_STATUS_PORT | cut -d'=' -f2)
+DTC_SERVICE_PORT=$(cat ./config | grep DTC_SERVICE_PORT | cut -d'=' -f2)
+DTC_CONTROL_PORT=$(cat ./config | grep DTC_CONTROL_PORT | cut -d'=' -f2)
+GAC_CONTROL_PORT=$(cat ./config | grep GAC_CONTROL_PORT | cut -d'=' -f2)
+GAC_SERVICE_PORT=$(cat ./config | grep GAC_SERVICE_PORT | cut -d'=' -f2)
+NCM_SERVICE_PORT=$(cat ./config | grep NCM_SERVICE_PORT | cut -d'=' -f2)
+NCM_STATUS_PORT=$(cat ./config | grep NCM_STATUS_PORT | cut -d'=' -f2)
+NPS_CONTROL_PORT=$(cat ./config | grep NPS_CONTROL_PORT | cut -d'=' -f2)
+OVN_CONTROL_PORT=$(cat ./config | grep OVN_CONTROL_PORT | cut -d'=' -f2)
+OVN_SERVICE_PORT=$(cat ./config | grep OVN_SERVICE_PORT | cut -d'=' -f2)
+ORCH_SERVICE_PORT=$(cat ./config | grep ORCH_SERVICE_PORT | cut -d'=' -f2)
+ORCH_STATUS_PORT=$(cat ./config | grep ORCH_STATUS_PORT | cut -d'=' -f2)
+RSYNC_CONTROL_PORT=$(cat ./config | grep RSYNC_CONTROL_PORT | cut -d'=' -f2)
 
-# tar files
-# test_folder=../tests/
-# demo_folder=../demo/
-# deployment_folder=../../deployments/
+# priority: environment first, config file second, default value third:
+HOST_IP=${HOST_IP:-$CONFIG_HOST_IP}
+HOST_IP=${HOST_IP:-"oops"}
+KUBE_PATH=${KUBE_PATH:-$CONFIG_KUBE_PATH}
+KUBE_PATH=${KUBE_PATH:-"oops"}
+LOGICAL_CLOUD_LEVEL=${LOGICAL_CLOUD_LEVEL:-$CONFIG_LOGICAL_CLOUD_LEVEL}
+LOGICAL_CLOUD_LEVEL=${LOGICAL_CLOUD_LEVEL:-"admin"}
+
 firewall_folder=../helm_charts/composite-cnf-firewall
 http_client_folder=../helm_charts/http-client
 http_server_folder=../helm_charts/http-server
@@ -25,6 +46,7 @@ m3db_folder=../helm_charts/m3db
 monitor_folder=../helm_charts/monitor
 
 function create {
+    echo "Generating tarballs from Helm charts"
     mkdir -p output
     tar -czf output/collectd.tar.gz -C $collectd_folder/helm .
     tar -czf output/collectd_profile.tar.gz -C $collectd_folder/profile .
@@ -44,323 +66,79 @@ function create {
     tar -czf output/profile.tar.gz -C $firewall_folder/profile manifest.yaml override_values.yaml
     tar -czf output/monitor.tar.gz -C $monitor_folder/helm monitor
 
-        cat << NET > values.yaml
-    ProjectName: proj1
-    ClusterProvider: provider1
-    Cluster1: cluster1
-    ClusterLabel: edge-cluster
-    ClusterLabelNetworkPolicy: networkpolicy-supported
-    Cluster1Ref: cluster1-ref
-    AdminCloud: default
-    PrivilegedCloud: privileged-cloud
-    PrimaryNamespace: ns1
-    ClusterQuota: quota1
-    StandardPermission: standard-permission
-    PrivilegedPermission: privileged-permission
-    CompositeApp: prometheus-collectd-composite-app
-    App1: prometheus-operator
-    App2: collectd
-    App3: operator
-    App4: http-client
-    App5: http-server
-    AppMonitor: monitor
+echo "Generating values.yaml"
+cp templates/values-novars.yaml values.yaml
+cat << NET >> values.yaml
+    RsyncPort: $RSYNC_CONTROL_PORT
+    GacPort: $GAC_CONTROL_PORT
+    OvnPort: $OVN_CONTROL_PORT
+    DtcPort: $DTC_CONTROL_PORT
+    NpsPort: $NPS_CONTROL_PORT
     KubeConfig: $KUBE_PATH
-    HelmApp1: output/prometheus-operator.tar.gz
-    HelmApp2: output/collectd.tar.gz
-    HelmApp3: output/operator.tar.gz
-    HelmApp4: output/http-client.tar.gz
-    HelmApp5: output/http-server.tar.gz
-    HelmAppMonitor: output/monitor.tar.gz
-    HelmAppFirewall: output/firewall.tar.gz
-    HelmAppPacketgen: output/packetgen.tar.gz
-    HelmAppSink: output/sink.tar.gz
-    ProfileFw: output/profile.tar.gz
-    ProfileApp1: output/prometheus-operator_profile.tar.gz
-    ProfileApp2: output/collectd_profile.tar.gz
-    ProfileApp3: output/operator_profile.tar.gz
-    ProfileApp4: output/http-client-profile.tar.gz
-    ProfileApp5: output/http-server-profile.tar.gz
-    CompositeProfile: collection-composite-profile
-    GenericPlacementIntent: collection-placement-intent
-    DeploymentIntent: collection-deployment-intent-group
-    RsyncPort: 30441
-    CompositeAppGac: gac-composite-app
-    GacIntent: collectd-gac-intent
-    CompositeAppDtc: dtc-composite-app
-    DtcIntent: collectd-dtc-intent
-    CompositeAppMonitor: monitor-composite-app
-    ConfigmapFile: info.json
-    GacPort: 30493
-    OvnPort: 30473
-    DtcPort: 30483
-    NpsPort: 30485
     HostIP: $HOST_IP
-
 NET
 
+echo "Generating emco-cfg.yaml"
 cat << NET > emco-cfg.yaml
   orchestrator:
     host: $HOST_IP
-    port: 30415
-    statusPort: 30416
+    port: $ORCH_SERVICE_PORT
+    statusPort: $ORCH_STATUS_PORT
   clm:
     host: $HOST_IP
-    port: 30461
+    port: $CLM_SERVICE_PORT
   ncm:
     host: $HOST_IP
-    port: 30431
-    statusPort: 30482
+    port: $NCM_SERVICE_PORT
+    statusPort: $NCM_STATUS_PORT
   ovnaction:
     host: $HOST_IP
-    port: 30471
+    port: $OVN_SERVICE_PORT
   dcm:
     host: $HOST_IP
-    port: 30477
-    statusPort: 30478
+    port: $DCM_SERVICE_PORT
+    statusPort: $DCM_STATUS_PORT
   gac:
     host: $HOST_IP
-    port: 30491
+    port: $GAC_SERVICE_PORT
   dtc:
-   host: $HOST_IP
-   port: 30481
+    host: $HOST_IP
+    port: $DTC_SERVICE_PORT
 NET
 
-# head of prerequisites.yaml
-cat << NET > prerequisites.yaml
-# SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2020 Intel Corporation
+echo "Generating prerequisites.yaml: common section"
+cp templates/prerequisites-common.yaml prerequisites.yaml
 
----
-#create project
-version: emco/v2
-resourceContext:
-  anchor: projects
-metadata :
-   name: {{.ProjectName}}
----
-#creating controller entries
-version: emco/v2
-resourceContext:
-  anchor: controllers
-metadata :
-   name: rsync
-spec:
-  host:  {{.HostIP}}
-  port: {{.RsyncPort}}
+if [ "$LOGICAL_CLOUD_LEVEL" = "privileged" ]; then
+echo "Generating prerequisites.yaml: Privileged Logical Cloud section"
+cat templates/prerequisites-lc-privileged.yaml >> prerequisites.yaml
 
----
-version: emco/v2
-resourceContext:
-  anchor: controllers
-metadata :
-   name: dtc
-spec:
-  host: {{.HostIP}}
-  port: {{.DtcPort}}
-  type: "action"
-  priority: 1
-
----
-#creating dtc controller entries
-version: emco/v2
-resourceContext:
-  anchor: dtc-controllers
-metadata :
-   name: nps
-spec:
-  host:  {{.HostIP}}
-  port: {{.NpsPort}}
-  type: "action"
-  priority: 1
-
----
-#creating cluster provider
-version: emco/v2
-resourceContext:
-  anchor: cluster-providers
-metadata :
-   name: {{.ClusterProvider}}
-
----
-#creating cluster
-version: emco/v2
-resourceContext:
-  anchor: cluster-providers/{{.ClusterProvider}}/clusters
-metadata :
-   name: {{.Cluster1}}
-file:
-  {{.KubeConfig}}
-
----
-#Add label cluster
-version: emco/v2
-resourceContext:
-  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/labels
-clusterLabel: {{.ClusterLabel}}
-
-NET
-
-if [ "$PRIVILEGED" = "privileged" ]; then
-# rest of prerequisites.yaml for a privileged cloud
-cat << NET >> prerequisites.yaml
----
-#create privileged logical cloud
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/logical-clouds
-metadata:
-  name: {{.PrivilegedCloud}}
-spec:
-  namespace: {{.PrimaryNamespace}}
-  user:
-    userName: user-1
-    type: certificate
-
----
-#create cluster quotas
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/logical-clouds/{{.PrivilegedCloud}}/cluster-quotas
-metadata:
-    name: {{.ClusterQuota}}
-spec:
-    limits.cpu: '400'
-    limits.memory: 1000Gi
-    requests.cpu: '300'
-    requests.memory: 900Gi
-    requests.storage: 500Gi
-    requests.ephemeral-storage: '500'
-    limits.ephemeral-storage: '500'
-    persistentvolumeclaims: '500'
-    pods: '500'
-    configmaps: '1000'
-    replicationcontrollers: '500'
-    resourcequotas: '500'
-    services: '500'
-    services.loadbalancers: '500'
-    services.nodeports: '500'
-    secrets: '500'
-    count/replicationcontrollers: '500'
-    count/deployments.apps: '500'
-    count/replicasets.apps: '500'
-    count/statefulsets.apps: '500'
-    count/jobs.batch: '500'
-    count/cronjobs.batch: '500'
-    count/deployments.extensions: '500'
-
----
-#add primary user permission
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/logical-clouds/{{.PrivilegedCloud}}/user-permissions
-metadata:
-    name: {{.StandardPermission}}
-spec:
-    namespace: {{.PrimaryNamespace}}
-    apiGroups:
-    - ""
-    - "apps"
-    - "k8splugin.io"
-    resources:
-    - secrets
-    - pods
-    - configmaps
-    - services
-    - deployments
-    - resourcebundlestates
-    verbs:
-    - get
-    - watch
-    - list
-    - create
-    - delete
-
----
-#add privileged cluster-wide user permission
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/logical-clouds/{{.PrivilegedCloud}}/user-permissions
-metadata:
-    name: {{.PrivilegedPermission}}
-spec:
-    namespace: ""
-    apiGroups:
-    - "*"
-    resources:
-    - "*"
-    verbs:
-    - "*"
-
----
-#add cluster reference to logical cloud
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/logical-clouds/{{.PrivilegedCloud}}/cluster-references
-metadata:
-  name: {{.Cluster1Ref}}
-spec:
-  clusterProvider: {{.ClusterProvider}}
-  cluster: {{.Cluster1}}
-  loadbalancerIp: "0.0.0.0"
-
-NET
-
-# instantiation.yaml specifically to instantiate a privileged logical cloud
-cat << NET >> instantiation.yaml
----
-#instantiate logical cloud
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/logical-clouds/{{.PrivilegedCloud}}/instantiate
-
-NET
+elif [ "$LOGICAL_CLOUD_LEVEL" = "standard" ]; then
+echo "Generating prerequisites.yaml: Standard Logical Cloud section"
+cat templates/prerequisites-lc-standard.yaml >> prerequisites.yaml
 
 else
-# rest of prerequisites.yaml for an admin cloud
-cat << NET >> prerequisites.yaml
----
-#create admin logical cloud
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/logical-clouds
-metadata:
-  name: {{.AdminCloud}}
-spec:
-  level: "0"
-
----
-#add cluster reference to logical cloud
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/logical-clouds/{{.AdminCloud}}/cluster-references
-metadata:
-  name: {{.Cluster1Ref}}
-spec:
-  clusterProvider: {{.ClusterProvider}}
-  cluster: {{.Cluster1}}
-  loadbalancerIp: "0.0.0.0"
-
----
-#instantiate logical cloud
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/logical-clouds/{{.AdminCloud}}/instantiate
-
-NET
+echo "Generating prerequisites.yaml: Admin Logical Cloud section"
+cat templates/prerequisites-lc-admin.yaml >> prerequisites.yaml
 
 fi
 
 }
 
 function usage {
-    echo "Usage: $0  create|cleanup"
+    echo "Usage: $0 create|cleanup"
 }
 
 function cleanup {
+    echo "Deleting all *.tar.gz"
     rm -f *.tar.gz
+    echo "Deleting values.yaml"
     rm -f values.yaml
+    echo "Deleting emco-cfg.yaml"
     rm -f emco-cfg.yaml
-    rm -f instantiation.yaml
+    echo "Deleting prerequisites.yaml"
+    rm -f prerequisites.yaml
+    echo "Deleting the output/ folder"
     rm -rf output
 }
 
@@ -372,7 +150,7 @@ fi
 case "$1" in
     "create" )
         if [ "${HOST_IP}" == "oops" ] || [ "${KUBE_PATH}" == "oops" ] ; then
-            echo -e "ERROR - HOST_IP & KUBE_PATH environment variable needs to be set"
+            echo -e "ERROR - HOST_IP & KUBE_PATH need to be defined as environment variables or in the config file"
         else
             create
         fi
