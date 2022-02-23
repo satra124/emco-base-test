@@ -110,10 +110,20 @@ func getClusterResources(rbData rb.ResourceBundleStateStatus, qType, qOutput str
 		if qOutput == "detail" {
 			r.Detail = p
 		}
+		labels := p.GetLabels()
+		_, job := labels["job-name"]
 		if qType == "cluster" {
-			r.ClusterStatus = updateReadyCounts(readyChecker.PodReady(&p), cnts)
+			if job {
+				r.ClusterStatus = updateReadyCounts(readyChecker.PodSuccess(&p), cnts)
+			} else {
+				r.ClusterStatus = updateReadyCounts(readyChecker.PodReady(&p), cnts)
+			}
 		} else {
-			r.ReadyStatus = updateReadyCounts(readyChecker.PodReady(&p), cnts)
+			if job {
+				r.ReadyStatus = updateReadyCounts(readyChecker.PodSuccess(&p), cnts)
+			} else {
+				r.ReadyStatus = updateReadyCounts(readyChecker.PodReady(&p), cnts)
+			}
 		}
 		if updateResourceList(resourceList, r, qType) {
 			count++
@@ -263,6 +273,30 @@ func getClusterResources(rbData rb.ResourceBundleStateStatus, qType, qOutput str
 		r.Gvk = (&s.TypeMeta).GroupVersionKind()
 		if qOutput == "detail" {
 			r.Detail = s
+		}
+		if qType == "cluster" {
+			r.ClusterStatus = updateReadyCounts(true, cnts)
+		} else {
+			r.ReadyStatus = updateReadyCounts(true, cnts)
+		}
+		if updateResourceList(resourceList, r, qType) {
+			count++
+		} else {
+			updateNotPresentCount(false, cnts)
+		}
+	}
+
+	for _, s := range rbData.ResourceStatuses {
+		if !keepResource(s.Name, fResources) {
+			continue
+		}
+		r := ResourceStatus{}
+		r.Name = s.Name
+		r.Gvk.Group = s.Group
+		r.Gvk.Version = s.Version
+		r.Gvk.Kind = s.Kind
+		if qOutput == "detail" {
+			r.Detail = json.RawMessage(string(s.Res))
 		}
 		if qType == "cluster" {
 			r.ClusterStatus = updateReadyCounts(true, cnts)
