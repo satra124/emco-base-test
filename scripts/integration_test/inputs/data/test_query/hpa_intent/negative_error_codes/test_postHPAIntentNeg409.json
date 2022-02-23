@@ -1,0 +1,22 @@
+[
+ {
+  "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/hpa-intents",
+  "type-metadata": [
+       {
+       "RequestBody":
+                   {
+                    "metadata": {
+                      "name": "hpa-placement-intent-1",
+                      "description": "description of hpa placement_intent",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                      },
+                    "spec": {
+                      "app": "http-client"
+                      }
+                   },
+      "ResponseCode": 409
+       }
+    ]
+  }
+]

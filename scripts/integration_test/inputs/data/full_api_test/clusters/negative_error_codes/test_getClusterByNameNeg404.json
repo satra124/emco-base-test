@@ -1,0 +1,10 @@
+[
+  {
+    "anchor": "clusterproviders/provider1/clusters/cluster2",
+    "type-metadata": [
+      {
+        "ResponseCode": 404
+      }
+    ]
+  }
+]

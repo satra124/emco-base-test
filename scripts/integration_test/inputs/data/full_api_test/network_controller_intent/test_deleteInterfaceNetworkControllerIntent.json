@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group/network-controller-intent/vfw-ovnaction-intent/workload-intents/http-client-workload-intent/interfaces/packetgen_unprotected_if",
+  "type-metadata": [
+       {
+       "ResponseCode": 204
+       }
+    ]
+  }
+]

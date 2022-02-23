@@ -1,0 +1,26 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group/network-controller-intent/vfw-ovnaction-intent/workload-intents/http-client-workload-intent/interfaces/packetgen_unprotected_if",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText":
+                   {
+                    "metadata": {
+                      "name": "packetgen_unprotected_if",
+                      "description": "Resource description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                    },
+                    "spec": {
+                      "interface": "eth1",
+                      "name": "emco-private-net",
+                      "defaultGateway": "false",
+                      "ipAddress": "0.0.0.0",
+                      "macAddress": "x.x.x.x"
+                     }
+                    }
+       }
+    ]
+  }
+]

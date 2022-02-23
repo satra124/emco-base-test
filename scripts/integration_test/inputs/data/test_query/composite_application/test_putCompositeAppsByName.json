@@ -1,0 +1,34 @@
+[
+  {
+    "anchor": "projects/proj1/composite-apps/comp-app1",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "comp-app1",
+            "description": "comp-app1 description update",
+            "userData1": "data1",
+            "userData2": "data2"
+          },
+          "spec": {
+            "version": "v1"
+          }
+        },
+        "ResponseCode": 200,
+        "ResponseText":
+        {
+          "metadata": {
+            "name": "comp-app1",
+            "description": "comp-app1 description update",
+            "UserData1": "data1",
+            "UserData2": "data2"
+          },
+          "spec": {
+            "version": "v1"
+          }
+        }
+      }
+    ]
+  }
+]

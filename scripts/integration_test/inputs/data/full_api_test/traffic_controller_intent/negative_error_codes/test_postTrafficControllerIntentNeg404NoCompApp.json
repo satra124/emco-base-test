@@ -1,0 +1,19 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/nosuchmonitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/traffic-group-intents",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "collectd-dtc-intent",
+                      "description": "description of traffic intent",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                      }
+                   },
+      "ResponseCode": 404
+       }
+    ]
+  }
+]

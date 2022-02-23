@@ -1,0 +1,19 @@
+[
+  {
+    "anchor": "projects/proj1/composite-apps/nosuchcomp-app1/v1/deployment-intent-groups/deployment-intent-group/generic-placement-intents/generic-placement-intent",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "generic-placement-intent update",
+            "description": "Resource description",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          }
+        },
+        "ResponseCode": 404
+      }
+    ]
+  }
+]

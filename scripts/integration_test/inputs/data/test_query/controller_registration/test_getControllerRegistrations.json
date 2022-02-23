@@ -1,0 +1,41 @@
+[
+  {
+  "anchor": "controllers",
+  "type-metadata": [
+      {
+      "ResponseCode": 200,
+      "ResponseText": 
+                   [
+                    {
+                      "metadata": {
+                        "name": "rsync",
+                        "description": "Resource description",
+                        "userData1": "Some data",
+                        "userData2": "Some more data"
+                       },
+                      "spec": {
+                        "host": "rsync",
+                        "port": 30441,
+                        "priority": 0,
+                        "type": ""
+                        }
+                     },
+                     {
+                      "metadata": {
+                        "name": "dtc",
+                        "description": "Resource description",
+                        "userData1": "Some data",
+                        "userData2": "Some more data"
+                        },
+                      "spec": {
+                        "host": "dtc",
+                        "port": 30483,
+                        "type": "action",
+                        "priority": 1
+                        }
+                     }
+                   ]
+       }
+    ]
+  }
+]

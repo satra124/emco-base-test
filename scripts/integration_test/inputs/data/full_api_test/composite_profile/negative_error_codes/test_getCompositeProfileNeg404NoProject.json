@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "projects/nosuchproj1/composite-apps/monitor-composite-app/v1/composite-profiles",
+  "type-metadata": [
+       {
+      "ResponseCode": 404
+       }
+    ]
+  }
+]

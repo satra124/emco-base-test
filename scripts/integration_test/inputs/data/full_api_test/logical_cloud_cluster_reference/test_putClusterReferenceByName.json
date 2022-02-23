@@ -1,0 +1,40 @@
+[
+  {
+    "anchor": "projects/proj1/logical-clouds/default/cluster-references/lc-cl-1",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "lc-cl-1",
+            "description": "lc-cl-1 description update",
+            "userData1": "data1",
+            "userData2": "data2"
+          },
+          "spec": {
+            "cluster-provider": "clusterPro1",
+            "cluster-name": "cluster1",
+            "loadbalancer-ip": "0.0.0.0",
+            "certificate":""
+          }
+        },
+        "ResponseCode": 200,
+        "ResponseText":
+        {
+          "metadata": {
+            "name": "lc-cl-1",
+            "description": "lc-cl-1 description update",
+            "userData1": "data1",
+            "userData2": "data2"
+          },
+          "spec": {
+            "cluster-provider": "clusterPro1",
+            "cluster-name": "cluster1",
+            "loadbalancer-ip": "0.0.0.0",
+            "certificate":""
+          }
+        }
+      }
+    ]
+  }
+]

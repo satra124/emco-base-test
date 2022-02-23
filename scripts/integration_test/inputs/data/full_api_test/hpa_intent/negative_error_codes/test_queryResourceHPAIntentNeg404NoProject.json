@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "projects/nosuchproj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/hpa-intents/hpa-placement-intent-1/hpa-resource-consumers/hpa-placement-consumer-1/resource-requirements?resource=hpa-placement-allocatable-resource-1",
+  "type-metadata": [
+       {
+      "ResponseCode": 404
+       }
+    ]
+  }
+]

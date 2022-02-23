@@ -1,0 +1,25 @@
+[
+ {
+  "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group/hpa-intents/hpa-placement-intent-1/hpa-resource-consumers/hpa-placement-consumer-1/resource-requirements/hpa-placement-allocatable-resource-1",
+  "type-metadata": [
+       {
+      "RequestBody":
+                   {
+                    "metadata": {
+                      "name": "hpa-placement-allocatable-resource-1",
+                      "description": "Resource description updated",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                   },
+                   "spec": {
+                     "allocatable": true,
+                     "resource": {
+                        "key":"my_custom_key"
+                     }
+                   }
+                  },
+      "ResponseCode": 400
+       }
+    ]
+  }
+]

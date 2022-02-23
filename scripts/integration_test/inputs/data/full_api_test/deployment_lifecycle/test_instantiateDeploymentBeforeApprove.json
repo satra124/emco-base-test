@@ -1,0 +1,11 @@
+[
+    {
+    "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/instantiate",
+    "type-metadata": [
+         {
+         "ResponseCode": "202, 200"
+         }
+      ]
+    }
+  ]
+  

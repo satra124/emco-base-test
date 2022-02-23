@@ -1,0 +1,50 @@
+[
+    {
+    "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/generic-k8s-intents/collectd-gac-intent/resources/test-resources/customizations",
+    "type-metadata": [
+         {
+         "RequestBody": 
+                     {
+                      "metadata": {
+                        "name": "test-customizations",
+                        "description": "Resource description",
+                        "userData1": "Some data",
+                        "userData2": "Some more data"
+                        },
+                        "spec": {
+                            "clusterSpecific": "false",
+                            "clusterInfo": {
+                                "scope": "label",
+                                "clusterProvider": "provider1",
+                                "cluster": "",
+                                "clusterLabel": "edge-cluster",
+                                "mode": "allow"
+                            }
+                        }
+                     },
+        "RequestBodyFile": "info.json",
+        "ResponseCode": 201,
+        "ResponseText":
+                     {
+                      "metadata": {
+                        "name": "test-customizations",
+                        "description": "Resource description",
+                        "userData1": "Some data",
+                        "userData2": "Some more data"
+                        },
+                        "spec": {
+                            "clusterSpecific": "false",
+                            "clusterInfo": {
+                                "scope": "label",
+                                "clusterProvider": "provider1",
+                                "cluster": "",
+                                "clusterLabel": "edge-cluster",
+                                "mode": "allow"
+                            }
+                        }
+                     } 
+         }
+      ]
+    }
+  ]
+  

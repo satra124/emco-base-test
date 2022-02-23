@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/nosuchmonitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/traffic-group-intents/collectd-dtc-intent/inbound-intents/serverin",
+  "type-metadata": [
+       {
+      "ResponseCode": 404
+       }
+    ]
+  }
+]

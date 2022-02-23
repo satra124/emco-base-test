@@ -1,0 +1,14 @@
+[
+  {
+  "anchor": "cluster-providers/provider1/clusters/cluster1/kv-pairs/KVPair?key=Prop1",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText":
+                {
+                  "value": "abc"
+                }
+       }
+    ]
+  }
+]

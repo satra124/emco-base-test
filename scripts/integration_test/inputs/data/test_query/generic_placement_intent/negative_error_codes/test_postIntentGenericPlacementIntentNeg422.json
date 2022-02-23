@@ -1,0 +1,30 @@
+[
+  {
+    "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/collection-deployment-intent-group/generic-placement-intents/collection-placement-intent/app-intents",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "placement-intent",
+            "description": "description for placement intent",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          },
+          "spec": {
+            "app": "monitor",
+            "intent":{
+              "allOf": [
+                {
+                  "clusterLabel": "edge-cluster",
+                  "clusterProvider": "provider1"
+                }
+              ]
+            }
+          }
+         },
+        "ResponseCode": 422
+      }
+    ]
+  }
+]

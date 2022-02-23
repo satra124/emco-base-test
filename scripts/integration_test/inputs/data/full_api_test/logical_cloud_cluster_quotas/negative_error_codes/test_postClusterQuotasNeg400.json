@@ -1,0 +1,43 @@
+[
+  {
+   "anchor": "projects/proj1/logical-clouds/lc1/cluster-quotas",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "description": "quota-1 description",
+            "userData1": "data1",
+            "userData2": "data2"
+          },
+          "spec": {
+            "limits.cpu": "40",
+            "limits.memory": "1Gi",
+            "requests.cpu": "30",
+            "requests.memory": "5Gi",
+            "requests.storage": "500Gi",
+            "requests.ephemeral-storage": "500",
+            "limits.ephemeral-storage": "500",
+            "persistentvolumeclaims": "500",
+            "pods": "500",
+            "configmaps": "1000",
+            "replicationcontrollers": "500",
+            "resourcequotas": "500",
+            "services": "500",
+            "services.loadbalancers": "500",
+            "services.nodeports": "500",
+            "secrets": "500",
+            "count/replicationcontrollers": "500",
+            "count/deployments.apps": "500",
+            "count/replicasets.apps": "500",
+            "count/statefulsets.apps": "500",
+            "count/jobs.batch": "500",
+            "count/cronjobs.batch": "500",
+            "count/deployments.extensions": "500"
+          }
+        },
+        "ResponseCode": 400
+      }
+   ]
+  }
+]

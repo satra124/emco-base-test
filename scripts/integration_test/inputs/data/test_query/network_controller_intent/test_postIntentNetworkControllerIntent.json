@@ -1,0 +1,38 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group/network-controller-intent/vfw-ovnaction-intent/workload-intents",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "http-client-workload-intent",
+                      "description": "Resource description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                     },
+                    "spec": {
+                      "appllication-name": "http-client",
+                      "workload-resource": "r1-http-client",
+                      "type": "Deployment"
+                      }
+                   },
+      "ResponseCode": 201,
+      "ResponseText":
+                   {
+                    "metadata": {
+                      "name": "http-client-workload-intent",
+                      "description": "Resource description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                     },
+                    "spec": {
+                      "appllication-name": "http-client",
+                      "workload-resource": "r1-http-client",
+                      "type": "Deployment"
+                      }
+                   }
+       }
+    ]
+  }
+]

@@ -1,0 +1,28 @@
+[
+  {
+  "anchor": "cluster-providers",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "provider1",
+                      "description": "Resource description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                     }
+                   },
+      "ResponseCode": 201,
+      "ResponseText": 
+                   {
+                    "metadata": {
+                      "name": "provider1",
+                      "description": "Resource description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                      }
+                   }
+       }
+    ]
+  }
+]

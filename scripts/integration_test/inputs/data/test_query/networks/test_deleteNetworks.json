@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "cluster-providers/clusterPro1/clusters/cluster1/networks/emco-private-net",
+  "type-metadata": [
+       {
+      "ResponseCode": 204
+       }
+    ]
+  }
+]

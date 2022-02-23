@@ -1,0 +1,26 @@
+[
+  {
+   "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/traffic-group-intents/collectd-dtc-intent/inbound-intents/serverin/clients",
+  "type-metadata": [
+       {
+       "RequestBody":
+                   {
+                    "metadata": {
+                      "name": "client1",
+                      "description": "description of traffic intent",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                     },
+                    "spec": {
+                      "app": "http-client",
+                      "appLabel": "app=http-client",
+                      "serviceName": "http-client",
+                      "namespaces": [],
+                      "cidrs": []
+                     }
+                   },
+      "ResponseCode": 422
+       }
+    ]
+  }
+]

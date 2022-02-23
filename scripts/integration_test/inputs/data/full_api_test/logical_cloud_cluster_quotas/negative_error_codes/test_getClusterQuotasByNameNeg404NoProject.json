@@ -1,0 +1,11 @@
+[
+    {
+    "anchor": "projects/nosuchproj1/logical-clouds/lc1/cluster-quotas/quota-1",
+    "type-metadata": [
+         {
+        "ResponseCode": 404
+         }
+      ]
+    }
+  ]
+  

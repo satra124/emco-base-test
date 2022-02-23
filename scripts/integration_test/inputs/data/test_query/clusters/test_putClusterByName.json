@@ -1,0 +1,29 @@
+[
+  {
+    "anchor": "cluster-providers/clusterPro1/clusters/cluster1",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "cluster1",
+            "description": "Resource description update",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          }
+        },
+        "RequestBodyFile": "kube_north/config",
+        "ResponseCode": 200,
+        "ResponseText":
+        {
+          "metadata": {
+            "name": "cluster1",
+            "description": "Resource description update",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          }
+        }
+      }
+    ]
+  }
+]

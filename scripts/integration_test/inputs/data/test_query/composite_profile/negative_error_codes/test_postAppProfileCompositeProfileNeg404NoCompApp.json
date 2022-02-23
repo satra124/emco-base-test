@@ -1,0 +1,23 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/nosuchcomp-app1/v1/composite-profiles/profile1/profiles",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                    {
+                      "metadata": {
+                        "name": "http-client-profile",
+                        "description": "Resource description",
+                        "userData1": "Some data",
+                        "userData2": "Some more data"
+                      },
+                      "spec": {
+                        "app": "http-client"
+                      }
+                    },
+      "RequestBodyFile": "http-client-profile.tar.gz",
+      "ResponseCode": 404
+       }
+    ]
+  }
+]

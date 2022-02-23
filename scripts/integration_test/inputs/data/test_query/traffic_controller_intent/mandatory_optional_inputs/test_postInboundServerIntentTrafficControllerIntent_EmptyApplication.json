@@ -1,0 +1,29 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/traffic-group-intents/collectd-dtc-intent/inbound-intents",
+  "type-metadata": [
+       {
+      "RequestBody":
+                  {
+                    "metadata": {
+                      "name": "serverin",
+                      "description": "description of traffic intent",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                     },
+                    "spec": {
+                      "app": "",
+                      "appLabel": "app=http-server",
+                      "serviceName": "http-service",
+                      "port": 3333,
+                      "protocol": "TCP",
+                      "externalSupport":true,
+                      "externalName":"",
+                      "serviceMesh": ""
+                     }
+                   }, 
+      "ResponseCode": 400
+       }
+    ]
+  }
+]

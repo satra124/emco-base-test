@@ -1,0 +1,19 @@
+[
+  {
+  "anchor": "projects",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "proj2",
+                      "description": "proj2 description",
+                      "userData1": "data1",
+                      "userData2": "data2"
+                      }
+                   },
+      "ResponseCode": 422
+       }
+    ]
+  }
+]

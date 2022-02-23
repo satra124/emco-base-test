@@ -1,0 +1,14 @@
+[
+  {
+    "anchor": "cluster-providers/clusterPro1/clusters/cluster2/labels/cluster-label-1",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "label-name": "cluster-label-update"
+        },
+        "ResponseCode": 404
+      }
+    ]
+  }
+]

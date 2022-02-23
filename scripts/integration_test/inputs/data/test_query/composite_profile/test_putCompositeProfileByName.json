@@ -1,0 +1,28 @@
+[
+  {
+    "anchor": "projects/proj1/composite-apps/comp-app1/v1/composite-profiles/collection-composite-profile",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "collection-composite-profile",
+            "description": "comp-app1 description update",
+            "userData1": "data1",
+            "userData2": "data2"
+          }
+        },
+        "ResponseCode": 200,
+        "ResponseText":
+        {
+          "metadata": {
+            "name": "collection-composite-profile",
+            "description": "comp-app1 description update",
+            "UserData1": "data1",
+            "UserData2": "data2"
+          }
+        }
+      }
+    ]
+  }
+]

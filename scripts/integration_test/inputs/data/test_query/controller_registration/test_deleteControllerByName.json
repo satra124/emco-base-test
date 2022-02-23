@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "controllers/rsync",
+  "type-metadata": [
+       {
+      "ResponseCode": 204
+       }
+    ]
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "anchor": "projects/nosuchproj1/composite-apps/comp-app1/v1/deployment-intent-groups/collection-deployment-intent-group/generic-placement-intents",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "collection-placement-intent",
+            "description": "description for app",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          }
+        },
+        "ResponseCode": 404
+      }
+    ]
+  }
+]

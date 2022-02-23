@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "projects/nosuchproj1",
+  "type-metadata": [
+       {
+       "ResponseCode": 404
+       }
+    ]
+  }
+]

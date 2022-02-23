@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/comp-app1/v1/composite-profiles/nosuchprofile1",
+  "type-metadata": [
+       {
+         "ResponseCode": 404
+       }
+    ]
+  }
+]

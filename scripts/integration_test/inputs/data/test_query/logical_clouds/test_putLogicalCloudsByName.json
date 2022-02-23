@@ -1,0 +1,46 @@
+[
+  {
+    "anchor": "projects/proj1/logical-clouds/default",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "default",
+            "description": "default description update",
+            "userData1": "data1",
+            "userData2": "data2"
+          },
+          "spec": {
+            "level": "0",
+            "namespace": "",
+            "user": {
+              "user-name": "string",
+              "type": "certificate",
+              "user-permissions": []
+            }
+          }
+        },
+        "ResponseCode": 200,
+        "ResponseText":
+        {
+          "metadata": {
+            "name": "default",
+            "description": "default description update",
+            "userData1": "data1",
+            "userData2": "data2"
+          },
+          "spec": {
+            "level": "0",
+            "namespace": "",
+            "user": {
+              "user-name": "string",
+              "type": "certificate",
+              "user-permissions": []
+            }
+          }
+        }
+      }
+    ]
+  }
+]

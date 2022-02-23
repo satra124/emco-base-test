@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "cluster-providers/clusterPro1/clusters/cluster1/provider-networks/provider-network-name",
+  "type-metadata": [
+       {
+      "ResponseCode": 204
+       }
+    ]
+  }
+]

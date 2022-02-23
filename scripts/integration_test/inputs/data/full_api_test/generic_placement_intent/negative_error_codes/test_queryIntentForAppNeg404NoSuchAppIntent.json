@@ -1,0 +1,11 @@
+[
+    {
+      "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/generic-placement-intents/collection-placement-intent/app-intents/?app-name=nosuchmonitor",
+      "type-metadata": [
+        {
+          "ResponseCode": 404
+        }
+      ]
+    }
+  ]
+  

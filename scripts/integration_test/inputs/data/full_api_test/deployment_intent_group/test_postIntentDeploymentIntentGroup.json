@@ -1,0 +1,38 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/intents",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "collection-deployment-intent",
+                      "description": "description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                      },
+                    "spec": {
+                      "intent": {
+                      "genericPlacementIntent": "collection-placement-intent"
+                      }
+                     }
+                   }, 
+      "ResponseCode": 201,
+      "ResponseText":
+                   {
+                    "metadata": {
+                      "name": "collection-deployment-intent",
+                      "description": "description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                      },
+                    "spec": {
+                      "intent": {
+                      "genericPlacementIntent": "collection-placement-intent"
+                      }
+                     }
+                   } 
+       }
+    ]
+  }
+]

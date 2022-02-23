@@ -1,0 +1,38 @@
+[
+  {
+    "anchor": "clm-controllers/hpa-placement-controller-1",
+    "type-metadata": [
+      {
+       "RequestBody":
+                   {
+                    "metadata": {
+                      "name": "hpa-placement-controller-1",
+                      "description": "Resource description updated",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                     },
+                    "spec": {
+                      "host": "hpaplacement",
+                      "port": 30455,
+                      "priority": 1
+                      }
+                   },
+      "ResponseCode": 200,
+      "ResponseText":
+                    {
+                    "metadata": {
+                      "name": "hpa-placement-controller-1",
+                      "description": "Resource description updated",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                     },
+                    "spec": {
+                      "host": "hpaplacement",
+                      "port": 30455,
+                      "priority": 1
+                      }
+                   }
+      }
+    ]
+  }
+]

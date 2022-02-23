@@ -1,0 +1,25 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText": 
+                   {
+                    "metadata": {
+                      "name": "collection-deployment-intent-group",
+                      "description": "description",
+                      "userData1": "data1",
+                      "userData2": "data2"
+                      },
+                    "spec": {
+                      "overrideValues": [],
+                      "compositeProfile": "collection-composite-profile",
+                      "version": "emco",
+                      "logicalCloud": "default"
+                      }
+                    }
+       }
+    ]
+  }
+]

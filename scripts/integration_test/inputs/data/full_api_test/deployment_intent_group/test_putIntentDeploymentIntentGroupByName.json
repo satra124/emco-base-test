@@ -1,0 +1,38 @@
+[
+  {
+    "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group/intents/traffic-intent",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "traffic-intent",
+            "description": "Resource description update",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          },
+          "spec": {
+            "intent": {
+              "genericPlacementIntent": "generic-placement-intent"
+            }
+          }
+        },
+        "ResponseCode": 200,
+        "ResponseText":
+        {
+          "metadata": {
+            "name": "traffic-intent",
+            "description": "Resource description update",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          },
+          "spec": {
+            "intent": {
+              "genericPlacementIntent": "generic-placement-intent"
+            }
+          }
+        }
+      }
+    ]
+  }
+]

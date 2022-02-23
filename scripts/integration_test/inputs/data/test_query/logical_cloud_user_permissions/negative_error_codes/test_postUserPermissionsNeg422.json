@@ -1,0 +1,47 @@
+[
+    {
+    "anchor": "projects/proj1/logical-clouds/default/user-permissions",
+    "type-metadata": [
+         {
+         "RequestBody": 
+                     {
+                        "metadata": {
+                            "name": "lc1-permission",
+                            "description": "Resource description",
+                            "userData1": "Some data",
+                            "userData2": "Some more data"
+                          },
+                          "spec": {
+                            "namespace": "ns1",
+                            "apiGroups": [
+                                        "",
+                                        "apps",
+                                        "k8splugin.io",
+                                        "extensions",
+                                        "networking.k8s.io"
+                                    ],
+                            "resources": [
+                                        "secrets",
+                                        "pods",
+                                        "configmaps",
+                                        "services",
+                                        "deployments",
+                                        "resourcebundlestates",
+                                        "networkpolicies",
+                                        "serviceaccounts",
+                                        "endpoints"
+                                    ],
+                            "verbs": [
+                                    "get",
+                                    "watch",
+                                    "list",
+                                    "create"
+                            ]
+                          }
+                        },
+        "ResponseCode": 422
+         }
+      ]
+    }
+  ]
+  

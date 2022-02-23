@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/terminate",
+  "type-metadata": [
+       {
+       "ResponseCode": "200, 202"
+       }
+    ]
+  }
+]

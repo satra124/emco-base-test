@@ -1,0 +1,26 @@
+[
+  {
+  "anchor": "cluster-providers/provider1/clusters/cluster1",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText": 
+                   {
+                    "metadata": {
+                      "name": "cluster1",
+                      "description": "Resource description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                    },
+                      "spec": {
+                          "gitOps": {
+                              "gitOpsReferenceObject": "",
+                              "gitOpsResourceObject": "",
+                              "gitOpsType": ""
+                          }
+                      }
+                     }
+                   }
+    ]
+  }
+]

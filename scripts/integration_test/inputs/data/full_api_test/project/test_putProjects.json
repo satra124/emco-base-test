@@ -1,0 +1,28 @@
+[
+  {
+  "anchor": "projects/proj1",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "proj1",
+                      "description": "proj1 description updated",
+                      "userData1": "data1",
+                      "userData2": "data2"
+                      }
+                   },
+      "ResponseCode": 200,
+      "ResponseText":
+                   {
+                    "metadata": {
+                      "name": "proj1",
+                      "description": "proj1 description updated",
+                      "userData1": "data1",
+                      "userData2": "data2"
+                      }
+                   }
+       }
+    ]
+  }
+]

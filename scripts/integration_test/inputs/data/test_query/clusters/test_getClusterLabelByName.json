@@ -1,0 +1,14 @@
+[
+  {
+  "anchor": "cluster-providers/provider1/clusters/cluster1/labels/edge-cluster",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText": 
+                   {
+                    "clusterLabel": "edge-cluster"
+                   }
+       }
+    ]
+  }
+]

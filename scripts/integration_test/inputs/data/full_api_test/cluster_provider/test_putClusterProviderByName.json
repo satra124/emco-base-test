@@ -1,0 +1,28 @@
+[
+  {
+    "anchor": "cluster-providers/clusterPro1",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "clusterPro1",
+            "description": "Resource description update",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          }
+        },
+        "ResponseCode": 200,
+        "ResponseText":
+        {
+          "metadata": {
+            "name": "clusterPro1",
+            "description": "Resource description update",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          }
+        }
+      }
+    ]
+  }
+]

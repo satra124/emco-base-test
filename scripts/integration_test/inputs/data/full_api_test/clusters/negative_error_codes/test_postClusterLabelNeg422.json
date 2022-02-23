@@ -1,0 +1,14 @@
+[
+  {
+    "anchor": "cluster-providers/provider1/clusters/cluster1/labels",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "clusterLabel": "edge-cluster"
+        },
+        "ResponseCode": 422
+      }
+    ]
+  }
+]

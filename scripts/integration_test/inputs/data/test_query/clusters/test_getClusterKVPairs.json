@@ -1,0 +1,30 @@
+[
+  {
+  "anchor": "cluster-providers/provider1/clusters/cluster1/kv-pairs",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText":
+        [
+          {
+            "metadata": {
+              "name": "KVPair",
+              "description": "Resource description",
+              "userData1": "Some data",
+              "userData2": "Some more data"
+            },
+            "spec": {
+              "kv": [
+                {
+                  "Prop1": "abc",
+                  "additionalProp2": "string",
+                  "additionalProp3": "string"
+                }
+              ]
+            }
+          }
+        ]
+       }
+    ]
+  }
+]

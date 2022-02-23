@@ -1,0 +1,20 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/nosuchmonitor-composite-app/v1/apps",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "monitor",
+                      "description": "description for app",
+                      "userData1": "data1",
+                      "userData2": "data2"
+                      }
+                    },
+       "RequestBodyFile": "monitor.tar.gz",
+      "ResponseCode": 404
+       }
+    ]
+  }
+]

@@ -1,0 +1,43 @@
+[
+  {
+  "anchor": "cluster-providers/provider1/clusters",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "cluster1",
+                      "description": "Resource description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                    },
+                      "spec": {
+                          "gitOps": {
+                              "gitOpsReferenceObject": "",
+                              "gitOpsResourceObject": "",
+                              "gitOpsType": ""
+                          }
+                      }
+                   },
+      "RequestBodyFile": "config",
+      "ResponseCode": 201,
+      "ResponseText": 
+         {
+          "metadata": {
+            "description": "Resource description",
+            "name": "cluster1",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+        },
+        "spec": {
+            "gitOps": {
+                "gitOpsReferenceObject": "",
+                "gitOpsResourceObject": "",
+                "gitOpsType": ""
+                   }
+              }
+           }
+       }
+    ]
+  }
+]

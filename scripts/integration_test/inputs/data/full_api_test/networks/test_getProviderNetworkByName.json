@@ -1,0 +1,40 @@
+[
+  {
+  "anchor": "cluster-providers/clusterPro1/clusters/cluster1/provider-networks/provider-network-name",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText": 
+               {
+                  "metadata": {
+                    "name": "provider-network-name",
+                    "description": "Resource description",
+                    "userData1": "Some data",
+                    "userData2": "Some more data"
+                  },
+                  "spec": {
+                    "cniType": "ovn4nfv",
+                    "ipv4Subnets": [
+                      {
+                        "excludeIps": "string",
+                        "gateway": "string",
+                        "name": "string",
+                        "subnet": "string"
+                      }
+                    ],
+                    "providerNetType": "ovn4nfv",
+                    "vlan": {
+                      "logicalInterfaceName": "string",
+                      "nodeLabelList": [
+                        "string"
+                      ],
+                      "providerInterfaceName": "string",
+                      "vlanID": "string",
+                      "vlanNodeSelector": "string"
+                    }
+                  }
+                }
+       }
+    ]
+  }
+]

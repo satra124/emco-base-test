@@ -1,0 +1,35 @@
+[
+  {
+    "anchor": "projects/proj1/composite-apps/comp-app1/v1/composite-profiles/collection-composite-profile/profiles/http-client-profile",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "spec": {
+            "metadata": {
+              "name": "http-client-profile",
+              "description": "Resource description update",
+              "userData1": "Some data",
+              "userData2": "Some more data"
+            },
+            "app-name": "http-client"
+          }
+        },
+        "RequestBodyFile": "http-client-profile.tgz",
+        "ResponseCode": 200,
+        "ResponseText":
+        {
+          "spec": {
+            "metadata": {
+              "name": "http-client-profile",
+              "description": "Resource description update",
+              "userData1": "Some data",
+              "userData2": "Some more data"
+            },
+            "app-name": "http-client"
+          }
+        }
+      }
+    ]
+  }
+]

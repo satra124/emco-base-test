@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "cluster-providers/clusterPro1/clusters/cluster1/terminate",
+  "type-metadata": [
+       {
+       "ResponseCode": 201
+       }
+    ]
+  }
+]

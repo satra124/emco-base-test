@@ -1,0 +1,40 @@
+[
+  {
+    "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "deployment-intent-group",
+            "description": "comp-app1 description update",
+            "userData1": "data1",
+            "userData2": "data2"
+          },
+          "spec": {
+            "override-values": [],
+            "profile": "collection-composite-profile",
+            "version": "r1",
+            "logical-cloud": "default"
+          }
+        },
+        "ResponseCode": 200,
+        "ResponseText":
+        {
+          "metadata": {
+            "name": "deployment-intent-group",
+            "description": "comp-app1 description update",
+            "userData1": "data1",
+            "userData2": "data2"
+          },
+          "spec": {
+            "override-values": [],
+            "profile": "collection-composite-profile",
+            "version": "r1",
+            "logical-cloud": "default"
+          }
+        }
+      }
+    ]
+  }
+]

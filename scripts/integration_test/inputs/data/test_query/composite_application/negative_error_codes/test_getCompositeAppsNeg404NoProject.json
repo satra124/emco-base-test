@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "projects/nosuchproj1/composite-apps",
+  "type-metadata": [
+       {
+      "ResponseCode": 404
+       }
+    ]
+  }
+]

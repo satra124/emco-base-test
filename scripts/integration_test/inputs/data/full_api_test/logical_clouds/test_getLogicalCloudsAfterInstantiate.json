@@ -1,0 +1,48 @@
+[
+  {
+  "anchor": "projects/proj1/logical-clouds",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText": 
+                    [
+                      {
+                          "metadata": {
+                              "description": "default description",
+                              "name": "default",
+                              "userData1": "data1",
+                              "userData2": "data2"
+                          },
+                          "spec": {
+                              "labels": null,
+                              "level": "0",
+                              "namespace": "default",
+                              "user": {
+                                  "type": "",
+                                  "userName": ""
+                              }
+                          }
+                      },
+                      {
+                          "metadata": {
+                              "description": "lc1 description",
+                              "name": "lc1",
+                              "userData1": "data1",
+                              "userData2": "data2"
+                          },
+                          "spec": {
+                              "labels": null,
+                              "level": "1",
+                              "namespace": "ns1",
+                              "user": {
+                                  "type": "certificate",
+                                  "userName": "user-1"
+                              }
+                          }
+                      }
+                  ]
+       }
+    ]
+  }
+]
+

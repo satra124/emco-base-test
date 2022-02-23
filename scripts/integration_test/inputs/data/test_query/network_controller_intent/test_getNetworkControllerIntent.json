@@ -1,0 +1,21 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group/network-controller-intent",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText":
+                   [
+                   {
+                    "metadata": {
+                      "name": "vfw-ovnaction-intent",
+                      "description": "Resource description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                      }
+                   }
+                   ] 
+       }
+    ]
+  }
+]

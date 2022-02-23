@@ -1,0 +1,28 @@
+[
+  {
+    "anchor": "cluster-providers/clusterPro1/clusters/cluster1/kv-pairs/KVPair",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "KVPair",
+            "description": "Resource description update",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          },
+          "spec": {
+            "kv": [
+              {
+                "Prop1": "abc",
+                "additionalProp2": "string",
+                "additionalProp3": "string"
+              }
+            ]
+          }
+        },
+        "ResponseCode": 409
+      }
+    ]
+  }
+]

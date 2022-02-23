@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/hpa-intents/hpa-placement-intent-1/hpa-resource-consumers/hpa-placement-consumer-1",
+  "type-metadata": [
+       {
+       "ResponseCode": 204
+       }
+    ]
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/composite-profiles",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "meta-data": {
+                      "name": "collection-composite-profile",
+                      "description": "test",
+                      "userData1": "data1",
+                      "userData2": "data2"
+                      }
+                    },
+      "ResponseCode": 400
+       }
+    ]
+  }
+]

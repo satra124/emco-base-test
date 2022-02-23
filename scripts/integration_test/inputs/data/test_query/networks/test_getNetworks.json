@@ -1,0 +1,32 @@
+[
+  {
+  "anchor": "cluster-providers/clusterPro1/clusters/cluster1/networks",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText": 
+               [
+               {
+                  "metadata": {
+                    "name": "emco-private-net",
+                    "description": "Resource description",
+                    "userData1": "Some data",
+                    "userData2": "Some more data"
+                  },
+                  "spec": {
+                    "cniType": "ovn4nfv",
+                    "ipv4Subnets": [
+                      {
+                        "gateway": "10.10.20.1/24",
+                        "name": "subnet1",
+                        "subnet": "10.10.20.0/24",
+                        "excludeIps":""
+                      }
+                    ]
+                  }
+                }
+               ]
+       }
+    ]
+  }
+]

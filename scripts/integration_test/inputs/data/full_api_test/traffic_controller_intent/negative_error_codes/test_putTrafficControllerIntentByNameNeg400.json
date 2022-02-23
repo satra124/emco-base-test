@@ -1,0 +1,19 @@
+[
+  {
+    "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group/traffic-group-intents/testdtc",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "meta-data": {
+            "name": "testdtc",
+            "description": "Resource description update",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          }
+        },
+        "ResponseCode": 400
+      }
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/intents?intent=collection-deployment-intent",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText":
+                   {
+                	"intent": [{
+		                  "genericPlacementIntent": "collection-placement-intent"
+                   	}]
+                   }
+       }
+    ]
+  }
+]

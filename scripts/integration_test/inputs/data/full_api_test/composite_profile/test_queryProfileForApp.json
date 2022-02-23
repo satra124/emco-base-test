@@ -1,0 +1,19 @@
+[
+    {
+    "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/composite-profiles/collection-composite-profile/profiles/?app=monitor",
+    "type-metadata": [
+         {
+         "ResponseCode": 200,
+         "ResponseText": 
+                        [
+                          {
+                            "spec": {
+                              "app": "monitor"
+                                 }
+                          }
+                        ]
+         }
+      ]
+    }
+  ]
+  

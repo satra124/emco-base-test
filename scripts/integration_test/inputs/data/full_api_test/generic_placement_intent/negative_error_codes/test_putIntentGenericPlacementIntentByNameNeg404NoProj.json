@@ -1,0 +1,30 @@
+[
+  {
+    "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group/generic-placement-intents/generic-placement-intent/app-intents/placement-intent",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "placement-intent",
+            "description": "Resource description update",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          },
+          "spec": {
+            "app-name": "http-client",
+            "intent":{
+              "allOf": [
+                {
+                  "cluster-label-name": "cluster-label-1",
+                  "provider-name": "clusterPro1"
+                }
+              ]
+            }
+          }
+        },
+        "ResponseCode": 404
+      }
+    ]
+  }
+]

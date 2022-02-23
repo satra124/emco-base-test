@@ -1,0 +1,25 @@
+[
+  {
+    "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group/traffic-group-intents/testdtc/inbound-intents/serverin",
+    "type-metadata": [
+      {
+        "RequestBody":
+                   {
+                    "metadata": {
+                      "name": "serverin",
+                      "description": "Resource description update",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                     },
+                    "spec": {
+                      "appName": "http-server",
+                      "appLabel": "app=http-server",
+                      "serviceName": "http-service",
+                      "protocol": "TCP"
+                     }
+                   },
+        "ResponseCode": 400
+      }
+    ]
+  }
+]

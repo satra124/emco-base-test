@@ -1,0 +1,11 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group/status?type=cluster&output=detail&app=monitor",
+  "type-metadata": [
+       {
+       "ResponseCode": 200,
+       "ResponseText": "Created"
+       }
+    ]
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+  "anchor": "cluster-providers/clusterPro1/clusters/cluster1/status?type=rsync&output=all",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+       }
+    ]
+  }
+]

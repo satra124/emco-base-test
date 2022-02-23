@@ -1,0 +1,20 @@
+[
+  {
+    "anchor": "cluster-providers",
+    "type-metadata": [
+      {
+        "RequestBody":
+        {
+          "metadata": {
+            "name": "provider1",
+            "description": "Resource description",
+            "userData1": "Some data",
+            "userData2": "Some more data"
+          }
+        },
+        "ResponseCode": 409,
+        "ResponseText": "ClusterProvider already exists"
+      }
+    ]
+  }
+]

@@ -1,0 +1,24 @@
+[
+  {
+    "anchor": "projects/proj1/logical-clouds/default/cluster-references",
+    "type-metadata": [
+      {
+        "ResponseCode": 200,
+        "ResponseText": [{
+          "metadata": {
+            "name": "cluster1-ref",
+            "description": "cluster1-ref description",
+            "userData1": "data1",
+            "userData2": "data2"
+          },
+          "spec": {
+            "certificate": "",
+            "clusterProvider": "provider1",
+            "cluster": "cluster1",
+            "loadBalancerIP": "0.0.0.0"
+          }
+        }]
+      }
+    ]
+  }
+]

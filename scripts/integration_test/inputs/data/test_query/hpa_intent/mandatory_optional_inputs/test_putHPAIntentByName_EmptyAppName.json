@@ -1,0 +1,22 @@
+[
+  {
+    "anchor": "projects/proj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group/hpa-intents/hpa-placement-intent-1",
+    "type-metadata": [
+                  {
+       "RequestBody":
+                   {
+                    "metadata": {
+                      "name": "hpa-placement-intent-1",
+                      "description": "description of hpa placement_intent updated",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                      },
+                    "spec": {
+                      "app-name": ""
+                      }
+                   },
+      "ResponseCode": 400
+       }
+    ]
+  }
+]

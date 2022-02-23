@@ -1,0 +1,40 @@
+[
+  {
+  "anchor": "controllers",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "rsync",
+                      "description": "Resource description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                     },
+                    "spec": {
+                      "host": "rsync",
+                      "port": 30441,
+                      "priority": 0,
+                      "type": ""
+                      }
+                   },
+      "ResponseCode": 201,
+      "ResponseText": 
+                   {
+                    "metadata": {
+                      "name": "rsync",
+                      "description": "Resource description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                     },
+                    "spec": {
+                      "host": "rsync",
+                      "port": 30441,
+                      "priority": 0,
+                      "type": ""
+                      }
+                   }
+       }
+    ]
+  }
+]

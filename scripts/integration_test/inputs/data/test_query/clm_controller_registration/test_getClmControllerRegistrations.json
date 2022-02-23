@@ -1,0 +1,26 @@
+[
+  {
+  "anchor": "clm-controllers",
+  "type-metadata": [
+      {
+      "ResponseCode": 200,
+      "ResponseText": 
+                   [
+                    {
+                    "metadata": {
+                      "name": "hpa-placement-controller-1",
+                      "description": "Resource description",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                     },
+                    "spec": {
+                      "host": "hpaplacement",
+                      "port": 30461,
+                      "priority": 1
+                      }
+                   }
+                   ]
+       }
+    ]
+  }
+]

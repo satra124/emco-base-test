@@ -1,0 +1,10 @@
+[
+  {
+    "anchor": "cluster-providers/provider1/clusters/nosuchcluster1/kv-pairs/KVPair",
+    "type-metadata": [
+      {
+        "ResponseCode": 404
+      }
+    ]
+  }
+]

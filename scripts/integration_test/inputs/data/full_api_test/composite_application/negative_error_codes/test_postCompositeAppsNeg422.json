@@ -1,0 +1,22 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "monitor-composite-app",
+                      "description": "test",
+                      "userData1": "data1",
+                      "userData2": "data2"
+                      },
+                    "spec": {
+                      "compositeAppVersion": "v1"
+                      }
+                    },
+      "ResponseCode": 422
+       }
+    ]
+  }
+]

@@ -1,0 +1,25 @@
+[
+  {
+  "anchor": "controllers/dtc",
+  "type-metadata": [
+      {
+      "ResponseCode": 200,
+      "ResponseText": 
+                    {
+                      "metadata": {
+                        "name": "dtc",
+                        "description": "Resource description",
+                        "userData1": "Some data",
+                        "userData2": "Some more data"
+                       },
+                      "spec": {
+                        "host": "dtc",
+                        "port": 30483,
+                        "type": "action",
+                        "priority": 1
+                        }
+                    }
+       }
+    ]
+  }
+]

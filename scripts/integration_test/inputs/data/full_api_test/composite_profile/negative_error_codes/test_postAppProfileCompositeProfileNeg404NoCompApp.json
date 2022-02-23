@@ -1,0 +1,23 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/nosuchmonitor-composite-app/v1/composite-profiles/collection-composite-profile/profiles",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                    {
+                      "metadata": {
+                        "name": "profile1",
+                        "description": "test",
+                        "userData1": "Some data",
+                        "userData2": "Some more data"
+                      },
+                      "spec": {
+                        "app": "monitor"
+                      }
+                    },
+      "RequestBodyFile": "operator_profile.tar.gz",
+      "ResponseCode": 404
+       }
+    ]
+  }
+]

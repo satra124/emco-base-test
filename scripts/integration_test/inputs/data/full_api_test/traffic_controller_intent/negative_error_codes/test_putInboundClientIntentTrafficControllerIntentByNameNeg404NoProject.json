@@ -1,0 +1,25 @@
+[
+  {
+    "anchor": "projects/nosuchproj1/composite-apps/comp-app1/v1/deployment-intent-groups/deployment-intent-group/traffic-group-intents/testdtc/inbound-intents/serverin/clients/client1",
+    "type-metadata": [
+      {
+        "RequestBody":
+                    {
+                    "metadata": {
+                      "name": "client1",
+                      "description": "Resource description update",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                     },
+                    "spec": {
+                      "appName": "http-client",
+                      "serviceName": "http-client",
+                      "namespaces": [],
+                      "cidrs": []
+                     }
+                   }
+        "ResponseCode": 404
+      }
+    ]
+  }
+]

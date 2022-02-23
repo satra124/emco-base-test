@@ -1,0 +1,26 @@
+[
+  {
+  "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/hpa-intents/hpa-placement-intent-1/hpa-resource-consumers",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText":
+                   [
+                     {
+                    "metadata": {
+                      "name": "hpa-placement-consumer-1",
+                      "description": "description of hpa placement_intent",
+                      "userData1": "Some data",
+                      "userData2": "Some more data"
+                      },
+                     "spec": {
+                      "kind": "Deployment",
+                      "name": "r1-http-client",
+                      "container": "http-client"
+                      }
+                     } 
+                   ]
+       }
+    ]
+  }
+]

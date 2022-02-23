@@ -1,0 +1,19 @@
+[
+  {
+  "anchor": "projects/nosuchproj1/composite-apps/comp-app1/v1/composite-profiles",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "profile1",
+                      "description": "comp-app1 description",
+                      "userData1": "data1",
+                      "userData2": "data2"
+                      }
+                   },
+      "ResponseCode": 404
+       }
+    ]
+  }
+]

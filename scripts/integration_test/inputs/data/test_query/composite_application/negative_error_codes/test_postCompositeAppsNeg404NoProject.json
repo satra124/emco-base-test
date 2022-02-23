@@ -1,0 +1,22 @@
+[
+  {
+  "anchor": "projects/nosuchproj1/composite-apps",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "comp-app1",
+                      "description": "comp-app1 description",
+                      "userData1": "data1",
+                      "userData2": "data2"
+                      },
+                    "spec": {
+                      "compositeAppVersion": "v1"
+                      }
+                    },
+      "ResponseCode": 404
+       }
+    ]
+  }
+]

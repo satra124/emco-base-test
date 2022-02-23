@@ -1,0 +1,29 @@
+[
+ {
+  "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/hpa-intents/hpa-placement-intent-1/hpa-resource-consumers/hpa-placement-consumer-1/resource-requirements",
+  "type-metadata": [
+       {
+      "RequestBody":
+                   {
+                    "metadata": {
+                      "name": "hpa-placement-allocatable-resource-1",
+                      "description": "cpu resource",
+                      "userData1": "user data 1",
+                      "userData2": "user data 2"
+                   },
+                   "spec": {
+                      "allocatable": true,
+                      "mandatory" : true,
+                      "weight" : 1,
+                      "resource": {
+                        "name":"cpu",
+                        "requests": 1,
+                        "limits": 1
+                     }
+                   }
+                  },
+      "ResponseCode": 422
+       }
+    ]
+  }
+]

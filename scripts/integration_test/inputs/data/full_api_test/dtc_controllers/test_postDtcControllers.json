@@ -1,0 +1,41 @@
+[
+    {
+    "anchor": "dtc-controllers",
+    "type-metadata": [
+         {
+         "RequestBody": 
+                     {
+                      "metadata": {
+                        "name": "nps",
+                        "description": "Resource description",
+                        "userData1": "Some data",
+                        "userData2": "Some more data"
+                       },
+                      "spec": {
+                        "host": "192.168.121.18",
+                        "port": 30485,
+                        "priority": 1,
+                        "type": "action"
+                        }
+                     },
+        "ResponseCode": 201,
+        "ResponseText": 
+                     {
+                      "metadata": {
+                        "name": "nps",
+                        "description": "Resource description",
+                        "userData1": "Some data",
+                        "userData2": "Some more data"
+                        },
+                      "spec": {
+                        "host": "192.168.121.18",
+                        "port": 30485,
+                        "priority": 1,
+                        "type": "action"
+                        }
+                     }
+         }
+      ]
+    }
+  ]
+  

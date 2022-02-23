@@ -1,0 +1,20 @@
+[
+  {
+  "anchor": "projects/nosuchproj1/composite-apps/comp-app1/v1/apps",
+  "type-metadata": [
+       {
+       "RequestBody": 
+                   {
+                    "metadata": {
+                      "name": "http-client",
+                      "description": "http-client description",
+                      "userData1": "data1",
+                      "userData2": "data2"
+                      }
+                    },
+       "RequestBodyFile": "http-client.tar.gz",
+      "ResponseCode": 404
+       }
+    ]
+  }
+]

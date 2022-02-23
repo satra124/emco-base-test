@@ -1,0 +1,29 @@
+[
+  {
+  "anchor": "projects/proj1/logical-clouds/default",
+  "type-metadata": [
+       {
+      "ResponseCode": 200,
+      "ResponseText": 
+                  {
+                    "metadata": {
+                      "name": "default",
+                      "description": "default description",
+                      "userData1": "data1",
+                      "userData2": "data2"
+                      },
+                    "spec": {
+                      "level": "0",
+                      "labels": null,
+                      "namespace": "default",
+                      "user": {
+                        "userName": "",
+                        "type": ""
+                        }
+                      }
+                    }
+       }
+    ]
+  }
+]
+
