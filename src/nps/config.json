@@ -1,5 +1,5 @@
 {
     "database-ip": "mongo",
     "database-type": "mongo",
-    "etcd-ip": "etcd",
+    "etcd-ip": "etcd"
 }
