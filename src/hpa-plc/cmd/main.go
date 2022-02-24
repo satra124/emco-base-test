@@ -5,86 +5,43 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"math/rand"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
 	"github.com/gorilla/handlers"
 	clmcontrollerpb "gitlab.com/project-emco/core/emco-base/src/clm/pkg/grpc/controller-eventchannel"
 	"gitlab.com/project-emco/core/emco-base/src/hpa-plc/api"
-	register "gitlab.com/project-emco/core/emco-base/src/hpa-plc/pkg/grpc"
 	clmControllerserver "gitlab.com/project-emco/core/emco-base/src/hpa-plc/pkg/grpc/clmcontrollereventchannelserver"
 	placementcontrollerserver "gitlab.com/project-emco/core/emco-base/src/hpa-plc/pkg/grpc/hpaplacementcontrollerserver"
+	register "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc"
 	plsctrlclientpb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/placementcontroller"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/auth"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
+	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/testdata"
 )
 
-func startGrpcServer() error {
-	tls := strings.Contains(config.GetConfiguration().GrpcEnableTLS, "enable")
-	certFile := config.GetConfiguration().GrpcServerCert
-	keyFile := config.GetConfiguration().GrpcServerKey
-
-	_, port := register.GetServerHostPort()
-
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	if err != nil {
-		log.Fatalf("Could not listen to port: [%v]", err)
-	}
-	log.Printf("Listening on grpc_port:[%v]\n", port)
-
-	var opts []grpc.ServerOption
-	if tls {
-		if certFile == "" {
-			certFile = testdata.Path("server.pem")
-		}
-		if keyFile == "" {
-			keyFile = testdata.Path("server.key")
-		}
-		creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
-		if err != nil {
-			log.Fatalf("Could not generate credentials %v", err)
-		}
-		opts = []grpc.ServerOption{grpc.Creds(creds)}
-	}
-	grpcServer := grpc.NewServer(opts...)
+func RegisterHpaPlacementServices(grpcServer *grpc.Server, srv interface{}) {
 	plsctrlclientpb.RegisterPlacementControllerServer(grpcServer, placementcontrollerserver.NewHpaPlacementControllerServer())
 	clmcontrollerpb.RegisterClmControllerEventChannelServer(grpcServer, clmControllerserver.NewControllerEventchannelServer())
-
-	log.Printf("Starting HPA PlacementController gRPC Server @ [%s]", lis.Addr().String())
-	err = grpcServer.Serve(lis)
-	if err != nil {
-		log.Fatalf("hpaplacement grpc server is not serving %v", err)
-	}
-	return err
 }
 
 func main() {
-	log.Printf("\nHPA PlacementController config @ [%v]\n", config.GetConfiguration())
 	rand.Seed(time.Now().UnixNano())
 
 	err := db.InitializeDatabaseConnection("emco")
 	if err != nil {
-		log.Println("Unable to initialize database connection...")
-		log.Println(err)
-		log.Fatalln("Exiting...")
+		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
+		os.Exit(1)
 	}
 	err = contextDb.InitializeContextDatabase()
 	if err != nil {
-		log.Println("Unable to initialize database connection...")
-		log.Println(err)
-		log.Fatalln("Exiting...")
+		log.Error("Unable to initialize etcd database connection", log.Fields{"Error": err})
+		os.Exit(1)
 	}
 
 	httpRouter := api.NewRouter(nil)
@@ -93,12 +50,14 @@ func main() {
 		Handler: loggedRouter,
 		Addr:    ":" + config.GetConfiguration().ServicePort,
 	}
-	log.Printf("\nStarting HPA PlacementController Http Server @ [%v]\n", httpServer.Addr)
+	log.Info("Starting HPA PlacementController Http Server", log.Fields{"Port": config.GetConfiguration().ServicePort})
 
 	go func() {
-		err := startGrpcServer()
+		err := register.StartGrpcServer("hpaplacement", "HPAPLACEMENT_NAME", 9099,
+			RegisterHpaPlacementServices, nil)
 		if err != nil {
-			log.Fatalf("GRPC server failed to start")
+			log.Error("GRPC server failed to start", log.Fields{"Error": err})
+			os.Exit(1)
 		}
 	}()
 
@@ -109,21 +68,14 @@ func main() {
 		<-c
 		err := httpServer.Shutdown(context.Background())
 		if err != nil {
-			log.Fatalf("http server failed to shutdown")
+			log.Error("HTTP server failed to shutdown", log.Fields{"Error": err})
+			os.Exit(1)
 		}
 		close(connectionsClose)
 	}()
 
-	tlsConfig, err := auth.GetTLSConfig("ca.cert", "server.cert", "server.key")
+	err = httpServer.ListenAndServe()
 	if err != nil {
-		log.Println("Error Getting TLS Configuration. Starting without TLS...")
-		log.Fatal(httpServer.ListenAndServe())
-	} else {
-		httpServer.TLSConfig = tlsConfig
-		// empty strings because tlsconfig already has this information
-		err = httpServer.ListenAndServeTLS("", "")
-		if err != nil {
-			log.Fatalf("http server Listening failed")
-		}
+		log.Error("HTTP server failed", log.Fields{"Error": err})
 	}
 }

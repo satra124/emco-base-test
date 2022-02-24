@@ -27,7 +27,6 @@ func (cs *contextupdateServer) UpdateAppContext(ctx context.Context, req *contex
 		return &contextpb.ContextUpdateResponse{AppContextUpdated: false, AppContextUpdateMessage: err.Error()}, nil
 	}
 
-
 	return &contextpb.ContextUpdateResponse{AppContextUpdated: true, AppContextUpdateMessage: fmt.Sprintf("Successful application of intent %v to %v", req.IntentName, req.AppContext)}, nil
 }
 

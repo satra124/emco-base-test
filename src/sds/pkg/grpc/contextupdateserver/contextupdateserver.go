@@ -7,9 +7,9 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/project-emco/core/emco-base/src/sds/internal/servicediscovery"
 	contextpb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/contextupdate"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/sds/internal/servicediscovery"
 )
 
 type contextupdateServer struct {
@@ -21,7 +21,6 @@ func (cs *contextupdateServer) UpdateAppContext(ctx context.Context, req *contex
 		"AppContextId": req.AppContext,
 		"IntentName":   req.IntentName,
 	})
-
 
 	err := servicediscovery.CreateAppContext(req.IntentName, req.AppContext)
 	if err != nil {

@@ -4,84 +4,35 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"math/rand"
-	"net"
-	"strings"
+	"os"
 	"time"
 
-	updatepb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/contextupdate"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
+	"gitlab.com/project-emco/core/emco-base/src/its/pkg/grpc/contextupdateserver"
+	register "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc"
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
-	register "gitlab.com/project-emco/core/emco-base/src/its/pkg/grpc"
-	"gitlab.com/project-emco/core/emco-base/src/its/pkg/grpc/contextupdateserver"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/testdata"
+	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 )
-
-func startGrpcServer() error {
-	var tls bool
-
-	if strings.Contains(config.GetConfiguration().GrpcEnableTLS, "enable") {
-		tls = true
-	} else {
-		tls = false
-	}
-	certFile := config.GetConfiguration().GrpcServerCert
-	keyFile := config.GetConfiguration().GrpcServerKey
-
-	_, port := register.GetServerHostPort()
-
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	if err != nil {
-		log.Fatalf("Could not listen to port: %v", err)
-	}
-	var opts []grpc.ServerOption
-	if tls {
-		if certFile == "" {
-			certFile = testdata.Path("server.pem")
-		}
-		if keyFile == "" {
-			keyFile = testdata.Path("server.key")
-		}
-		creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
-		if err != nil {
-			log.Fatalf("Could not generate credentials %v", err)
-		}
-		opts = []grpc.ServerOption{grpc.Creds(creds)}
-	}
-	grpcServer := grpc.NewServer(opts...)
-	updatepb.RegisterContextupdateServer(grpcServer, contextupdateserver.NewContextupdateServer())
-
-	log.Println("Starting Istio Traffic Sub Controller gRPC Server")
-	err = grpcServer.Serve(lis)
-	if err != nil {
-		log.Fatalf("its grpc server is not serving %v", err)
-	}
-	return err
-}
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	err := db.InitializeDatabaseConnection("emco")
 	if err != nil {
-		log.Println("Unable to initialize database connection...")
-		log.Println(err)
-		log.Fatalln("Exiting...")
+		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
+		os.Exit(1)
 	}
 	err = contextDb.InitializeContextDatabase()
 	if err != nil {
-		log.Println("Unable to initialize database connection...")
-		log.Println(err)
-		log.Fatalln("Exiting...")
+		log.Error("Unable to initialize etcd database connection", log.Fields{"Error": err})
+		os.Exit(1)
 	}
-	err = startGrpcServer()
+	err = register.StartGrpcServer("its", "ITS_NAME", 9040,
+		register.RegisterContextUpdateService, contextupdateserver.NewContextupdateServer())
 	if err != nil {
-		log.Fatalf("GRPC server failed to start")
+		log.Error("GRPC server failed to start", log.Fields{"Error": err})
+		os.Exit(1)
 	}
 
 }

@@ -5,92 +5,39 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"math/rand"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
 	"github.com/gorilla/handlers"
-	updatepb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/contextupdate"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/auth"
+	register "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
+	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/sfcclient/api"
-	register "gitlab.com/project-emco/core/emco-base/src/sfcclient/pkg/grpc"
 	"gitlab.com/project-emco/core/emco-base/src/sfcclient/pkg/grpc/contextupdateserver"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/testdata"
 )
-
-func startGrpcServer() error {
-	var tls bool
-
-	if strings.Contains(config.GetConfiguration().GrpcEnableTLS, "enable") {
-		tls = true
-	} else {
-		tls = false
-	}
-	certFile := config.GetConfiguration().GrpcServerCert
-	keyFile := config.GetConfiguration().GrpcServerKey
-
-	_, port := register.GetServerHostPort()
-
-	log.Printf("Starting Grpc on port: %v", port)
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	if err != nil {
-		log.Fatalf("Could not listen to port: %v", err)
-	}
-	var opts []grpc.ServerOption
-	if tls {
-		if certFile == "" {
-			certFile = testdata.Path("server.pem")
-		}
-		if keyFile == "" {
-			keyFile = testdata.Path("server.key")
-		}
-		creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
-		if err != nil {
-			log.Fatalf("Could not generate credentials %v", err)
-		}
-		opts = []grpc.ServerOption{grpc.Creds(creds)}
-	}
-	grpcServer := grpc.NewServer(opts...)
-	updatepb.RegisterContextupdateServer(grpcServer, contextupdateserver.NewContextupdateServer())
-
-	log.Printf("Starting SFC Client Action Controller gRPC Server on port %v", port)
-	err = grpcServer.Serve(lis)
-	if err != nil {
-		log.Fatalf("sfcclient grpc server is not serving %v", err)
-	}
-	return err
-}
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	err := db.InitializeDatabaseConnection("emco")
 	if err != nil {
-		log.Println("Unable to initialize mongo database connection...")
-		log.Println(err)
-		log.Fatalln("Exiting...")
+		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
+		os.Exit(1)
 	}
 	err = contextDb.InitializeContextDatabase()
 	if err != nil {
-		log.Println("Unable to initialize etcd database connection...")
-		log.Println(err)
-		log.Fatalln("Exiting...")
+		log.Error("Unable to initialize etcd database connection", log.Fields{"Error": err})
+		os.Exit(1)
 	}
 
 	httpRouter := api.NewRouter(nil)
 	loggedRouter := handlers.LoggingHandler(os.Stdout, httpRouter)
-	log.Printf("Starting SFC Client Action  Controller on port %v", config.GetConfiguration().ServicePort)
+	log.Info("Starting SFC Client Action  Controller", log.Fields{"Port": config.GetConfiguration().ServicePort})
 
 	httpServer := &http.Server{
 		Handler: loggedRouter,
@@ -98,9 +45,11 @@ func main() {
 	}
 
 	go func() {
-		err := startGrpcServer()
+		err := register.StartGrpcServer("sfcclient", "SFCCLIENT_NAME", 9058,
+			register.RegisterContextUpdateService, contextupdateserver.NewContextupdateServer())
 		if err != nil {
-			log.Fatalf("GRPC server failed to start")
+			log.Error("GRPC server failed to start", log.Fields{"Error": err})
+			os.Exit(1)
 		}
 	}()
 
@@ -113,13 +62,8 @@ func main() {
 		close(connectionsClose)
 	}()
 
-	tlsConfig, err := auth.GetTLSConfig("ca.cert", "server.cert", "server.key")
+	err = httpServer.ListenAndServe()
 	if err != nil {
-		log.Println("Error Getting TLS Configuration. Starting without TLS...")
-		log.Fatal(httpServer.ListenAndServe())
-	} else {
-		httpServer.TLSConfig = tlsConfig
-		// empty strings because tlsconfig already has this information
-		err = httpServer.ListenAndServeTLS("", "")
+		log.Error("HTTP server failed", log.Fields{"Error": err})
 	}
 }

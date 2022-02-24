@@ -11,7 +11,7 @@ import (
 	contextpb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/contextupdate"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 
-	client "gitlab.com/project-emco/core/emco-base/src/dtc/pkg/grpc/contextupdateclient"
+	client "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/contextupdateclient"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
 )
 

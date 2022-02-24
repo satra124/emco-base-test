@@ -10,8 +10,6 @@ import (
 	contextpb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/contextupdate"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/sfc/internal/action"
-	//"google.golang.org/grpc/codes"
-	//"google.golang.org/grpc/status"
 )
 
 type contextupdateServer struct {

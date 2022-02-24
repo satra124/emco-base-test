@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -13,11 +12,11 @@ import (
 	"time"
 
 	"github.com/gorilla/handlers"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/auth"
+	"gitlab.com/project-emco/core/emco-base/src/clm/api"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
-	"gitlab.com/project-emco/core/emco-base/src/clm/api"
+	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 )
 
 func main() {
@@ -25,20 +24,18 @@ func main() {
 
 	err := db.InitializeDatabaseConnection("emco")
 	if err != nil {
-		log.Println("Unable to initialize mongo database connection...")
-		log.Println(err)
-		log.Fatalln("Exiting...")
+		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
+		os.Exit(1)
 	}
 	err = contextDb.InitializeContextDatabase()
 	if err != nil {
-		log.Println("Unable to initialize etcd database connection...")
-		log.Println(err)
-		log.Fatalln("Exiting...")
+		log.Error("Unable to initialize etcd database connection", log.Fields{"Error": err})
+		os.Exit(1)
 	}
 
 	httpRouter := api.NewRouter(nil)
 	loggedRouter := handlers.LoggingHandler(os.Stdout, httpRouter)
-	log.Println("Starting Cluster Manager")
+	log.Info("Starting Cluster Manager", log.Fields{"Port": config.GetConfiguration().ServicePort})
 
 	httpServer := &http.Server{
 		Handler: loggedRouter,
@@ -54,13 +51,8 @@ func main() {
 		close(connectionsClose)
 	}()
 
-	tlsConfig, err := auth.GetTLSConfig("ca.cert", "server.cert", "server.key")
+	err = httpServer.ListenAndServe()
 	if err != nil {
-		log.Println("Error Getting TLS Configuration. Starting without TLS...")
-		log.Fatal(httpServer.ListenAndServe())
-	} else {
-		httpServer.TLSConfig = tlsConfig
-		// empty strings because tlsconfig already has this information
-		err = httpServer.ListenAndServeTLS("", "")
+		log.Error("HTTP server failed", log.Fields{"Error": err})
 	}
 }

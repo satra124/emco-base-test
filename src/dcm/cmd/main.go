@@ -5,71 +5,21 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"math/rand"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
 	"github.com/gorilla/handlers"
 	"gitlab.com/project-emco/core/emco-base/src/dcm/api"
 	"gitlab.com/project-emco/core/emco-base/src/dcm/pkg/statusnotify"
 	register "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc"
-	statusnotifypb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/statusnotify"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/auth"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/testdata"
+	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 )
-
-func startGrpcServer() error {
-	var tls bool
-
-	if strings.Contains(config.GetConfiguration().GrpcEnableTLS, "enable") {
-		tls = true
-	} else {
-		tls = false
-	}
-	certFile := config.GetConfiguration().GrpcServerCert
-	keyFile := config.GetConfiguration().GrpcServerKey
-
-	_, port := register.GetServerHostPort("dcm", "DCM_NAME", 9078)
-
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	if err != nil {
-		log.Fatalf("Could not listen to port: %v", err)
-	}
-	var opts []grpc.ServerOption
-	if tls {
-		if certFile == "" {
-			certFile = testdata.Path("server.pem")
-		}
-		if keyFile == "" {
-			keyFile = testdata.Path("server.key")
-		}
-		creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
-		if err != nil {
-			log.Fatalf("Could not generate credentials %v", err)
-		}
-		opts = []grpc.ServerOption{grpc.Creds(creds)}
-	}
-	grpcServer := grpc.NewServer(opts...)
-	statusnotifypb.RegisterStatusNotifyServer(grpcServer, statusnotify.StartStatusNotifyServer())
-
-	log.Println("Starting DCM Status Notification gRPC Server")
-	err = grpcServer.Serve(lis)
-	if err != nil {
-		log.Fatalf("DCM Status Notification gRPC server is not serving %v", err)
-	}
-	return err
-}
 
 func main() {
 
@@ -77,21 +27,19 @@ func main() {
 
 	err := db.InitializeDatabaseConnection("emco")
 	if err != nil {
-		log.Println("Unable to initialize mongo database connection...")
-		log.Println(err)
-		log.Fatalln("Exiting...")
+		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
+		os.Exit(1)
 	}
 
 	err = contextDb.InitializeContextDatabase()
 	if err != nil {
-		log.Println("Unable to initialize etcd database connection...")
-		log.Println(err)
-		log.Fatalln("Exiting...")
+		log.Error("Unable to initialize etcd database connection", log.Fields{"Error": err})
+		os.Exit(1)
 	}
 
 	httpRouter := api.NewRouter(nil, nil, nil, nil, nil)
 	loggedRouter := handlers.LoggingHandler(os.Stdout, httpRouter)
-	log.Println("Starting Distributed Cloud Manager API")
+	log.Info("Starting Distributed Cloud Manager API", log.Fields{"Port": config.GetConfiguration().ServicePort})
 
 	httpServer := &http.Server{
 		Handler: loggedRouter,
@@ -99,9 +47,11 @@ func main() {
 	}
 
 	go func() {
-		err := startGrpcServer()
+		err := register.StartGrpcServer("dcm", "DCM_NAME", 9078,
+			register.RegisterStatusNotifyService, statusnotify.StartStatusNotifyServer())
 		if err != nil {
-			log.Fatalf("GRPC server failed to start")
+			log.Error("GRPC server failed to start", log.Fields{"Error": err})
+			os.Exit(1)
 		}
 	}()
 
@@ -114,13 +64,8 @@ func main() {
 		close(connectionsClose)
 	}()
 
-	tlsConfig, err := auth.GetTLSConfig("ca.cert", "server.cert", "server.key")
+	err = httpServer.ListenAndServe()
 	if err != nil {
-		log.Println("Error Getting TLS Configuration. Starting without TLS...")
-		log.Fatal(httpServer.ListenAndServe())
-	} else {
-		httpServer.TLSConfig = tlsConfig
-
-		err = httpServer.ListenAndServeTLS("", "")
+		log.Error("HTTP server failed", log.Fields{"Error": err})
 	}
 }
