@@ -189,8 +189,13 @@ func (r *resProvd) instantiateResource(name string, ref interface{}) (interface{
 		r.updateResourceStatus(name, resourcestatus.ResourceStatus{Status: resourcestatus.RsyncStatusEnum.Failed})
 		return nil, err
 	}
-
-	if q, err = r.cl.Apply(name, ref, res); err != nil {
+	label := r.context.statusAcID + "-" + r.app
+	b, err := r.cl.TagResource(res, label)
+	if err != nil {
+		log.Error("Error Tag Resoruce with label:", log.Fields{"err": err, "label": label, "resource": name})
+		return nil, err
+	}
+	if q, err = r.cl.Apply(name, ref, b); err != nil {
 		r.updateResourceStatus(name, resourcestatus.ResourceStatus{Status: resourcestatus.RsyncStatusEnum.Failed})
 		log.Error("Failed to apply res", log.Fields{"error": err, "resource": name})
 		return nil, err
@@ -207,8 +212,13 @@ func (r *resProvd) createResource(name string, ref interface{}) (interface{}, er
 		r.updateResourceStatus(name, resourcestatus.ResourceStatus{Status: resourcestatus.RsyncStatusEnum.Failed})
 		return nil, err
 	}
-
-	if q, err = r.cl.Create(name, ref, res); err != nil {
+	label := r.context.statusAcID + "-" + r.app
+	b, err := r.cl.TagResource(res, label)
+	if err != nil {
+		log.Error("Error Tag Resoruce with label:", log.Fields{"err": err, "label": label, "resource": name})
+		return nil, err
+	}
+	if q, err = r.cl.Create(name, ref, b); err != nil {
 		r.updateResourceStatus(name, resourcestatus.ResourceStatus{Status: resourcestatus.RsyncStatusEnum.Failed})
 		log.Error("Failed to create res", log.Fields{"error": err, "resource": name})
 		return nil, err

@@ -214,6 +214,7 @@ type ResourceProvider interface {
 	Get(name string, gvkRes []byte) ([]byte, error)
 	Commit(ref interface{}) error
 	IsReachable() error
+	TagResource([]byte, string) ([]byte, error)
 }
 
 type StatusProvider interface {

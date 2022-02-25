@@ -14,14 +14,8 @@ import (
 
 // Creates a new resource if the not already existing
 func (p *K8sProvider) Create(name string, ref interface{}, content []byte) (interface{}, error) {
-	// Add the label based on the Status Appcontext ID
-	label := p.cid + "-" + p.app
-	b, err := status.TagResource(content, label)
-	if err != nil {
-		log.Error("Error Tag Resoruce with label:", log.Fields{"err": err, "label": label, "resource": name})
-		return nil, err
-	}
-	if err := p.client.Create(b); err != nil {
+
+	if err := p.client.Create(content); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			log.Warn("Resource is already present, Skipping", log.Fields{"error": err, "resource": name})
 			return nil, nil
@@ -34,14 +28,8 @@ func (p *K8sProvider) Create(name string, ref interface{}, content []byte) (inte
 }
 // Apply resource to the cluster
 func (p *K8sProvider) Apply(name string, ref interface{}, content []byte) (interface{}, error) {
-	// Add the label based on the Status Appcontext ID
-	label := p.cid + "-" + p.app
-	b, err := status.TagResource(content, label)
-	if err != nil {
-		log.Error("Error Tag Resoruce with label:", log.Fields{"err": err, "label": label, "resource": name})
-		return nil, err
-	}
-	if err := p.client.Apply(b); err != nil {
+
+	if err := p.client.Apply(content); err != nil {
 		log.Error("Failed to apply res", log.Fields{"error": err, "resource": name})
 		return nil, err
 	}
@@ -88,4 +76,13 @@ func (p *K8sProvider) Commit(ref interface{}) error {
 // IsReachable cluster reachablity test
 func (p *K8sProvider) IsReachable() error {
 	return p.client.IsReachable()
+}
+
+func (m *K8sProvider) TagResource(res []byte, label string) ([]byte, error) {
+	b, err := status.TagResource(res, label)
+	if err != nil {
+		log.Error("Error Tag Resoruce with label:", log.Fields{"err": err, "label": label, "resource": res})
+		return nil, err
+	}
+	return b, nil
 }

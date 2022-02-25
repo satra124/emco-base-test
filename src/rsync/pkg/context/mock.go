@@ -91,6 +91,10 @@ func (m *MockClient) Create(name string, ref interface{}, content []byte) (inter
 	return ref, nil
 }
 
+func (m *MockClient) TagResource(res []byte, l string) ([]byte, error) {
+	return res, nil
+}
+
 // Apply Collects resources applied to cluster
 func (m *MockClient) Apply(name string, ref interface{}, content []byte) (interface{}, error) {
 	m.lock.Lock()
