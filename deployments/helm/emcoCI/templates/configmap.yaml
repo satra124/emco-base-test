@@ -139,7 +139,6 @@ data:
           "database-type": "mongo",
           "database-ip": "mongo",
           "etcd-ip": "etcd",
-          "service-port": "9038"
           }
 
 ---
@@ -157,7 +156,6 @@ data:
           "database-type": "mongo",
           "database-ip": "mongo",
           "etcd-ip": "etcd",
-          "service-port": "9039"
           }
 
 ---
@@ -175,7 +173,6 @@ data:
           "database-type": "mongo",
           "database-ip": "mongo",
           "etcd-ip": "etcd",
-          "service-port": "9040"
           }
 
 ---
