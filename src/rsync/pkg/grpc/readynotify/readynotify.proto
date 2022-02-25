@@ -3,6 +3,8 @@
 
 syntax = "proto3";
 
+option go_package="./readynotify";
+
 service readyNotify {
 	rpc Alert (Topic) returns (stream Notification){
 
@@ -26,6 +28,8 @@ message Notification {
 	string clientName = 1;
 	string serverName = 2;
 	string appContext = 3;
+	string app = 4;
+	string cluster = 5;
 }
 
 message UnsubscribeResponse {

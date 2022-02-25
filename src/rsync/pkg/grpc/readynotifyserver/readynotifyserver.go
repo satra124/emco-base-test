@@ -65,16 +65,16 @@ func (s *readyNotifyServer) Alert(topic *pb.Topic, stream pb.ReadyNotify_AlertSe
 }
 
 //SendAppContextNotification sends appcontext back to the subscriber if pending
-func SendAppContextNotification(appContextID string) error {
+func SendAppContextNotification(appContextID, app, cluster string) error {
 	streams := notifServer.alertNotify[appContextID]
 	var err error = nil
 	for _, stream := range streams {
-		err := stream.Send(&pb.Notification{AppContext: appContextID})
+		err := stream.Send(&pb.Notification{AppContext: appContextID, App: app, Cluster: cluster})
 		if err != nil {
-			log.Error("[ReadyNotify gRPC] Notification back to client failed to be sent", log.Fields{"err": err, "appContextID": appContextID})
+			log.Error("[ReadyNotify gRPC] Notification back to client failed to be sent", log.Fields{"err": err, "appContextID": appContextID, "app": app, "cluster": cluster})
 			// return pkgerrors.New("Notification failed")
 		} else {
-			log.Info("[ReadyNotify gRPC] Notified the subscriber about appContext status changes", log.Fields{"appContextID": appContextID})
+			log.Info("[ReadyNotify gRPC] Notified the subscriber about appContext status changes", log.Fields{"appContextID": appContextID, "app": app, "cluster": cluster})
 		}
 	}
 	return err

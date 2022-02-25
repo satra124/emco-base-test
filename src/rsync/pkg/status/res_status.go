@@ -58,7 +58,7 @@ func HandleResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 	go depend.ResourcesReady(acID, app, cluster)
 
 	// Send notification to the subscribers
-	err = readynotifyserver.SendAppContextNotification(acID)
+	err = readynotifyserver.SendAppContextNotification(acID, app, cluster)
 	if err != nil {
 		log.Error("::Error sending ReadyNotify to subscribers::", log.Fields{"acID": acID, "app": app, "cluster": cluster, "err": err})
 	}
