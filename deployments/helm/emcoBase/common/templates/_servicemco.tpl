@@ -24,7 +24,7 @@ spec:
   - name: {{ .Values.service.PortName }}
     {{if eq .Values.service.type "NodePort" -}}
     port: {{ .Values.service.internalPort }}
-    nodePort: {{ .Values.global.nodePortPrefixExt | default "302" }}{{ .Values.service.nodePort }}
+    nodePort: {{ .Values.global.nodePortPrefixExt | default "304" }}{{ .Values.service.nodePort }}
     {{- else -}}
     port: {{ .Values.service.externalPort }}
     targetPort: {{ .Values.service.internalPort }}

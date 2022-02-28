@@ -19,7 +19,7 @@
 global:
   # Change to an unused port prefix range to prevent port conflicts
   # with other instances running within the same k8s cluster
-  nodePortPrefix: 302
+  nodePortPrefix: 304
 
   # image repositories
   repository: orchestrator

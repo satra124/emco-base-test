@@ -17,7 +17,7 @@
 #################################################################
 
 global:
-  nodePortPrefix: 302
+  nodePortPrefix: 304
   persistence: {}
   readinessRepository: oomk8s
   readinessImage: readiness-check:2.2.2
