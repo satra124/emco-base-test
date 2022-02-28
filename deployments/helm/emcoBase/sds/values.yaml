@@ -47,7 +47,7 @@ readiness:
 service:
   type: NodePort
   name: sds
-  portName: http
+  portName: sds-control
   internalPort: 9039
   externalPort: 9039
   nodePort: 39

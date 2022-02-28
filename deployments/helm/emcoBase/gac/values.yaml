@@ -47,15 +47,15 @@ readiness:
 service:
   type: NodePort
   name: gac
-  portName: http
+  portName: gac-service
   internalPort: 9020
   externalPort: 9020
   nodePort: 20
 
 serviceInternal:
   type: NodePort
-  name: internal
-  portName: internal
+  name: gac
+  portName: gac-control
   internalPort: 9033
   externalPort: 9033
   nodePort: 33

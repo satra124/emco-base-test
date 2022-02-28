@@ -47,15 +47,15 @@ readiness:
 service:
   type: NodePort
   name: sfc
-  portName: http
+  portName: sfc-service
   internalPort: 9055
   externalPort: 9055
   nodePort: 55
 
 serviceInternal:
   type: NodePort
-  name: internal
-  portName: internal
+  name: sfc
+  portName: sfc-control
   internalPort: 9056
   externalPort: 9056
   nodePort: 56

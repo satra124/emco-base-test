@@ -47,7 +47,7 @@ readiness:
 service:
   type: NodePort
   name: its
-  portName: http
+  portName: its-control
   internalPort: 9040
   externalPort: 9040
   nodePort: 40

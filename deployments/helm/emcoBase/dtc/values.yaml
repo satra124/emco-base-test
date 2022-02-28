@@ -47,15 +47,15 @@ readiness:
 service:
   type: NodePort
   name: dtc
-  portName: http
+  portName: dtc-service
   internalPort: 9018
   externalPort: 9018
   nodePort: 18
 
 serviceInternal:
   type: NodePort
-  name: internal
-  portName: internal
+  name: dtc
+  portName: dtc-control
   internalPort: 9048
   externalPort: 9048
   nodePort: 48

@@ -47,7 +47,7 @@ readiness:
 service:
   type: NodePort
   name: nps
-  portName: http
+  portName: nps-control
   internalPort: 9038
   externalPort: 9038
   nodePort: 38

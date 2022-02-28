@@ -46,15 +46,15 @@ readiness:
 service:
   type: NodePort
   name: dcm
-  portName: http
+  portName: dcm-service
   internalPort: 9077
   externalPort: 9077
   nodePort: 77
 
 serviceInternal:
   type: NodePort
-  name: internal
-  portName: internal
+  name: dcm
+  portName: dcm-status
   internalPort: 9078
   externalPort: 9078
   nodePort: 78

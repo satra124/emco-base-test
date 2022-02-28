@@ -46,15 +46,15 @@ readiness:
 service:
   type: NodePort
   name: ncm
-  portName: http
+  portName: ncm-service
   internalPort: 9081
   externalPort: 9081
   nodePort: 81
 
 serviceInternal:
   type: NodePort
-  name: internal
-  portName: internal
+  name: ncm
+  portName: ncm-status
   internalPort: 9082
   externalPort: 9082
   nodePort: 82

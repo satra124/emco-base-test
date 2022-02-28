@@ -47,15 +47,15 @@ readiness:
 service:
   type: NodePort
   name: orchestrator
-  portName: http
+  portName: orchestrator-service
   internalPort: 9015
   externalPort: 9015
   nodePort: 15
 
 serviceInternal:
   type: NodePort
-  name: internal
-  portName: internal
+  name: orchestrator
+  portName: orchestrator-status
   internalPort: 9016
   externalPort: 9016
   nodePort: 16

@@ -46,16 +46,16 @@ readiness:
 
 service:
   type: NodePort
-  name: hpaplacement
-  portName: http
+  name: hpaplc
+  portName: hpaplc-service
   internalPort: 9091
   externalPort: 9091
   nodePort: 91
 
 serviceInternal:
   type: NodePort
-  name: internal
-  portName: internal
+  name: hpaplc
+  portName: hpaplc-control
   internalPort: 9099
   externalPort: 9099
   nodePort: 99

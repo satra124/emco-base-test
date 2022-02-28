@@ -48,15 +48,15 @@ readiness:
 service:
   type: NodePort
   name: workflowmgr
-  portName: workflowmgr-service-port
+  portName: workflowmgr-service
   internalPort: 9095
   externalPort: 9095
   nodePort: 95
 
 serviceInternal:
   type: NodePort
-  name: workflowmgr-status-port
-  portName: workflowmgr-status-port
+  name: workflowmgr
+  portName: workflowmgr-status
   internalPort: 9097
   externalPort: 9097
   nodePort: 97

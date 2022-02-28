@@ -46,7 +46,7 @@ readiness:
 service:
   type: NodePort
   name: rsync
-  portName: rsync
+  portName: rsync-control
   internalPort: 9031
   externalPort: 9031
   nodePort: 31

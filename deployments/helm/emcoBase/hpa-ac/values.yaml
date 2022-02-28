@@ -45,8 +45,8 @@ serviceName: hpaaction
 
 serviceInternal:
   type: NodePort
-  name: internal
-  portName: internal
+  name: hpaac
+  portName: hpaac-control
   internalPort: 9042
   externalPort: 9042
   nodePort: 42

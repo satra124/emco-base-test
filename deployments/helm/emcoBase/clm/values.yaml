@@ -47,7 +47,7 @@ readiness:
 service:
   type: NodePort
   name: clm
-  portName: clm
+  portName: clm-service
   internalPort: 9061
   externalPort: 9061
   nodePort: 61
