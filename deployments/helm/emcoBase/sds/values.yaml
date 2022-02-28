@@ -50,7 +50,7 @@ service:
   portName: http
   internalPort: 9039
   externalPort: 9039
-  nodePort: 86
+  nodePort: 39
 
 ingress:
   enabled: false

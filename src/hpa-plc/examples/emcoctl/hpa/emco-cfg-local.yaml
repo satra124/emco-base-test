@@ -3,7 +3,7 @@
     port: 9015
   clm:
     host: localhost
-    port: 9017
+    port: 9061
   ncm:
     host: localhost
     port: 9081
@@ -12,10 +12,10 @@
     port: 9051
   dcm:
     host: localhost
-    port: 9089
+    port: 9077
   gac:
     host: localhost
     port: 9020
   hpaplacement:
     host: localhost
-    port: 9115
+    port: 9091

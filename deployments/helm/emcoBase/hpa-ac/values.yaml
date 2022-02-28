@@ -49,7 +49,7 @@ serviceInternal:
   portName: internal
   internalPort: 9042
   externalPort: 9042
-  nodePort: 43
+  nodePort: 42
 
 ingress:
   enabled: false

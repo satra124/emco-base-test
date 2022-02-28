@@ -50,7 +50,7 @@ service:
   portName: http
   internalPort: 9091
   externalPort: 9091
-  nodePort: 51
+  nodePort: 91
 
 serviceInternal:
   type: NodePort
@@ -58,7 +58,7 @@ serviceInternal:
   portName: internal
   internalPort: 9099
   externalPort: 9099
-  nodePort: 59
+  nodePort: 99
 
 ingress:
   enabled: false

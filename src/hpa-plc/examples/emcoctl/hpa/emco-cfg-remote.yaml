@@ -9,19 +9,19 @@ clm:
   port: 30461
 ncm:
   host: <node-IP>
-  port: 30431
+  port: 30481
 ovnaction:
   host: <node-IP>
-  port: 30473
+  port: 30451
 dcm:
   host: <node-IP>
   port: 30477
 gac:
   host: <node-IP>
-  port: 30493
+  port: 30420
 dtc:
   host: <node-IP>
-  port: 30483
+  port: 30418
 hpaplacement:
   host: <node-IP>
-  port: 30451
+  port: 30491

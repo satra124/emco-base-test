@@ -49,7 +49,7 @@ service:
   portName: http
   internalPort: 9081
   externalPort: 9081
-  nodePort: 31
+  nodePort: 81
 
 serviceInternal:
   type: NodePort
