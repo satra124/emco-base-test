@@ -13,6 +13,7 @@ services:
       - emconet
     ports:
       - 9077:9077
+      - 9078:9078
     environment:
       - no_proxy=etcd,mongo,rsync,${NO_PROXY}
       - NO_PROXY=etcd,mongo,rsync,${NO_PROXY}
@@ -75,6 +76,7 @@ services:
       - emconet
     ports:
       - 9081:9081
+      - 9082:9082
     environment:
       - no_proxy=etcd,mongo,${NO_PROXY}
       - NO_PROXY=etcd,mongo,${NO_PROXY}
@@ -91,6 +93,7 @@ services:
       - emconet
     ports:
       - 9015:9015
+      - 9016:9016
     environment:
       - no_proxy=etcd,mongo,rsync,${NO_PROXY}
       - NO_PROXY=etcd,mongo,rsync,${NO_PROXY}
@@ -106,6 +109,7 @@ services:
     networks:
       - emconet
     ports:
+      - 9032:9032
       - 9051:9051
     environment:
       - no_proxy=etcd,mongo,${NO_PROXY}
@@ -123,6 +127,7 @@ services:
       - emconet
     ports:
       - 9018:9018
+      - 9048:9048
     environment:
       - no_proxy=etcd,mongo,${NO_PROXY}
       - NO_PROXY=etcd,mongo,${NO_PROXY}
@@ -187,6 +192,7 @@ services:
       - emconet
     ports:
       - 9020:9020
+      - 9033:9033
     environment:
       - no_proxy=etcd,mongo,${NO_PROXY}
       - NO_PROXY=etcd,mongo,${NO_PROXY}
