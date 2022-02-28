@@ -119,18 +119,18 @@ pod/emco-tools-fluentd-k8hks                      1/1     Running   2          2
 NAME                                    TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                         AGE
 service/clm                             NodePort    10.233.36.44    <none>        9061:30461/TCP                  3m8s
 service/dcm                             NodePort    10.233.53.3     <none>        9077:30477/TCP                  3m8s
-service/dtc                             NodePort    10.233.36.32    <none>        9048:30483/TCP,9018:30481/TCP   3m8s
+service/dtc                             NodePort    10.233.36.32    <none>        9048:30448/TCP,9018:30418/TCP   3m8s
 service/emco-etcd                       ClusterIP   None            <none>        2380/TCP,2379/TCP               3m25s
 service/emco-mongo                      ClusterIP   None            <none>        27017/TCP                       3m25s
 service/emco-mongo-read                 ClusterIP   10.233.45.231   <none>        27017/TCP                       3m25s
 service/emco-tools-fluentd-aggregator   ClusterIP   10.233.14.213   <none>        24224/TCP                       2m11s
 service/emco-tools-fluentd-forwarder    ClusterIP   10.233.21.81    <none>        9880/TCP                        2m11s
 service/emco-tools-fluentd-headless     ClusterIP   None            <none>        24224/TCP                       2m11s
-service/gac                             NodePort    10.233.16.181   <none>        9033:30493/TCP,9020:30491/TCP   3m8s
-service/ncm                             NodePort    10.233.11.199   <none>        9081:30431/TCP                  3m8s
+service/gac                             NodePort    10.233.16.181   <none>        9033:30433/TCP,9020:30420/TCP   3m8s
+service/ncm                             NodePort    10.233.11.199   <none>        9081:30481/TCP                  3m8s
 service/orchestrator                    NodePort    10.233.54.64    <none>        9015:30415/TCP                  3m8s
-service/ovnaction                       NodePort    10.233.42.62    <none>        9053:30473/TCP,9051:30471/TCP   3m8s
-service/rsync                           NodePort    10.233.5.126    <none>        9031:30441/TCP                  3m8s
+service/ovnaction                       NodePort    10.233.42.62    <none>        9032:30432/TCP,9051:30451/TCP   3m8s
+service/rsync                           NodePort    10.233.5.126    <none>        9031:30431/TCP                  3m8s
 
 NAME                                DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
 daemonset.apps/emco-tools-fluentd   2         2         2       2            2           <none>          2m11s
