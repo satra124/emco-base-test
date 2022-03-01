@@ -11,6 +11,7 @@ import (
 	statusnotifypb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/statusnotify"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/statusnotifyserver"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 )
 
 type clusterHelpers struct{}
@@ -44,29 +45,32 @@ func (d clusterHelpers) GetAppContextId(reg *statusnotifypb.StatusRegistration) 
 	return state.GetStatusContextIdFromStateInfo(si), nil
 }
 
-func (d clusterHelpers) PrepareStatusNotification(reg *statusnotifypb.StatusRegistration) *statusnotifypb.StatusNotification {
-	n := new(statusnotifypb.StatusNotification)
-
+func (d clusterHelpers) StatusQuery(reg *statusnotifypb.StatusRegistration, qInstance, qType, qOutput string, qApps, qClusters, qResources []string) status.StatusResult {
 	clusterProvider, cluster, err := getClusterKeyValues(reg)
 	if err != nil {
-		return n
+		return status.StatusResult{}
 	}
 
-	statusType, output, apps, clusters, resources := statusnotifyserver.GetStatusParameters(reg)
-
-	statusResult, err := scheduler.NewSchedulerClient().NetworkIntentsStatus(clusterProvider, cluster, "", statusType, output, apps, clusters, resources)
+	statusResult, err := scheduler.NewSchedulerClient().GenericNetworkIntentsStatus(clusterProvider, cluster, qInstance, qType, qOutput, qApps, qClusters, qResources)
 	if err != nil {
-		return n
+		return status.StatusResult{}
 	}
+	return statusResult
+}
 
-	if statusResult.Status == appcontext.AppContextStatusEnum.Instantiated {
+func (d clusterHelpers) PrepareStatusNotification(reg *statusnotifypb.StatusRegistration, statusResult status.StatusResult) *statusnotifypb.StatusNotification {
+	n := new(statusnotifypb.StatusNotification)
+
+	if statusResult.DeployedStatus == appcontext.AppContextStatusEnum.Instantiated {
 		switch reg.StatusType {
 		case statusnotifypb.StatusValue_DEPLOYED:
 			n.StatusValue = statusnotifypb.StatusValue_DEPLOYED
 		case statusnotifypb.StatusValue_READY:
-			// TODO:  calling the cluster READY in this case is an assumption.  'monitor' does not currently
-			// return information about cluster resources, so the real status is unknown.
-			n.StatusValue = statusnotifypb.StatusValue_READY
+			if statusResult.ReadyStatus == "Ready" {
+				n.StatusValue = statusnotifypb.StatusValue_READY
+			} else {
+				n.StatusValue = statusnotifypb.StatusValue_NOT_READY
+			}
 		}
 	} else {
 		switch reg.StatusType {
@@ -77,34 +81,58 @@ func (d clusterHelpers) PrepareStatusNotification(reg *statusnotifypb.StatusRegi
 		}
 	}
 
-	// NOTE: skip details for type READY, as 'monitor' does not currently return cluster network resource information.
-	if reg.Output == statusnotifypb.OutputType_ALL && reg.StatusType == statusnotifypb.StatusValue_DEPLOYED {
+	if reg.Output == statusnotifypb.OutputType_ALL {
 		details := make([]*statusnotifypb.StatusDetail, 0)
-
-		clusterStatus := statusnotifypb.ClusterStatus{}
-		clusterStatus.Cluster = statusResult.Cluster.Cluster
-		clusterStatus.ClusterProvider = statusResult.Cluster.ClusterProvider
-		resources := make([]*statusnotifypb.ResourceStatus, 0)
-		clusterDeployed := true
-		for _, resource := range statusResult.Cluster.Resources {
-			resourceStatus := statusnotifypb.ResourceStatus{}
-			resourceStatus.Name = resource.Name
-			resourceStatus.Gvk = &statusnotifypb.GVK{Group: resource.Gvk.Group, Version: resource.Gvk.Version, Kind: resource.Gvk.Kind}
-			if resource.RsyncStatus == "Applied" {
-				resourceStatus.StatusValue = statusnotifypb.StatusValue_DEPLOYED
-			} else {
-				resourceStatus.StatusValue = statusnotifypb.StatusValue_NOT_DEPLOYED
-				clusterDeployed = false
+		for _, app := range statusResult.Apps {
+			clusters := make([]*statusnotifypb.ClusterStatus, 0)
+			for _, cluster := range app.Clusters {
+				clusterStatus := statusnotifypb.ClusterStatus{}
+				clusterStatus.Cluster = cluster.Cluster
+				clusterStatus.ClusterProvider = cluster.ClusterProvider
+				resources := make([]*statusnotifypb.ResourceStatus, 0)
+				clusterDeployed := true
+				clusterReady := true
+				for _, resource := range cluster.Resources {
+					resourceStatus := statusnotifypb.ResourceStatus{}
+					resourceStatus.Name = resource.Name
+					resourceStatus.Gvk = &statusnotifypb.GVK{Group: resource.Gvk.Group, Version: resource.Gvk.Version, Kind: resource.Gvk.Kind}
+					switch reg.StatusType {
+					case statusnotifypb.StatusValue_DEPLOYED:
+						if resource.DeployedStatus == "Applied" {
+							resourceStatus.StatusValue = statusnotifypb.StatusValue_DEPLOYED
+						} else {
+							resourceStatus.StatusValue = statusnotifypb.StatusValue_NOT_DEPLOYED
+							clusterDeployed = false
+						}
+					case statusnotifypb.StatusValue_READY:
+						if resource.ReadyStatus == "Ready" {
+							resourceStatus.StatusValue = statusnotifypb.StatusValue_READY
+						} else {
+							resourceStatus.StatusValue = statusnotifypb.StatusValue_NOT_READY
+							clusterReady = false
+						}
+					}
+					resources = append(resources, &resourceStatus)
+				}
+				switch reg.StatusType {
+				case statusnotifypb.StatusValue_DEPLOYED:
+					if clusterDeployed {
+						clusterStatus.StatusValue = statusnotifypb.StatusValue_DEPLOYED
+					} else {
+						clusterStatus.StatusValue = statusnotifypb.StatusValue_NOT_DEPLOYED
+					}
+				case statusnotifypb.StatusValue_READY:
+					if clusterReady {
+						clusterStatus.StatusValue = statusnotifypb.StatusValue_READY
+					} else {
+						clusterStatus.StatusValue = statusnotifypb.StatusValue_NOT_READY
+					}
+				}
+				clusterStatus.Resources = resources
+				clusters = append(clusters, &clusterStatus)
+				details = append(details, &statusnotifypb.StatusDetail{StatusDetail: &statusnotifypb.StatusDetail_Cluster{Cluster: &clusterStatus}})
 			}
-			resources = append(resources, &resourceStatus)
 		}
-		if clusterDeployed {
-			clusterStatus.StatusValue = statusnotifypb.StatusValue_DEPLOYED
-		} else {
-			clusterStatus.StatusValue = statusnotifypb.StatusValue_NOT_DEPLOYED
-		}
-		clusterStatus.Resources = resources
-		details = append(details, &statusnotifypb.StatusDetail{StatusDetail: &statusnotifypb.StatusDetail_Cluster{Cluster: &clusterStatus}})
 		n.Details = details
 	}
 

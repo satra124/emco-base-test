@@ -555,14 +555,14 @@ func getListOfApps(ac appcontext.AppContext) []string {
 }
 
 // types of status queries
-const clusterStatus = "clusterStatus"
-const deploymentIntentGroupStatus = "digStatus"
-const lcStatus = "lcStatus"
+const ClusterStatusQuery = "clusterStatus"
+const DeploymentIntentGroupStatusQuery = "digStatus"
+const LcStatusQuery = "lcStatus"
 
 // PrepareClusterStatusResult takes in a resource stateInfo object, the list of apps and the query parameters.
 // It then fills out the StatusResult structure appropriately from information in the AppContext
 func PrepareClusterStatusResult(stateInfo state.StateInfo, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (ClusterStatusResult, error) {
-	status, err := prepareStatusResult(clusterStatus, stateInfo, qInstance, qType, qOutput, fApps, fClusters, fResources)
+	status, err := prepareStatusResult(ClusterStatusQuery, stateInfo, qInstance, qType, qOutput, fApps, fClusters, fResources)
 	if err != nil {
 		return ClusterStatusResult{}, err
 	} else {
@@ -598,7 +598,7 @@ func PrepareClusterStatusResult(stateInfo state.StateInfo, qInstance, qType, qOu
 func PrepareLCStatusResult(stateInfo state.StateInfo) (LCStatusResult, error) {
 	var emptyList []string
 	// NOTE - dcm should eventually support (and pass in) the set of status query attributes
-	status, err := prepareStatusResult(lcStatus, stateInfo, "", "deployed", "", emptyList, emptyList, emptyList)
+	status, err := prepareStatusResult(LcStatusQuery, stateInfo, "", "deployed", "", emptyList, emptyList, emptyList)
 	if err != nil {
 		return LCStatusResult{}, err
 	} else {
@@ -614,10 +614,16 @@ func PrepareLCStatusResult(stateInfo state.StateInfo) (LCStatusResult, error) {
 	}
 }
 
+// GenericPrepareStatusResult takes in a resource stateInfo object, the list of apps and the query parameters.
+// It then fills out the StatusResult structure appropriately from information in the AppContext
+func GenericPrepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (StatusResult, error) {
+	return prepareStatusResult(statusType, stateInfo, qInstance, qType, qOutput, fApps, fClusters, fResources)
+}
+
 // PrepareStatusResult takes in a resource stateInfo object, the list of apps and the query parameters.
 // It then fills out the StatusResult structure appropriately from information in the AppContext
 func PrepareStatusResult(stateInfo state.StateInfo, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (StatusResult, error) {
-	return prepareStatusResult(deploymentIntentGroupStatus, stateInfo, qInstance, qType, qOutput, fApps, fClusters, fResources)
+	return prepareStatusResult(DeploymentIntentGroupStatusQuery, stateInfo, qInstance, qType, qOutput, fApps, fClusters, fResources)
 }
 
 // covenience fn that ignores the index returned by GetSliceContains
@@ -696,7 +702,7 @@ func prepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance
 	// Get the composite app meta
 	caMeta, err := sac.GetCompositeAppMeta()
 
-	if statusType != lcStatus && statusType != clusterStatus {
+	if statusType != LcStatusQuery && statusType != ClusterStatusQuery {
 		if err != nil {
 			return StatusResult{}, pkgerrors.Wrap(err, "Error getting CompositeAppMeta")
 		}

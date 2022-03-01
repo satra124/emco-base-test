@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright (c) 2020-2021 Intel Corporation
+// Copyright (c) 2020-2022 Intel Corporation
 
 package statusnotifyserver
 
@@ -7,6 +7,7 @@ import (
 	"context"
 	"io"
 	"sync"
+	"time"
 
 	pkgerrors "github.com/pkg/errors"
 	inc "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/installappclient"
@@ -14,13 +15,15 @@ import (
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 	readynotifypb "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/readynotify"
 )
 
 // StatusNotifyServerHelpers is an interface supported by the specific microservices that need to provide status notification
 type StatusNotifyServerHelpers interface {
 	GetAppContextId(reg *pb.StatusRegistration) (string, error)
-	PrepareStatusNotification(reg *pb.StatusRegistration) *pb.StatusNotification
+	StatusQuery(reg *pb.StatusRegistration, qInstance, qType, qOutput string, qApps, qClusters, qResources []string) status.StatusResult
+	PrepareStatusNotification(reg *pb.StatusRegistration, statusResult status.StatusResult) *pb.StatusNotification
 }
 
 // streamInfo contains information about a given status notification stream, including:
@@ -32,9 +35,17 @@ type streamInfo struct {
 	appContextID string
 }
 
+type filters struct {
+	qOutputSummary bool
+	apps           map[string]struct{}
+	clusters       map[string]struct{}
+	resources      map[string]struct{}
+}
+
 type appContextInfo struct {
 	readyNotifyStream readynotifypb.ReadyNotify_AlertClient
 	statusClientIDs   map[string]struct{}
+	queryFilters      map[string]filters // up to two entries:  "ready", "deployed"
 }
 
 // StatusNotifyServer will be initialized by NewStatusNotifyServer() and
@@ -52,6 +63,169 @@ type StatusNotifyServer struct {
 }
 
 var notifServer *StatusNotifyServer
+
+func updateQueryFilters(clientId string, deleteFlag bool) {
+	appContextID := notifServer.statusClients[clientId].appContextID
+
+	deployedOutputSummary := true
+	deployedApps := make(map[string]struct{})
+	deployedClusters := make(map[string]struct{})
+	deployedResources := make(map[string]struct{})
+	readyOutputSummary := true
+	readyApps := make(map[string]struct{})
+	readyClusters := make(map[string]struct{})
+	readyResources := make(map[string]struct{})
+
+	// run through all registrations for the appContextID and compile current set of query filters
+	readyCnt := 0
+	deployedCnt := 0
+	for client, si := range notifServer.statusClients {
+		if deleteFlag && client == clientId {
+			continue
+		}
+		if _, ok := notifServer.appContexts[appContextID].statusClientIDs[client]; !ok {
+			continue
+		}
+		ready := true
+		if si.reg.StatusType == pb.StatusValue_DEPLOYED {
+			ready = false
+		}
+		if si.reg.Output == pb.OutputType_ALL {
+			if ready {
+				readyOutputSummary = false
+			} else {
+				deployedOutputSummary = false
+			}
+		}
+
+		if ready {
+			if readyCnt == 0 || (len(si.reg.Apps) > 0 && len(readyApps) > 0) {
+				for _, r := range si.reg.Apps {
+					readyApps[r] = struct{}{}
+				}
+			} else {
+				if readyCnt > 0 && len(readyApps) > 0 {
+					readyApps = make(map[string]struct{})
+				}
+			}
+			if readyCnt == 0 || (len(si.reg.Clusters) > 0 && len(readyClusters) > 0) {
+				for _, r := range si.reg.Clusters {
+					readyClusters[r] = struct{}{}
+				}
+			} else {
+				if readyCnt > 0 && len(readyClusters) > 0 {
+					readyClusters = make(map[string]struct{})
+				}
+			}
+			if readyCnt == 0 || (len(si.reg.Resources) > 0 && len(readyResources) > 0) {
+				for _, r := range si.reg.Resources {
+					readyResources[r] = struct{}{}
+				}
+			} else {
+				if readyCnt > 0 && len(readyResources) > 0 {
+					readyResources = make(map[string]struct{})
+				}
+			}
+			readyCnt++
+		} else {
+			if deployedCnt == 0 || (len(si.reg.Apps) > 0 && len(deployedApps) > 0) {
+				for _, r := range si.reg.Apps {
+					deployedApps[r] = struct{}{}
+				}
+			} else {
+				if deployedCnt > 0 && len(deployedApps) > 0 {
+					deployedApps = make(map[string]struct{})
+				}
+			}
+			if deployedCnt == 0 || (len(si.reg.Clusters) > 0 && len(deployedClusters) > 0) {
+				for _, r := range si.reg.Clusters {
+					deployedClusters[r] = struct{}{}
+				}
+			} else {
+				if deployedCnt > 0 && len(deployedClusters) > 0 {
+					deployedClusters = make(map[string]struct{})
+				}
+			}
+			if deployedCnt == 0 || (len(si.reg.Resources) > 0 && len(deployedResources) > 0) {
+				for _, r := range si.reg.Resources {
+					deployedResources[r] = struct{}{}
+				}
+			} else {
+				if deployedCnt > 0 && len(deployedResources) > 0 {
+					deployedResources = make(map[string]struct{})
+				}
+			}
+			deployedCnt++
+		}
+	}
+	updatedFilters := make(map[string]filters)
+	updatedFilters["ready"] = filters{
+		qOutputSummary: readyOutputSummary,
+		apps:           readyApps,
+		clusters:       readyClusters,
+		resources:      readyResources,
+	}
+	updatedFilters["deployed"] = filters{
+		qOutputSummary: deployedOutputSummary,
+		apps:           deployedApps,
+		clusters:       deployedClusters,
+		resources:      deployedResources,
+	}
+	acInfo := notifServer.appContexts[appContextID]
+	acInfo.queryFilters = updatedFilters
+	notifServer.appContexts[appContextID] = acInfo
+}
+
+func queryNeeded(qType string, apps, clusters map[string]struct{}, acInfo appContextInfo) (bool, string, []string, []string, []string) {
+	doQuery := false
+	var qOutput string
+	qApps := make([]string, 0)
+	qClusters := make([]string, 0)
+	qResources := make([]string, 0)
+
+	if len(apps) == 0 && len(clusters) == 0 {
+		return false, "", qApps, qClusters, qResources
+	}
+
+	filters := acInfo.queryFilters[qType]
+	if len(filters.apps) == 0 {
+		doQuery = true
+		for app, _ := range apps {
+			qApps = append(qApps, app)
+		}
+	} else {
+		for app, _ := range apps {
+			if _, ok := filters.apps[app]; ok {
+				qApps = append(qApps, app)
+				doQuery = true
+			}
+		}
+	}
+	if !doQuery {
+		return false, "", qApps, qClusters, qResources
+	}
+
+	if len(filters.clusters) == 0 {
+		doQuery = true
+		for cluster, _ := range clusters {
+			qClusters = append(qClusters, cluster)
+		}
+	} else {
+		for cluster, _ := range clusters {
+			if _, ok := filters.clusters[cluster]; ok {
+				qClusters = append(qClusters, cluster)
+				doQuery = true
+			}
+		}
+	}
+
+	if filters.qOutputSummary {
+		qOutput = "summary"
+	} else {
+		qOutput = "all"
+	}
+	return doQuery, qOutput, qApps, qClusters, qResources
+}
 
 // StatusRegister gets notified when a client registers for a status notification stream for a given resource
 func (s *StatusNotifyServer) StatusRegister(reg *pb.StatusRegistration, stream pb.StatusNotify_StatusRegisterServer) error {
@@ -86,6 +260,7 @@ func (s *StatusNotifyServer) StatusRegister(reg *pb.StatusRegistration, stream p
 		s.appContexts[appContextID] = appContextInfo{
 			readyNotifyStream: nil,
 			statusClientIDs:   make(map[string]struct{}),
+			queryFilters:      make(map[string]filters),
 		}
 		needReadyNotifyStream = true
 		log.Info("[StatusNotify gRPC] (TODO DEBUG) Adding appContextInfo, need Ready Notify Stream",
@@ -99,6 +274,8 @@ func (s *StatusNotifyServer) StatusRegister(reg *pb.StatusRegistration, stream p
 		reg:          reg,
 		appContextID: appContextID,
 	}
+
+	updateQueryFilters(clientId, false)
 
 	// update streamChannels
 	s.streamChannels[stream] = make(chan int)
@@ -136,7 +313,7 @@ func (s *StatusNotifyServer) StatusRegister(reg *pb.StatusRegistration, stream p
 		log.Info("[StatusNotify gRPC] ready to start sending status notifications",
 			log.Fields{"appContextID": appContextID, "client": clientId})
 		wg.Add(1)
-		go sendStatusNotifications(readyNotifyStream, &wg)
+		go sendStatusNotifications(readyNotifyStream, &wg, appContextID)
 	} else {
 		s.mutex.Unlock()
 	}
@@ -159,57 +336,87 @@ func (s *StatusNotifyServer) StatusRegister(reg *pb.StatusRegistration, stream p
 }
 
 // SendStatusNotification sends a status notification message to the subscriber
-func sendStatusNotifications(stream readynotifypb.ReadyNotify_AlertClient, wg *sync.WaitGroup) error {
-	var appContextID string
+func sendStatusNotifications(stream readynotifypb.ReadyNotify_AlertClient, wg *sync.WaitGroup, appContextID string) error {
 
-	// TESTING loop - send notifications to everyone every 10 seconds
-	notifServer.mutex.Lock()
-	for appContextID, _ := range notifServer.appContexts {
-		acInfo, _ := notifServer.appContexts[appContextID]
-		for clientId, _ := range acInfo.statusClientIDs {
-			si := notifServer.statusClients[clientId]
-			err := si.stream.Send(notifServer.sh.PrepareStatusNotification(si.reg))
-			if err != nil {
-				log.Error("[StatusNotify gRPC] TEST Status notification failed to be sent", log.Fields{"clientId": clientId, "err": err})
-				// return pkgerrors.New("Notification failed")
-			} else {
-				log.Info("[StatusNotify gRPC] TEST Status notification was sent", log.Fields{"clientId": clientId, "appContextID": appContextID})
-			}
-		}
-	}
-	notifServer.mutex.Unlock()
-
+	tLast := time.Now()
 	for true {
+		apps := make(map[string]struct{})
+		clusters := make(map[string]struct{})
 
-		resp, err := stream.Recv()
-		// TODO: some kind of throttle mechanism needed? (in the case of receiving many events at once)
-		if err != nil {
-			if err == io.EOF {
-				log.Error("[StatusNotify gRPC] ReadyNotify stream closed due to EOF", log.Fields{"err": err})
-			} else {
-				// some other error - figure out how to reconnect ?
-				log.Error("[StatusNotify gRPC] Failed to receive notification", log.Fields{"err": err})
+		// accumulate apps/clusters for up to the rate limit time period
+		for true {
+			resp, err := stream.Recv()
+			if err != nil {
+				if err == io.EOF {
+					log.Error("[StatusNotify gRPC] ReadyNotify stream closed due to EOF", log.Fields{"err": err})
+				} else {
+					// some other error - figure out how to reconnect ?
+					log.Error("[StatusNotify gRPC] Failed to receive notification", log.Fields{"err": err})
+				}
+				wg.Done()
+				return err
 			}
-			wg.Done()
-			return err
+
+			apps[resp.App] = struct{}{}
+			clusters[resp.Cluster] = struct{}{}
+
+			tNow := time.Now()
+			if tNow.Sub(tLast) > 3*time.Second {
+				tLast = tNow
+				break
+			}
 		}
 
 		notifServer.mutex.Lock()
-		acInfo, ok := notifServer.appContexts[resp.AppContext]
+		acInfo, ok := notifServer.appContexts[appContextID]
 		if !ok {
 			notifServer.mutex.Unlock()
-			log.Warn("[StatusNotify gRPC] Received a ReadyNotify alert from rsync for missing appContext", log.Fields{"appContextID": appContextID})
+			log.Warn("[StatusNotify gRPC] Received a ReadyNotify alert from rsync for missing appContext", log.Fields{"appContextID": appContextID, "apps": apps, "clusters": clusters})
 			continue
 		}
 
-		// For a given alert, send a status notification to each status client watching the appcontextId
-		for clientId, _ := range acInfo.statusClientIDs {
-			si := notifServer.statusClients[clientId]
-			err := si.stream.Send(notifServer.sh.PrepareStatusNotification(si.reg))
-			if err != nil {
-				log.Error("[StatusNotify gRPC] Status notification failed to be sent", log.Fields{"clientId": clientId, "err": err})
-			} else {
-				log.Info("[StatusNotify gRPC] Status notification was sent", log.Fields{"clientId": clientId, "appContextID": appContextID})
+		// loop through each type of status query
+		// do one query for each type that will satisfy all registrations as well as the set of evetns which
+		// have occurred
+		// prepare and send notifications for all registrations
+		for _, qType := range []string{"ready", "deployed"} {
+			doQuery, qOutput, qApps, qClusters, qResources := queryNeeded(qType, apps, clusters, acInfo)
+
+			if !doQuery {
+				continue
+			}
+
+			// get any client registration for this appContextID - this will just be used to get the key elements
+			// the key elements are expected to be identical for all regsitrations that resolve to this appContextID
+			var reg *pb.StatusRegistration
+			gotReg := false
+			for clientId, _ := range acInfo.statusClientIDs {
+				si := notifServer.statusClients[clientId]
+				reg = si.reg
+				gotReg = true
+				break
+			}
+			if !gotReg {
+				log.Error("[StatusNotify gRPC] Status registration not found", log.Fields{"appContextID": appContextID})
+				continue
+			}
+
+			statusResult := notifServer.sh.StatusQuery(reg, appContextID, qType, qOutput, qApps, qClusters, qResources)
+
+			// For a given alert, send a status notification to each status client watching the appcontextId
+			for clientId, _ := range acInfo.statusClientIDs {
+				si := notifServer.statusClients[clientId]
+				if (si.reg.StatusType == pb.StatusValue_READY && qType != "ready") ||
+					(si.reg.StatusType == pb.StatusValue_DEPLOYED && qType != "deployed") {
+					continue
+				}
+
+				err := si.stream.Send(notifServer.sh.PrepareStatusNotification(si.reg, statusResult))
+				if err != nil {
+					log.Error("[StatusNotify gRPC] Status notification failed to be sent", log.Fields{"clientId": clientId, "err": err})
+				} else {
+					log.Info("[StatusNotify gRPC] Status notification was sent", log.Fields{"clientId": clientId, "appContextID": appContextID})
+				}
 			}
 		}
 		notifServer.mutex.Unlock()
@@ -229,13 +436,15 @@ func cleanup(clientId string) {
 		// client already deregistered, or never existed
 		return
 	}
-	delete(notifServer.statusClients, clientId)
-	delete(notifServer.streamChannels, si.stream)
+
+	updateQueryFilters(clientId, true)
 
 	// remove the clientId from the appContext Info
 	acInfo, ok := notifServer.appContexts[si.appContextID]
 	if !ok {
 		// this should not occur, but appcontext is clear already
+		delete(notifServer.statusClients, clientId)
+		delete(notifServer.streamChannels, si.stream)
 		return
 	}
 	delete(acInfo.statusClientIDs, clientId)
@@ -250,6 +459,8 @@ func cleanup(clientId string) {
 		delete(notifServer.appContexts, si.appContextID)
 		log.Info("[StatusNotify gRPC] Cleaned up appContextId after last client removed", log.Fields{"clientId": clientId, "appContextID": si.appContextID})
 	}
+	delete(notifServer.statusClients, clientId)
+	delete(notifServer.streamChannels, si.stream)
 
 	log.Info("[StatusNotify gRPC] Cleaned up clientId", log.Fields{"clientId": clientId, "appContextID": si.appContextID})
 	return
@@ -347,14 +558,14 @@ func GetStatusParameters(reg *pb.StatusRegistration) (string, string, []string, 
 
 	switch reg.StatusType {
 	case pb.StatusValue_READY:
-		statusType = "cluster"
+		statusType = "ready"
 	case pb.StatusValue_DEPLOYED:
-		statusType = "rsync"
+		statusType = "deployed"
 	}
 
 	switch reg.Output {
 	case pb.OutputType_SUMMARY:
-		output = "cluster"
+		output = "summary"
 	case pb.OutputType_ALL:
 		output = "all"
 	}

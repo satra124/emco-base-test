@@ -10,6 +10,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/statusnotifyserver"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 )
 
 type digHelpers struct{}
@@ -43,30 +44,31 @@ func (d digHelpers) GetAppContextId(reg *statusnotifypb.StatusRegistration) (str
 	return state.GetStatusContextIdFromStateInfo(si), nil
 }
 
-// PrepareStatusNotification invokes the Status() function with the registered parameters and filters.
-// The status result is used to populate and return a StatusNotification.
-func (d digHelpers) PrepareStatusNotification(reg *statusnotifypb.StatusRegistration) *statusnotifypb.StatusNotification {
-	n := new(statusnotifypb.StatusNotification)
+func (d digHelpers) StatusQuery(reg *statusnotifypb.StatusRegistration, qInstance, qType, qOutput string, qApps, qClusters, qResources []string) status.StatusResult {
 
 	p, ca, v, di, err := getDigKeyValues(reg)
 	if err != nil {
-		return n
+		return status.StatusResult{}
 	}
 
-	statusType, output, apps, clusters, resources := statusnotifyserver.GetStatusParameters(reg)
-
-	statusResult, err := module.NewInstantiationClient().Status(p, ca, v, di, "", statusType, output, apps, clusters, resources)
+	statusResult, err := module.NewInstantiationClient().GenericStatus(p, ca, v, di, qInstance, qType, qOutput, qApps, qClusters, qResources)
 	if err != nil {
-		return n
+		return status.StatusResult{}
 	}
+	return statusResult
+}
 
-	if statusResult.Status == appcontext.AppContextStatusEnum.Instantiated {
+// PrepareStatusNotification invokes the Status() function with the registered parameters and filters.
+// The status result is used to populate and return a StatusNotification.
+func (d digHelpers) PrepareStatusNotification(reg *statusnotifypb.StatusRegistration, statusResult status.StatusResult) *statusnotifypb.StatusNotification {
+	n := new(statusnotifypb.StatusNotification)
+
+	if statusResult.DeployedStatus == appcontext.AppContextStatusEnum.Instantiated {
 		switch reg.StatusType {
 		case statusnotifypb.StatusValue_DEPLOYED:
 			n.StatusValue = statusnotifypb.StatusValue_DEPLOYED
 		case statusnotifypb.StatusValue_READY:
-			_, ok := statusResult.ClusterStatus["NotReady"]
-			if len(statusResult.ClusterStatus) > 0 && !ok {
+			if statusResult.ReadyStatus == "Ready" {
 				n.StatusValue = statusnotifypb.StatusValue_READY
 			} else {
 				n.StatusValue = statusnotifypb.StatusValue_NOT_READY
@@ -102,14 +104,14 @@ func (d digHelpers) PrepareStatusNotification(reg *statusnotifypb.StatusRegistra
 					resourceStatus.Gvk = &statusnotifypb.GVK{Group: resource.Gvk.Group, Version: resource.Gvk.Version, Kind: resource.Gvk.Kind}
 					switch reg.StatusType {
 					case statusnotifypb.StatusValue_DEPLOYED:
-						if resource.RsyncStatus == "Applied" {
+						if resource.DeployedStatus == "Applied" {
 							resourceStatus.StatusValue = statusnotifypb.StatusValue_DEPLOYED
 						} else {
 							resourceStatus.StatusValue = statusnotifypb.StatusValue_NOT_DEPLOYED
 							clusterDeployed = false
 						}
 					case statusnotifypb.StatusValue_READY:
-						if resource.ClusterStatus == "Ready" {
+						if resource.ReadyStatus == "Ready" {
 							resourceStatus.StatusValue = statusnotifypb.StatusValue_READY
 						} else {
 							resourceStatus.StatusValue = statusnotifypb.StatusValue_NOT_READY

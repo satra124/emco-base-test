@@ -11,6 +11,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 
 	pkgerrors "github.com/pkg/errors"
 )
@@ -58,6 +59,7 @@ type LogicalCloudManager interface {
 	GetState(p string, lc string) (state.StateInfo, error)
 	Delete(project, name string) error
 	Update(project, name string, c LogicalCloud) (LogicalCloud, error)
+	GenericStatus(project, name, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (status.StatusResult, error)
 }
 
 // LogicalCloudClient implements the LogicalCloudManager
@@ -328,4 +330,24 @@ func GetAppContextStatus(ac appcontext.AppContext) (*appcontext.AppContextStatus
 	json.Unmarshal(js, &acStatus)
 
 	return &acStatus, nil
+}
+
+/*
+GenericStatus takes in projectName, logicalCloud name,
+This method is responsible obtaining the status of
+the logical, which is made available in the appcontext.
+*/
+func (v *LogicalCloudClient) GenericStatus(project, logicalCloud, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (status.StatusResult, error) {
+	state, err := v.GetState(project, logicalCloud)
+	if err != nil {
+		return status.StatusResult{}, pkgerrors.Wrap(err, "LogicalCloud state not found: "+logicalCloud)
+	}
+
+	statusResponse, err := status.GenericPrepareStatusResult(status.LcStatusQuery, state, qInstance, qType, qOutput, fApps, fClusters, fResources)
+	if err != nil {
+		return status.StatusResult{}, err
+	}
+	statusResponse.Name = logicalCloud
+
+	return statusResponse, nil
 }

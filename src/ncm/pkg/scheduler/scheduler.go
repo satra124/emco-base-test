@@ -30,6 +30,7 @@ const rsyncName = "rsync"
 type SchedulerManager interface {
 	ApplyNetworkIntents(clusterProvider, cluster string) error
 	NetworkIntentsStatus(clusterProvider, cluster, qInstance, qType, qOutput string, qApps, qClusters, qResources []string) (ClusterStatus, error)
+	GenericNetworkIntentsStatus(clusterProvider, cluster, qInstance, qType, qOutput string, qApps, qClusters, qResources []string) (status.StatusResult, error)
 	TerminateNetworkIntents(clusterProvider, cluster string) error
 	StopNetworkIntents(clusterProvider, cluster string) error
 }
@@ -403,4 +404,26 @@ func (c SchedulerClient) NetworkIntentsStatus(clusterProvider, cluster, qInstanc
 	}
 
 	return clStatus, nil
+}
+
+/*
+GenericNetworkIntentsStatus takes in cluster provider, cluster and query parameters.
+This method is responsible obtaining the status of
+the cluster network intents, which is made available in the appcontext
+It returns the full StatusResult structure so it can be used with the status notification framework.
+*/
+func (c SchedulerClient) GenericNetworkIntentsStatus(clusterProvider, cluster, qInstance, qType, qOutput string, qApps, qClusters, qResources []string) (status.StatusResult, error) {
+
+	s, err := clusterPkg.NewClusterClient().GetClusterState(clusterProvider, cluster)
+	if err != nil {
+		return status.StatusResult{}, pkgerrors.Wrap(err, "Cluster state not found")
+	}
+
+	statusResponse, err := status.GenericPrepareStatusResult(status.ClusterStatusQuery, s, qInstance, qType, qOutput, qApps, qClusters, qResources)
+	if err != nil {
+		return status.StatusResult{}, err
+	}
+	statusResponse.Name = clusterProvider + "+" + cluster
+
+	return statusResponse, nil
 }

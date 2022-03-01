@@ -44,23 +44,25 @@ func (d lcHelpers) GetAppContextId(reg *statusnotifypb.StatusRegistration) (stri
 	return state.GetStatusContextIdFromStateInfo(si), nil
 }
 
-func (d lcHelpers) PrepareStatusNotification(reg *statusnotifypb.StatusRegistration) *statusnotifypb.StatusNotification {
-	n := new(statusnotifypb.StatusNotification)
-
+func (d lcHelpers) StatusQuery(reg *statusnotifypb.StatusRegistration, qInstance, qType, qOutput string, qApps, qClusters, qResources []string) status.StatusResult {
 	p, lc, err := getLcKeyValues(reg)
 	if err != nil {
-		return n
+		return status.StatusResult{}
 	}
+
+	statusResult, err := dcm.NewLogicalCloudClient().GenericStatus(p, lc, qInstance, qType, qOutput, qApps, qClusters, qResources)
+	if err != nil {
+		return status.StatusResult{}
+	}
+	return statusResult
+}
+
+func (d lcHelpers) PrepareStatusNotification(reg *statusnotifypb.StatusRegistration, statusResult status.StatusResult) *statusnotifypb.StatusNotification {
+	n := new(statusnotifypb.StatusNotification)
 
 	// TODO: use when logical cloud status supports these filter parameters
 	//statusType, output, apps, clusters, resources := statusnotifyserver.GetStatusParameters(reg)
-
-	si, err := dcm.NewLogicalCloudClient().GetState(p, lc)
-	if err != nil {
-		return n
-	}
-
-	statusResult, err := status.PrepareLCStatusResult(si)
+	// TODO: fix up once dcm more fully supports the status query
 
 	if statusResult.Status == appcontext.AppContextStatusEnum.Instantiated {
 		switch reg.StatusType {

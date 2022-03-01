@@ -95,6 +95,7 @@ type InstantiationManager interface {
 	Approve(p string, ca string, v string, di string) error
 	Instantiate(p string, ca string, v string, di string) error
 	Status(p, ca, v, di, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (DeploymentStatus, error)
+	GenericStatus(p, ca, v, di, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (status.StatusResult, error)
 	StatusAppsList(p, ca, v, di, qInstance string) (DeploymentAppsListStatus, error)
 	StatusClustersByApp(p, ca, v, di, qInstance string, fApps []string) (DeploymentClustersByAppStatus, error)
 	StatusResourcesByApp(p, ca, v, di, qInstance, qType string, fApps, fClusters []string) (DeploymentResourcesByAppStatus, error)
@@ -199,6 +200,7 @@ func findGenericPlacementIntent(p, ca, v, di string) (string, error) {
 	log.Info(":: generic-placement-intent not found ! ::", log.Fields{"Searched for GenPlmtIntent": GenericPlacementIntentName})
 	return gi, pkgerrors.New("GenericPlacementIntent not found")
 }
+
 // GetSortedTemplateForApp returns the sorted templates.
 //It takes in arguments - appName, project, compositeAppName, releaseName, compositeProfileName, array of override values
 func GetSortedTemplateForApp(appName, p, ca, v, rName, cp, namespace string, overrideValues []OverrideValues) ([]helm.KubernetesResourceTemplate, []*helm.Hook, error) {
@@ -462,6 +464,26 @@ func (c InstantiationClient) Status(p, ca, v, di, qInstance, qType, qOutput stri
 	}
 
 	return diStatus, nil
+}
+
+/*
+GenericStatus takes in projectName, compositeAppName, compositeAppVersion,
+DeploymentIntentName. This method is responsible obtaining the status of
+the deployment, which is made available in the appcontext.
+*/
+func (c InstantiationClient) GenericStatus(p, ca, v, di, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (status.StatusResult, error) {
+	diState, err := NewDeploymentIntentGroupClient().GetDeploymentIntentGroupState(di, p, ca, v)
+	if err != nil {
+		return status.StatusResult{}, pkgerrors.Wrap(err, "DeploymentIntentGroup state not found: "+di)
+	}
+
+	statusResponse, err := status.GenericPrepareStatusResult(status.DeploymentIntentGroupStatusQuery, diState, qInstance, qType, qOutput, fApps, fClusters, fResources)
+	if err != nil {
+		return status.StatusResult{}, err
+	}
+	statusResponse.Name = di
+
+	return statusResponse, nil
 }
 
 /*
