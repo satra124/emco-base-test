@@ -45,13 +45,13 @@ func (d clusterHelpers) GetAppContextId(reg *statusnotifypb.StatusRegistration) 
 	return state.GetStatusContextIdFromStateInfo(si), nil
 }
 
-func (d clusterHelpers) StatusQuery(reg *statusnotifypb.StatusRegistration, qInstance, qType, qOutput string, qApps, qClusters, qResources []string) status.StatusResult {
+func (d clusterHelpers) StatusQuery(reg *statusnotifypb.StatusRegistration, qStatusInstance, qType, qOutput string, qApps, qClusters, qResources []string) status.StatusResult {
 	clusterProvider, cluster, err := getClusterKeyValues(reg)
 	if err != nil {
 		return status.StatusResult{}
 	}
 
-	statusResult, err := scheduler.NewSchedulerClient().GenericNetworkIntentsStatus(clusterProvider, cluster, qInstance, qType, qOutput, qApps, qClusters, qResources)
+	statusResult, err := scheduler.NewSchedulerClient().GenericNetworkIntentsStatus(clusterProvider, cluster, qStatusInstance, qType, qOutput, qApps, qClusters, qResources)
 	if err != nil {
 		return status.StatusResult{}
 	}

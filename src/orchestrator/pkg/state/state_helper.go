@@ -31,7 +31,7 @@ func GetCurrentStateFromStateInfo(s StateInfo) (StateValue, error) {
 	return s.Actions[alen-1].State, nil
 }
 
-// GetStatusContextForContextEd  gets the status context id associated with the
+// GetStatusContextIdForContextId  gets the status context id associated with the
 // input context id.  This will be the context id of the most recent "Instantiated"
 // state.  If the provided 'ctxid' is not found, then that is an error
 func GetStatusContextIdForContextId(s StateInfo, ctxid string) (string, error) {
@@ -55,6 +55,32 @@ func GetStatusContextIdForContextId(s StateInfo, ctxid string) (string, error) {
 		}
 	}
 	return "", pkgerrors.Errorf("Status context ID not found for %v", ctxid)
+}
+
+// GetContextIdForStatusContextId  given a statusContextId (not checked),
+// get the most recent ContextId - i.e. either end of the list or up to "Terminated"
+// Assumed that 'ctxid' has already been identified as a status contextId.
+func GetContextIdForStatusContextId(s StateInfo, ctxid string) (string, error) {
+	found := false
+	var pos int
+	for i, entry := range s.Actions {
+		if ctxid == entry.ContextId {
+			found = true
+			pos = i
+			break
+		}
+	}
+	if !found {
+		return "", pkgerrors.Errorf("No state information for %v", ctxid)
+	}
+
+	for i := pos + 1; i < len(s.Actions); i++ {
+		if s.Actions[i].State == StateEnum.Terminated {
+			pos = i
+			break
+		}
+	}
+	return s.Actions[pos].ContextId, nil
 }
 
 // GetLastContextFromStatInfo gets the last (most recent) context id from StateInfo

@@ -337,13 +337,18 @@ GenericStatus takes in projectName, logicalCloud name,
 This method is responsible obtaining the status of
 the logical, which is made available in the appcontext.
 */
-func (v *LogicalCloudClient) GenericStatus(project, logicalCloud, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (status.StatusResult, error) {
-	state, err := v.GetState(project, logicalCloud)
+func (v *LogicalCloudClient) GenericStatus(project, logicalCloud, qStatusInstance, qType, qOutput string, fApps, fClusters, fResources []string) (status.StatusResult, error) {
+	stateInfo, err := v.GetState(project, logicalCloud)
 	if err != nil {
 		return status.StatusResult{}, pkgerrors.Wrap(err, "LogicalCloud state not found: "+logicalCloud)
 	}
 
-	statusResponse, err := status.GenericPrepareStatusResult(status.LcStatusQuery, state, qInstance, qType, qOutput, fApps, fClusters, fResources)
+	qInstance, err := state.GetContextIdForStatusContextId(stateInfo, qStatusInstance)
+	if err != nil {
+		return status.StatusResult{}, err
+	}
+
+	statusResponse, err := status.GenericPrepareStatusResult(status.LcStatusQuery, stateInfo, qInstance, qType, qOutput, fApps, fClusters, fResources)
 	if err != nil {
 		return status.StatusResult{}, err
 	}

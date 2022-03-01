@@ -471,10 +471,15 @@ GenericStatus takes in projectName, compositeAppName, compositeAppVersion,
 DeploymentIntentName. This method is responsible obtaining the status of
 the deployment, which is made available in the appcontext.
 */
-func (c InstantiationClient) GenericStatus(p, ca, v, di, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (status.StatusResult, error) {
+func (c InstantiationClient) GenericStatus(p, ca, v, di, qStatusInstance, qType, qOutput string, fApps, fClusters, fResources []string) (status.StatusResult, error) {
 	diState, err := NewDeploymentIntentGroupClient().GetDeploymentIntentGroupState(di, p, ca, v)
 	if err != nil {
 		return status.StatusResult{}, pkgerrors.Wrap(err, "DeploymentIntentGroup state not found: "+di)
+	}
+
+	qInstance, err := state.GetContextIdForStatusContextId(diState, qStatusInstance)
+	if err != nil {
+		return status.StatusResult{}, err
 	}
 
 	statusResponse, err := status.GenericPrepareStatusResult(status.DeploymentIntentGroupStatusQuery, diState, qInstance, qType, qOutput, fApps, fClusters, fResources)

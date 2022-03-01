@@ -337,35 +337,75 @@ func (s *StatusNotifyServer) StatusRegister(reg *pb.StatusRegistration, stream p
 
 // SendStatusNotification sends a status notification message to the subscriber
 func sendStatusNotifications(stream readynotifypb.ReadyNotify_AlertClient, wg *sync.WaitGroup, appContextID string) error {
+	type recvEvent struct {
+		app     string
+		cluster string
+		err     error
+	}
+	rChan := make(chan recvEvent)
+	tChan := make(chan bool)
 
-	tLast := time.Now()
-	for true {
-		apps := make(map[string]struct{})
-		clusters := make(map[string]struct{})
-
-		// accumulate apps/clusters for up to the rate limit time period
+	// start go thread to receive from the stream
+	go func() {
 		for true {
 			resp, err := stream.Recv()
 			if err != nil {
-				if err == io.EOF {
-					log.Error("[StatusNotify gRPC] ReadyNotify stream closed due to EOF", log.Fields{"err": err})
+				rChan <- recvEvent{err: err}
+				return
+			}
+			rChan <- recvEvent{app: resp.App, cluster: resp.Cluster, err: nil}
+		}
+	}()
+
+	tLast := time.Now()
+	timerRunning := false
+	var apps map[string]struct{}
+	var clusters map[string]struct{}
+
+	// each pass through the loop handles one set of events, or exits
+	for true {
+		if !timerRunning {
+			apps = make(map[string]struct{})
+			clusters = make(map[string]struct{})
+		}
+
+		select {
+		case event := <-rChan:
+			if event.err != nil {
+				if event.err == io.EOF {
+					log.Error("[StatusNotify gRPC] ReadyNotify stream closed due to EOF", log.Fields{"err": event.err})
 				} else {
 					// some other error - figure out how to reconnect ?
-					log.Error("[StatusNotify gRPC] Failed to receive notification", log.Fields{"err": err})
+					log.Error("[StatusNotify gRPC] Failed to receive notification", log.Fields{"err": event.err})
 				}
 				wg.Done()
-				return err
+				return event.err
 			}
-
-			apps[resp.App] = struct{}{}
-			clusters[resp.Cluster] = struct{}{}
+			apps[event.app] = struct{}{}
+			clusters[event.cluster] = struct{}{}
+			log.Info("[StatusNotify gRPC] Accumulating monitor events", log.Fields{"app": event.app, "cluster": event.cluster})
 
 			tNow := time.Now()
 			if tNow.Sub(tLast) > 3*time.Second {
 				tLast = tNow
-				break
+			} else if !timerRunning {
+				go func() {
+					time.Sleep(tNow.Sub(tLast))
+					tChan <- true
+				}()
+				log.Info("[StatusNotify gRPC] setting timer", log.Fields{"time": tNow.Sub(tLast)})
+				timerRunning = true
 			}
+		case <-tChan:
+			log.Info("[StatusNotify gRPC] time done", log.Fields{"apps": apps, "clusters": clusters})
+			timerRunning = false
+			tLast = time.Now()
 		}
+
+		if timerRunning {
+			continue
+		}
+		log.Info("[StatusNotify gRPC] handling status events", log.Fields{"apps": apps, "clusters": clusters})
 
 		notifServer.mutex.Lock()
 		acInfo, ok := notifServer.appContexts[appContextID]
@@ -401,7 +441,7 @@ func sendStatusNotifications(stream readynotifypb.ReadyNotify_AlertClient, wg *s
 				continue
 			}
 
-			statusResult := notifServer.sh.StatusQuery(reg, appContextID, qType, qOutput, qApps, qClusters, qResources)
+			statusResult := notifServer.sh.StatusQuery(reg, "", qType, qOutput, qApps, qClusters, qResources)
 
 			// For a given alert, send a status notification to each status client watching the appcontextId
 			for clientId, _ := range acInfo.statusClientIDs {

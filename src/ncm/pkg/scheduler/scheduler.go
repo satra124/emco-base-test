@@ -412,11 +412,16 @@ This method is responsible obtaining the status of
 the cluster network intents, which is made available in the appcontext
 It returns the full StatusResult structure so it can be used with the status notification framework.
 */
-func (c SchedulerClient) GenericNetworkIntentsStatus(clusterProvider, cluster, qInstance, qType, qOutput string, qApps, qClusters, qResources []string) (status.StatusResult, error) {
+func (c SchedulerClient) GenericNetworkIntentsStatus(clusterProvider, cluster, qStatusInstance, qType, qOutput string, qApps, qClusters, qResources []string) (status.StatusResult, error) {
 
 	s, err := clusterPkg.NewClusterClient().GetClusterState(clusterProvider, cluster)
 	if err != nil {
 		return status.StatusResult{}, pkgerrors.Wrap(err, "Cluster state not found")
+	}
+
+	qInstance, err := state.GetContextIdForStatusContextId(s, qStatusInstance)
+	if err != nil {
+		return status.StatusResult{}, err
 	}
 
 	statusResponse, err := status.GenericPrepareStatusResult(status.ClusterStatusQuery, s, qInstance, qType, qOutput, qApps, qClusters, qResources)

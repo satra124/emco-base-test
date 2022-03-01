@@ -44,14 +44,14 @@ func (d digHelpers) GetAppContextId(reg *statusnotifypb.StatusRegistration) (str
 	return state.GetStatusContextIdFromStateInfo(si), nil
 }
 
-func (d digHelpers) StatusQuery(reg *statusnotifypb.StatusRegistration, qInstance, qType, qOutput string, qApps, qClusters, qResources []string) status.StatusResult {
+func (d digHelpers) StatusQuery(reg *statusnotifypb.StatusRegistration, qStatusInstance, qType, qOutput string, qApps, qClusters, qResources []string) status.StatusResult {
 
 	p, ca, v, di, err := getDigKeyValues(reg)
 	if err != nil {
 		return status.StatusResult{}
 	}
 
-	statusResult, err := module.NewInstantiationClient().GenericStatus(p, ca, v, di, qInstance, qType, qOutput, qApps, qClusters, qResources)
+	statusResult, err := module.NewInstantiationClient().GenericStatus(p, ca, v, di, qStatusInstance, qType, qOutput, qApps, qClusters, qResources)
 	if err != nil {
 		return status.StatusResult{}
 	}
