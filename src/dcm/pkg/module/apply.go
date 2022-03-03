@@ -25,7 +25,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 	rsync "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
 	"gopkg.in/yaml.v2"
-	certificatesv1beta1 "k8s.io/api/certificates/v1beta1"
+	k8scertsv1 "k8s.io/api/certificates/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -49,12 +49,13 @@ type MetaDatas struct {
 }
 
 type Specs struct {
-	Request string   `yaml:"request,omitempty"`
-	Usages  []string `yaml:"usages,omitempty"`
+	Request    string   `yaml:"request,omitempty"`    // for CSR
+	Usages     []string `yaml:"usages,omitempty"`     // for CSR
+	SignerName string   `yaml:"signerName,omitempty"` // for CSR
 	// TODO: validate quota keys
 	// //Hard           logicalcloud.QSpec    `yaml:"hard,omitempty"`
 	// Hard QSpec `yaml:"hard,omitempty"`
-	Hard map[string]string `yaml:"hard,omitempty"`
+	Hard map[string]string `yaml:"hard,omitempty"` // for Quotas
 }
 
 type RoleRules struct {
@@ -272,14 +273,15 @@ func createUserCSR(logicalcloud LogicalCloud) (string, string, string, error) {
 	})
 
 	csrObj := Resource{
-		ApiVersion: "certificates.k8s.io/v1beta1",
+		ApiVersion: "certificates.k8s.io/v1",
 		Kind:       "CertificateSigningRequest",
 		MetaData: MetaDatas{
 			Name: name,
 		},
 		Specification: Specs{
-			Request: base64.StdEncoding.EncodeToString(csr),
-			Usages:  []string{"digital signature", "key encipherment"},
+			Request:    base64.StdEncoding.EncodeToString(csr),
+			Usages:     []string{"digital signature", "key encipherment", "client auth"},
+			SignerName: "kubernetes.io/kube-apiserver-client",
 		},
 	}
 
@@ -305,8 +307,9 @@ func createApprovalSubresource(logicalcloud LogicalCloud) (string, error) {
 	subresource := subresources.ApprovalSubresource{
 		Message:        "Approved for Logical Cloud authentication",
 		Reason:         "LogicalCloud",
-		Type:           string(certificatesv1beta1.CertificateApproved),
+		Type:           string(k8scertsv1.CertificateApproved),
 		LastUpdateTime: metav1.Now().Format("2006-01-02T15:04:05Z"),
+		Status:         "True",
 	}
 	csrData, err := json.Marshal(subresource)
 	return string(csrData), err
