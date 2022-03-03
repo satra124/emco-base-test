@@ -16,6 +16,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
+        "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 )
 
 type channelManager struct {
@@ -72,7 +73,7 @@ func (c *K8sProvider) StartClusterWatcher() error {
 		// Create Channel
 		channelData.channels[c.cluster] = make(chan struct{})
 		// Read config
-		configBytes, err := GetKubeConfig(c.cluster, "0", "")
+		configBytes, err := utils.GetKubeConfig(c.cluster, "0", "")
 		if err != nil {
 			return err
 		}

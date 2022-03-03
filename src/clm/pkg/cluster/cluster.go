@@ -34,7 +34,7 @@ type ClusterProvider struct {
 
 type Cluster struct {
 	Metadata mtypes.Metadata `json:"metadata"`
-	Spec     GitOpsSpec      `json:"spec,omitempty"`
+	Spec     mtypes.GitOpsSpec      `json:"spec,omitempty"`
 }
 
 type ClusterWithLabels struct {
@@ -56,25 +56,6 @@ type ClusterKvPairs struct {
 }
 
 type ClusterKvSpec struct {
-	Kv []map[string]interface{} `json:"kv"`
-}
-
-type GitOpsSpec struct {
-	Props GitOpsProps `json:"gitOps"`
-}
-
-type GitOpsProps struct {
-	GitOpsType            string `json:"gitOpsType"`
-	GitOpsReferenceObject string `json:"gitOpsReferenceObject"`
-	GitOpsResourceObject  string `json:"gitOpsResourceObject"`
-}
-
-type ClusterSyncObjects struct {
-	Metadata mtypes.Metadata       `json:"metadata"`
-	Spec     ClusterSyncObjectSpec `json:"spec"`
-}
-
-type ClusterSyncObjectSpec struct {
 	Kv []map[string]interface{} `json:"kv"`
 }
 
@@ -109,12 +90,6 @@ type ClusterKvPairsKey struct {
 	ClusterKvPairsName  string `json:"clusterKv"`
 }
 
-// ClusterSyncObjectKey is the key structure that is used in the database
-type ClusterSyncObjectsKey struct {
-	ClusterProviderName    string `json:"clusterProvider"`
-	ClusterSyncObjectsName string `json:"clusterSyncObject"`
-}
-
 const SEPARATOR = "+"
 const CONTEXT_CLUSTER_APP = "network-intents"
 const CONTEXT_CLUSTER_RESOURCE = "network-intents"
@@ -142,10 +117,10 @@ type ClusterManager interface {
 	GetClusterKvPairsValue(provider, cluster, kvpair, kvkey string) (interface{}, error)
 	GetAllClusterKvPairs(provider, cluster string) ([]ClusterKvPairs, error)
 	DeleteClusterKvPairs(provider, cluster, kvpair string) error
-	CreateClusterSyncObjects(provider string, pr ClusterSyncObjects, exists bool) (ClusterSyncObjects, error)
-	GetClusterSyncObjects(provider, syncobject string) (ClusterSyncObjects, error)
+	CreateClusterSyncObjects(provider string, pr mtypes.ClusterSyncObjects, exists bool) (mtypes.ClusterSyncObjects, error)
+	GetClusterSyncObjects(provider, syncobject string) (mtypes.ClusterSyncObjects, error)
 	GetClusterSyncObjectsValue(provider, syncobject, syncobjectkey string) (interface{}, error)
-	GetAllClusterSyncObjects(provider string) ([]ClusterSyncObjects, error)
+	GetAllClusterSyncObjects(provider string) ([]mtypes.ClusterSyncObjects, error)
 	DeleteClusterSyncObjects(provider, syncobject string) error
 }
 
@@ -294,6 +269,13 @@ func (v *ClusterClient) CreateCluster(provider string, p Cluster, q ClusterConte
 	_, err = ccc.CreateCloudConfig(provider, p.Metadata.Name, "0", "default", q.Kubeconfig)
 	if err != nil {
 		return Cluster{}, pkgerrors.Wrap(err, "Error creating cloud config")
+	}
+
+	if p.Spec.Props.GitOpsType != "" {
+		_, err = ccc.CreateGitOpsConfig(provider, p.Metadata.Name, p.Spec, "0", "default")
+		if err != nil {
+			return Cluster{}, pkgerrors.Wrap(err, "Error creating cloud config")
+		}
 	}
 
 	// Loop through CLM controllers and publish CLUSTER_CREATE event
@@ -779,130 +761,64 @@ func (v *ClusterClient) DeleteClusterKvPairs(provider, cluster, kvpair string) e
 }
 
 // CreateClusterSyncObjects - Create a New Cluster sync objects document
-func (v *ClusterClient) CreateClusterSyncObjects(provider string, p ClusterSyncObjects, exists bool) (ClusterSyncObjects, error) {
-	key := ClusterSyncObjectsKey{
-		ClusterProviderName:    provider,
-		ClusterSyncObjectsName: p.Metadata.Name,
-	}
+func (v *ClusterClient) CreateClusterSyncObjects(provider string, p mtypes.ClusterSyncObjects, exists bool) (mtypes.ClusterSyncObjects, error) {
 
-	//Check if this ClusterSyncObjects already exists
-	_, err := v.GetClusterSyncObjects(provider, p.Metadata.Name)
-	if err == nil && !exists {
-		return ClusterSyncObjects{}, pkgerrors.New("Cluster Sync Objects already exists")
-	}
-
-	err = db.DBconn.Insert(v.db.storeName, key, nil, v.db.tagMeta, p)
+	// Verify Cluster Provider exists
+	_, err := v.GetClusterProvider(provider)
 	if err != nil {
-		return ClusterSyncObjects{}, pkgerrors.Wrap(err, "Creating DB Entry")
+		return mtypes.ClusterSyncObjects{}, err
 	}
+	ccc := rsync.NewCloudConfigClient()
+	// Add to the rsync database
+	return ccc.CreateClusterSyncObjects(provider, p, exists)
 
-	return p, nil
 }
 
 // GetClusterSyncObjects returns the Cluster Sync objects for corresponding provider and sync object name
-func (v *ClusterClient) GetClusterSyncObjects(provider, syncobject string) (ClusterSyncObjects, error) {
-	//Construct key and tag to select entry
-	key := ClusterSyncObjectsKey{
-		ClusterProviderName:    provider,
-		ClusterSyncObjectsName: syncobject,
-	}
+func (v *ClusterClient) GetClusterSyncObjects(provider, syncobject string) (mtypes.ClusterSyncObjects, error) {
 
-	value, err := db.DBconn.Find(v.db.storeName, key, v.db.tagMeta)
+	// Verify Cluster Provider exists
+	_, err := v.GetClusterProvider(provider)
 	if err != nil {
-		return ClusterSyncObjects{}, err
-	} else if len(value) == 0 {
-		return ClusterSyncObjects{}, pkgerrors.New("Cluster sync object not found")
+		return mtypes.ClusterSyncObjects{}, err
 	}
-
-	//value is a byte array
-	if value != nil {
-		ckvp := ClusterSyncObjects{}
-		err = db.DBconn.Unmarshal(value[0], &ckvp)
-		if err != nil {
-			return ClusterSyncObjects{}, err
-		}
-		return ckvp, nil
-	}
-
-	return ClusterSyncObjects{}, pkgerrors.New("Unknown Error")
+	ccc := rsync.NewCloudConfigClient()
+	// Get from rysn db
+	return ccc.GetClusterSyncObjects(provider, syncobject)
 }
 
 // DeleteClusterSyncObjects the  ClusterSyncObjects from database
 func (v *ClusterClient) DeleteClusterSyncObjects(provider, syncobject string) error {
-	//Construct key and tag to select entry
-	key := ClusterSyncObjectsKey{
-		ClusterProviderName:    provider,
-		ClusterSyncObjectsName: syncobject,
+	// Verify Cluster Provider exists
+	_, err := v.GetClusterProvider(provider)
+	if err != nil {
+		return err
 	}
-
-	err := db.DBconn.Remove(v.db.storeName, key)
-	return err
+	ccc := rsync.NewCloudConfigClient()
+	// Get from rysn db
+	return ccc.DeleteClusterSyncObjects(provider, syncobject)
 }
 
 // GetClusterSyncObjectsValue returns the value of the key from the corresponding provider and Sync Object name
 func (v *ClusterClient) GetClusterSyncObjectsValue(provider, syncobject, syncobjectkey string) (interface{}, error) {
-	//Construct key and tag to select entry
-	key := ClusterSyncObjectsKey{
-		ClusterProviderName:    provider,
-		ClusterSyncObjectsName: syncobject,
-	}
-
-	value, err := db.DBconn.Find(v.db.storeName, key, v.db.tagMeta)
+	// Verify Cluster Provider exists
+	_, err := v.GetClusterProvider(provider)
 	if err != nil {
-		return ClusterSyncObjects{}, err
-	} else if len(value) == 0 {
-		return Cluster{}, pkgerrors.New("Cluster sync object not found")
+		return nil, err
 	}
-
-	//value is a byte array
-	if value != nil {
-		ckvp := ClusterSyncObjects{}
-		err = db.DBconn.Unmarshal(value[0], &ckvp)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, kvmap := range ckvp.Spec.Kv {
-			if val, ok := kvmap[syncobjectkey]; ok {
-				return struct {
-					Value interface{} `json:"value"`
-				}{Value: val}, nil
-			}
-		}
-		return nil, pkgerrors.New("Cluster Sync Object key value not found")
-	}
-
-	return nil, pkgerrors.New("Unknown Error")
+	ccc := rsync.NewCloudConfigClient()
+	// Get from rysn db
+	return ccc.GetClusterSyncObjectsValue(provider, syncobject, syncobjectkey)
 }
 
 // GetAllClusterSyncObjects returns the Cluster Sync Objects for corresponding provider
-func (v *ClusterClient) GetAllClusterSyncObjects(provider string) ([]ClusterSyncObjects, error) {
-	//Construct key and tag to select the entry
-	key := ClusterSyncObjectsKey{
-		ClusterProviderName:    provider,
-		ClusterSyncObjectsName: "",
-	}
-
-	// // Verify Cluster Provider exists
+func (v *ClusterClient) GetAllClusterSyncObjects(provider string) ([]mtypes.ClusterSyncObjects, error) {
+	// Verify Cluster Provider exists
 	_, err := v.GetClusterProvider(provider)
 	if err != nil {
-		return []ClusterSyncObjects{}, err
+		return []mtypes.ClusterSyncObjects{}, err
 	}
-
-	values, err := db.DBconn.Find(v.db.storeName, key, v.db.tagMeta)
-	if err != nil {
-		return []ClusterSyncObjects{}, err
-	}
-
-	resp := make([]ClusterSyncObjects, 0)
-	for _, value := range values {
-		cp := ClusterSyncObjects{}
-		err = db.DBconn.Unmarshal(value, &cp)
-		if err != nil {
-			return []ClusterSyncObjects{}, err
-		}
-		resp = append(resp, cp)
-	}
-
-	return resp, nil
+	ccc := rsync.NewCloudConfigClient()
+	// Get from rysn db
+	return ccc.GetAllClusterSyncObjects(provider)
 }

@@ -19,7 +19,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/apierror"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
-
+	mtypes "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
 	"github.com/gorilla/mux"
 )
 
@@ -800,7 +800,7 @@ func (h clusterHandler) createClusterSyncObjectsHandler(w http.ResponseWriter, r
 	vars := mux.Vars(r)
 	provider := vars["clusterProvider"]
 
-	var p clusterPkg.ClusterSyncObjects
+	var p mtypes.ClusterSyncObjects
 
 	err := json.NewDecoder(r.Body).Decode(&p)
 	switch {
@@ -851,7 +851,7 @@ func (h clusterHandler) putClusterSyncObjectsHandler(w http.ResponseWriter, r *h
 	vars := mux.Vars(r)
 	provider := vars["clusterProvider"]
 	syncobject := vars["clusterSyncObject"]
-	var p clusterPkg.ClusterSyncObjects
+	var p mtypes.ClusterSyncObjects
 
 	err := json.NewDecoder(r.Body).Decode(&p)
 	switch {

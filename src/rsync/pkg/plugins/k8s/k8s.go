@@ -10,13 +10,8 @@ import (
 
 	pkgerrors "github.com/pkg/errors"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
-	//. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
-
-	"encoding/base64"
-	"strings"
-
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	kubeclient "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/client"
-	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
 )
 
 // Connection is for a cluster
@@ -30,30 +25,6 @@ type K8sProvider struct {
 	client    *kubeclient.Client
 }
 
-var GetKubeConfig = func(clustername string, level string, namespace string) ([]byte, error) {
-	if !strings.Contains(clustername, "+") {
-		return nil, pkgerrors.New("Not a valid cluster name")
-	}
-	strs := strings.Split(clustername, "+")
-	if len(strs) != 2 {
-		return nil, pkgerrors.New("Not a valid cluster name")
-	}
-
-	ccc := db.NewCloudConfigClient()
-
-	// log.Info("Querying CloudConfig", log.Fields{"strs": strs, "level": level, "namespace": namespace})
-	cconfig, err := ccc.GetCloudConfig(strs[0], strs[1], level, namespace)
-	if err != nil {
-		return nil, pkgerrors.New("Get kubeconfig failed")
-	}
-	log.Info("CloudConfig found", log.Fields{".Provider": cconfig.Provider, ".Cluster": cconfig.Cluster, ".Level": cconfig.Level, ".Namespace": cconfig.Namespace})
-
-	dec, err := base64.StdEncoding.DecodeString(cconfig.Config)
-	if err != nil {
-		return nil, err
-	}
-	return dec, nil
-}
 
 func NewK8sProvider(cid, app, cluster, level, namespace string) (*K8sProvider, error) {
 	p := K8sProvider{
@@ -64,7 +35,7 @@ func NewK8sProvider(cid, app, cluster, level, namespace string) (*K8sProvider, e
 		namespace: namespace,
 	}
 	// Get file from DB
-	dec, err := GetKubeConfig(cluster, level, namespace)
+	dec, err := utils.GetKubeConfig(cluster, level, namespace)
 	if err != nil {
 		return nil, err
 	}

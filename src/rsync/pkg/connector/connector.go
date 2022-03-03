@@ -4,17 +4,15 @@
 package connector
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 	"sync"
 	//types "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
-	pkgerrors "github.com/pkg/errors"
+
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	kubeclient "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/client"
-	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 )
 
 // IsTestKubeClient .. global variable used during unit-tests to check whether a fake kube client object has to be instantiated
@@ -37,33 +35,6 @@ func (c *Connection) Init(id interface{}) error {
 	return nil
 }
 
-// GetKubeConfig uses the connectivity client to get the kubeconfig based on the name
-// of the clustername.
-var GetKubeConfig = func(clustername string, level string, namespace string) ([]byte, error) {
-	if !strings.Contains(clustername, "+") {
-		return nil, pkgerrors.New("Not a valid cluster name")
-	}
-	strs := strings.Split(clustername, "+")
-	if len(strs) != 2 {
-		return nil, pkgerrors.New("Not a valid cluster name")
-	}
-
-	ccc := db.NewCloudConfigClient()
-
-	log.Info("Querying CloudConfig", log.Fields{"strs": strs, "level": level, "namespace": namespace})
-	cconfig, err := ccc.GetCloudConfig(strs[0], strs[1], level, namespace)
-	if err != nil {
-		return nil, pkgerrors.New("Get kubeconfig failed")
-	}
-	log.Info("Successfully looked up CloudConfig", log.Fields{".Provider": cconfig.Provider, ".Cluster": cconfig.Cluster, ".Level": cconfig.Level, ".Namespace": cconfig.Namespace})
-
-	dec, err := base64.StdEncoding.DecodeString(cconfig.Config)
-	if err != nil {
-		return nil, err
-	}
-	return dec, nil
-}
-
 // GetClient returns client for the cluster
 func (c *Connection) GetClient(cluster string, level string, namespace string) (*kubeclient.Client, error) {
 	c.Lock()
@@ -78,7 +49,7 @@ func (c *Connection) GetClient(cluster string, level string, namespace string) (
 	client, ok := c.Clients[cluster]
 	if !ok {
 		// Get file from DB
-		dec, err := GetKubeConfig(cluster, level, namespace)
+		dec, err := utils.GetKubeConfig(cluster, level, namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -116,7 +87,3 @@ func (c *Connection) RemoveClient() {
 		log.Error("Warning: Deleting kubepath", log.Fields{"err": err})
 	}
 }
-
-// func (c *Connection) GetClientInternal(cluster string, level string, namespace string) (types.ClientProvider, error) {
-// 	return c.GetClient(cluster, level, namespace)
-// }
