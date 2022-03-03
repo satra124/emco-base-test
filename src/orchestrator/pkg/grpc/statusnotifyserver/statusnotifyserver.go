@@ -17,6 +17,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 	readynotifypb "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/readynotify"
+	proto "google.golang.org/protobuf/proto"
 )
 
 // StatusNotifyServerHelpers is an interface supported by the specific microservices that need to provide status notification
@@ -33,6 +34,7 @@ type streamInfo struct {
 	stream       pb.StatusNotify_StatusRegisterServer
 	reg          *pb.StatusRegistration
 	appContextID string
+	lastNotif    *pb.StatusNotification
 }
 
 type filters struct {
@@ -451,7 +453,25 @@ func sendStatusNotifications(stream readynotifypb.ReadyNotify_AlertClient, wg *s
 					continue
 				}
 
-				err := si.stream.Send(notifServer.sh.PrepareStatusNotification(si.reg, statusResult))
+				notification := notifServer.sh.PrepareStatusNotification(si.reg, statusResult)
+				if si.lastNotif != nil && proto.Equal(si.lastNotif, notification) {
+					log.Info("[StatusNotify gRPC] Status notification equal to last notification - skipping",
+						log.Fields{"clientId": clientId, "appContextID": appContextID})
+					continue
+				} else {
+					if si.lastNotif != nil {
+						log.Info("[StatusNotify gRPC] Status notification not equal to last notification",
+							log.Fields{"last": *si.lastNotif, "current": *notification})
+					} else {
+						log.Info("[StatusNotify gRPC] Status notification not equal to last notification",
+							log.Fields{"current": *notification})
+					}
+				}
+				si.lastNotif = notification
+				notifServer.statusClients[clientId] = si
+				log.Info("[StatusNotify gRPC] Status notification setting last notification",
+					log.Fields{"last": *si.lastNotif, "current": *notification})
+				err := si.stream.Send(notification)
 				if err != nil {
 					log.Error("[StatusNotify gRPC] Status notification failed to be sent", log.Fields{"clientId": clientId, "err": err})
 				} else {
