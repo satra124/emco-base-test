@@ -353,6 +353,7 @@ func (r *ResourceBundleStateReconciler) updateCsrs(rbstate *k8spluginv1alpha1.Re
 			TypeMeta:   csr.TypeMeta,
 			ObjectMeta: csr.ObjectMeta,
 			Status:     csr.Status,
+			Spec:       csr.Spec,
 		}
 		resStatus.ObjectMeta.ManagedFields = []metav1.ManagedFieldsEntry{}
 		resStatus.Annotations = ClearLastApplied(resStatus.Annotations)

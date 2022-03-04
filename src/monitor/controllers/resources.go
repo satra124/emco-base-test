@@ -406,6 +406,7 @@ func CsrUpdateStatus(cr *k8spluginv1alpha1.ResourceBundleState, obj *unstructure
 			TypeMeta:   csr.TypeMeta,
 			ObjectMeta: csr.ObjectMeta,
 			Status:     csr.Status,
+			Spec:       csr.Spec,
 		})
 	}
 	return found, nil
