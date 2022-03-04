@@ -11,10 +11,6 @@ import (
 	batch "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	v1core "k8s.io/api/core/v1"
-	_ "k8s.io/kubernetes/pkg/apis/apps/install"
-	_ "k8s.io/kubernetes/pkg/apis/batch/install"
-	_ "k8s.io/kubernetes/pkg/apis/core/install"
-	_ "k8s.io/kubernetes/pkg/apis/extensions/install"
 )
 
 func updatePodTemplateLabels(pt *v1core.PodTemplateSpec, matchLabels map[string]string) {
