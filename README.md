@@ -76,7 +76,7 @@ Both `EMCODOCKERREPO` and `MAINDOCKERREPO` can be set to the same exat container
 
 Here are some of the images and versions that have been validated as of this writing:
   1.	alpine:3.12 (this is the default `SERVICE_BASE_IMAGE_*`, the base for EMCO microservice images)
-  2.	golang:1.17.7 (for building EMCO Go components)
+  2.	golang:1.17.8 (for building EMCO Go components)
   2.	emco-build-base:1.3 (built after `make build-base`, builds the base image used for Helm - its base being alpine:3.12 like other EMCO microservice images)
   3.	mongo:4.x
   4.	etcd:3.x
