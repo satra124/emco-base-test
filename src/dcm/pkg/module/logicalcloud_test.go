@@ -659,7 +659,7 @@ metadata:
 }
 
 func rolemock() string {
-	return `apiVersion: rbac.authorization.k8s.io/v1beta1
+	return `apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: testlc-role0
@@ -678,7 +678,7 @@ rules:
 }
 
 func rolebindingmock() string {
-	return `apiVersion: rbac.authorization.k8s.io/v1beta1
+	return `apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: testlc-roleBinding0
@@ -695,7 +695,7 @@ roleRef:
 }
 
 func clusterrolemock() string {
-	return `apiVersion: rbac.authorization.k8s.io/v1beta1
+	return `apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: testlc-clusterRole1
@@ -713,7 +713,7 @@ rules:
 }
 
 func clusterrolebindingmock() string {
-	return `apiVersion: rbac.authorization.k8s.io/v1beta1
+	return `apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: testlc-clusterRoleBinding1

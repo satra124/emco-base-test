@@ -135,7 +135,7 @@ func createRoles(logicalcloud LogicalCloud, userpermissions []UserPermission) ([
 		}
 
 		role := Resource{
-			ApiVersion: "rbac.authorization.k8s.io/v1beta1",
+			ApiVersion: "rbac.authorization.k8s.io/v1",
 			Kind:       kind,
 			MetaData: MetaDatas{
 				Name: name,
@@ -187,7 +187,7 @@ func createRoleBindings(logicalcloud LogicalCloud, userpermissions []UserPermiss
 		}
 
 		roleBinding := Resource{
-			ApiVersion: "rbac.authorization.k8s.io/v1beta1",
+			ApiVersion: "rbac.authorization.k8s.io/v1",
 			Kind:       kindbinding,
 			MetaData: MetaDatas{
 				Name: name,
