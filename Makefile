@@ -26,7 +26,7 @@ ifndef MODS
 MODS=clm dcm dtc nps sds its genericactioncontroller monitor ncm orchestrator ovnaction rsync tools/emcoctl sfc sfcclient hpa-plc hpa-ac workflowmgr
 endif
 
-all: check-env build
+all: check-env compile build-containers
 
 check-env:
 	@echo "Check for environment parameters"
@@ -91,7 +91,7 @@ compile: check-env
 	@echo "    Done."
 
 # Modules that follow naming conventions are done in a loop, rest later
-build: compile
+build-containers:
 	@echo "Packaging microservices "
 	@export ARGS="--build-arg EMCODOCKERREPO=${EMCODOCKERREPO} --build-arg MAINDOCKERREPO=${MAINDOCKERREPO} --build-arg SERVICE_BASE_IMAGE_NAME=${SERVICE_BASE_IMAGE_NAME} --build-arg SERVICE_BASE_IMAGE_VERSION=${SERVICE_BASE_IMAGE_VERSION}"; \
 	 for m in $(MODS); do \
@@ -107,7 +107,7 @@ build: compile
 	 done
 	@echo "    Done."
 
-deploy: check-env build
+deploy: check-env compile build-containers
 	@echo "Creating helm charts. Pushing microservices to registry & copying docker-compose files if BUILD_CAUSE set to DEV_TEST"
 	@docker run --env USER=${USER} --env EMCODOCKERREPO=${EMCODOCKERREPO} --env MAINDOCKERREPO=${MAINDOCKERREPO} --env BUILD_CAUSE=${BUILD_CAUSE} --env BRANCH=${BRANCH} --env TAG=${TAG} --env EMCOSRV_RELEASE_TAG=${EMCOSRV_RELEASE_TAG} --rm --user `id -u`:`id -g` --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache -v `pwd`:/repo ${EMCODOCKERREPO}${BUILD_BASE_IMAGE_NAME}:${BUILD_BASE_IMAGE_VERSION} /bin/sh -c "cd /repo/scripts ; sh deploy_emco.sh"
 	@MODS=`echo ${MODS} | sed 's/ovnaction/ovn/;s/genericactioncontroller/gac/;s/orchestrator/orch/;'` ./scripts/push_to_registry.sh
@@ -141,3 +141,12 @@ tidy:
 build-base:
 	@echo "Building emco-build-base image and pushing to registry"
 	./scripts/build-base-images.sh
+
+develop-compile: check-env
+	@echo "Building microservices for develpment within Docker build container with GOPATH set"
+	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo golang:${GO_VERSION} /bin/sh -c "cd /repo; make compile-container"
+	@echo "    Done."
+
+develop: develop-compile build-containers
+	@MODS=`echo ${MODS} | sed 's/ovnaction/ovn/;s/genericactioncontroller/gac/;s/orchestrator/orch/;'` ./scripts/push_to_registry.sh
+
