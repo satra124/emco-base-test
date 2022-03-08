@@ -87,7 +87,7 @@ metadata :
 spec:
   compositeProfile: {{.CompositeProfile}}
   version: r6
-  logicalCloud: {{.AdminCloud}}
+  logicalCloud: {{.LogicalCloud}}
   overrideValues:
   - app: {{.App4}}
     values:
@@ -118,7 +118,7 @@ metadata :
   name: {{.GenericPlacementIntent}}
   description: "description for app"
 spec:
-  logicalCloud: {{.AdminCloud}}
+  logicalCloud: {{.LogicalCloud}}
 
 ---
 #add the http-client app placement intent to the generic placement intent

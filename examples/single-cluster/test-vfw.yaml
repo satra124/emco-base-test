@@ -158,7 +158,7 @@ metadata :
 spec:
   compositeProfile: vfw_composite-profile
   version: r1
-  logicalCloud: {{.AdminCloud}}
+  logicalCloud: {{.LogicalCloud}}
   overrideValues:
   - app: packetgen
     values:

@@ -56,7 +56,7 @@ metadata :
 spec:
   compositeProfile: {{.CompositeProfile}}
   version: emco
-  logicalCloud: {{.AdminCloud}}
+  logicalCloud: {{.LogicalCloud}}
   overrideValues: []
 
 ---

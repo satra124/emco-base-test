@@ -80,7 +80,7 @@ metadata :
 spec:
   compositeProfile: {{.CompositeProfile}}
   version: r1
-  logicalCloud: {{.AdminCloud}}
+  logicalCloud: {{.LogicalCloud}}
   overrideValues: []
 
 ---
@@ -104,7 +104,7 @@ metadata :
   name: {{.GenericPlacementIntent}}
   description: "description for app"
 spec:
-  logicalCloud: {{.AdminCloud}}
+  logicalCloud: {{.LogicalCloud}}
 
 ---
 #add the prometheus app placement intent to the generic placement intent
