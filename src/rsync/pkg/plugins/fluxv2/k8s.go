@@ -42,11 +42,10 @@ func NewFluxv2Provider(cid, app, cluster, level, namespace string) (*Fluxv2Provi
 		return nil, pkgerrors.Errorf("Invalid GitOps type: " + c.Spec.Props.GitOpsType)
 	}
 
-	//resObject, err := cc.GetClusterSyncObjects(result[0], c.Spec.Props.GitOpsResourceObject)
 	refObject, err := cc.GetClusterSyncObjects(result[0], c.Spec.Props.GitOpsReferenceObject)
 	if err != nil {
-		log.Error("Invalid refObject :", log.Fields{"refObj": c.Spec.Props.GitOpsReferenceObject})
-		return nil, pkgerrors.Errorf("Invalid refObject: " + c.Spec.Props.GitOpsReferenceObject)
+		log.Error("Invalid refObject :", log.Fields{"refObj": c.Spec.Props.GitOpsReferenceObject, "error": err})
+		return nil, err
 	}
 
 	kv := refObject.Spec.Kv

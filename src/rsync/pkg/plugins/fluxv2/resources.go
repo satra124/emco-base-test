@@ -43,7 +43,7 @@ func (p *Fluxv2Provider) Create(name string, ref interface{}, content []byte) (i
 	label := p.cid + "-" + p.app
 	b, err := status.TagResource(content, label)
 	if err != nil {
-		log.Error("Error Tag Resoruce with label:", log.Fields{"err": err, "label": label, "resource": name})
+		log.Error("Error Tag Resource with label:", log.Fields{"err": err, "label": label, "resource": name})
 		return nil, err
 	}
 	path := p.getPath() + name + ".yaml"
@@ -131,4 +131,13 @@ func (p *Fluxv2Provider) Commit(ctx context.Context, ref interface{}) error {
 // IsReachable cluster reachablity test
 func (p *Fluxv2Provider) IsReachable() error {
 	return nil
+}
+
+func (m *Fluxv2Provider) TagResource(res []byte, label string) ([]byte, error) {
+	b, err := status.TagResource(res, label)
+	if err != nil {
+		log.Error("Error Tag Resoruce with label:", log.Fields{"err": err, "label": label, "resource": res})
+		return nil, err
+	}
+	return b, nil
 }
