@@ -33,7 +33,7 @@ type mockClusterManager struct {
 	ClusterStateInfo        []state.StateInfo
 	ClusterLabelItems       []cluster.ClusterLabel
 	ClusterKvPairsItems     []cluster.ClusterKvPairs
-	ClusterSyncObjectsItems []cluster.ClusterSyncObjects
+	ClusterSyncObjectsItems []types.ClusterSyncObjects
 	ClusterList             []string
 	ClusterWithLabels       []cluster.ClusterWithLabels
 	Err                     error
@@ -196,17 +196,17 @@ func (m *mockClusterManager) DeleteClusterKvPairs(provider, clusterName, kvpair 
 	return m.Err
 }
 
-func (m *mockClusterManager) CreateClusterSyncObjects(provider string, inp cluster.ClusterSyncObjects, exists bool) (cluster.ClusterSyncObjects, error) {
+func (m *mockClusterManager) CreateClusterSyncObjects(provider string, inp types.ClusterSyncObjects, exists bool) (types.ClusterSyncObjects, error) {
 	if m.Err != nil {
-		return cluster.ClusterSyncObjects{}, m.Err
+		return types.ClusterSyncObjects{}, m.Err
 	}
 
 	return m.ClusterSyncObjectsItems[0], nil
 }
 
-func (m *mockClusterManager) GetClusterSyncObjects(provider, syncobject string) (cluster.ClusterSyncObjects, error) {
+func (m *mockClusterManager) GetClusterSyncObjects(provider, syncobject string) (types.ClusterSyncObjects, error) {
 	if m.Err != nil {
-		return cluster.ClusterSyncObjects{}, m.Err
+		return types.ClusterSyncObjects{}, m.Err
 	}
 
 	return m.ClusterSyncObjectsItems[0], nil
@@ -229,9 +229,9 @@ func (m *mockClusterManager) GetClusterSyncObjectsValue(provider, syncobject, sy
 	return nil, m.Err
 }
 
-func (m *mockClusterManager) GetAllClusterSyncObjects(provider string) ([]cluster.ClusterSyncObjects, error) {
+func (m *mockClusterManager) GetAllClusterSyncObjects(provider string) ([]types.ClusterSyncObjects, error) {
 	if m.Err != nil {
-		return []cluster.ClusterSyncObjects{}, m.Err
+		return []types.ClusterSyncObjects{}, m.Err
 	}
 
 	return m.ClusterSyncObjectsItems, nil
@@ -2149,7 +2149,7 @@ func TestClusterSyncObjectsCreateHandler(t *testing.T) {
 	testCases := []struct {
 		label         string
 		reader        io.Reader
-		expected      cluster.ClusterSyncObjects
+		expected      types.ClusterSyncObjects
 		expectedCode  int
 		clusterClient *mockClusterManager
 	}{
@@ -2179,14 +2179,14 @@ func TestClusterSyncObjectsCreateHandler(t *testing.T) {
 						]
 					}
 				}`)),
-			expected: cluster.ClusterSyncObjects{
+			expected: types.ClusterSyncObjects{
 				Metadata: types.Metadata{
 					Name:        "ClusterSyncObject1",
 					Description: "test cluster sync objects",
 					UserData1:   "some user data 1",
 					UserData2:   "some user data 2",
 				},
-				Spec: cluster.ClusterSyncObjectSpec{
+				Spec: types.ClusterSyncObjectSpec{
 					Kv: []map[string]interface{}{
 						{
 							"key1": "value1",
@@ -2199,7 +2199,7 @@ func TestClusterSyncObjectsCreateHandler(t *testing.T) {
 			},
 			clusterClient: &mockClusterManager{
 				//Items that will be returned by the mocked Client
-				ClusterSyncObjectsItems: []cluster.ClusterSyncObjects{
+				ClusterSyncObjectsItems: []types.ClusterSyncObjects{
 					{
 						Metadata: types.Metadata{
 							Name:        "ClusterSyncObject1",
@@ -2207,7 +2207,7 @@ func TestClusterSyncObjectsCreateHandler(t *testing.T) {
 							UserData1:   "some user data 1",
 							UserData2:   "some user data 2",
 						},
-						Spec: cluster.ClusterSyncObjectSpec{
+						Spec: types.ClusterSyncObjectSpec{
 							Kv: []map[string]interface{}{
 								{
 									"key1": "value1",
@@ -2235,7 +2235,7 @@ func TestClusterSyncObjectsCreateHandler(t *testing.T) {
 
 			//Check returned body only if statusCreated
 			if resp.StatusCode == http.StatusCreated {
-				got := cluster.ClusterSyncObjects{}
+				got := types.ClusterSyncObjects{}
 				json.NewDecoder(resp.Body).Decode(&got)
 
 				if reflect.DeepEqual(testCase.expected, got) == false {
@@ -2252,7 +2252,7 @@ func TestClusterSyncObjectsPutHandler(t *testing.T) {
 		name          string
 		label         string
 		reader        io.Reader
-		expected      cluster.ClusterSyncObjects
+		expected      types.ClusterSyncObjects
 		expectedCode  int
 		clusterClient *mockClusterManager
 	}{
@@ -2321,14 +2321,14 @@ func TestClusterSyncObjectsPutHandler(t *testing.T) {
 						]
 					}
 				}`)),
-			expected: cluster.ClusterSyncObjects{
+			expected: types.ClusterSyncObjects{
 				Metadata: types.Metadata{
 					Name:        "ClusterSyncObject1",
 					Description: "test cluster sync objects",
 					UserData1:   "some user data 1",
 					UserData2:   "some user data 2",
 				},
-				Spec: cluster.ClusterSyncObjectSpec{
+				Spec: types.ClusterSyncObjectSpec{
 					Kv: []map[string]interface{}{
 						{
 							"key1": "value1",
@@ -2341,7 +2341,7 @@ func TestClusterSyncObjectsPutHandler(t *testing.T) {
 			},
 			clusterClient: &mockClusterManager{
 				//Items that will be returned by the mocked Client
-				ClusterSyncObjectsItems: []cluster.ClusterSyncObjects{
+				ClusterSyncObjectsItems: []types.ClusterSyncObjects{
 					{
 						Metadata: types.Metadata{
 							Name:        "ClusterSyncObject1",
@@ -2349,7 +2349,7 @@ func TestClusterSyncObjectsPutHandler(t *testing.T) {
 							UserData1:   "some user data 1",
 							UserData2:   "some user data 2",
 						},
-						Spec: cluster.ClusterSyncObjectSpec{
+						Spec: types.ClusterSyncObjectSpec{
 							Kv: []map[string]interface{}{
 								{
 									"key1": "value1",
@@ -2377,7 +2377,7 @@ func TestClusterSyncObjectsPutHandler(t *testing.T) {
 
 			//Check returned body only if statusCreated
 			if resp.StatusCode == http.StatusCreated {
-				got := cluster.ClusterSyncObjects{}
+				got := types.ClusterSyncObjects{}
 				json.NewDecoder(resp.Body).Decode(&got)
 
 				if reflect.DeepEqual(testCase.expected, got) == false {
@@ -2439,7 +2439,7 @@ func TestClusterSyncObjectsGetHandler(t *testing.T) {
 
 	testCases := []struct {
 		label         string
-		expected      cluster.ClusterSyncObjects
+		expected      types.ClusterSyncObjects
 		name, version string
 		expectedCode  int
 		clusterClient *mockClusterManager
@@ -2447,14 +2447,14 @@ func TestClusterSyncObjectsGetHandler(t *testing.T) {
 		{
 			label:        "Get Cluster Sync Objects",
 			expectedCode: http.StatusOK,
-			expected: cluster.ClusterSyncObjects{
+			expected: types.ClusterSyncObjects{
 				Metadata: types.Metadata{
 					Name:        "ClusterSyncObject2",
 					Description: "test cluster sync objects",
 					UserData1:   "some user data A",
 					UserData2:   "some user data B",
 				},
-				Spec: cluster.ClusterSyncObjectSpec{
+				Spec: types.ClusterSyncObjectSpec{
 					Kv: []map[string]interface{}{
 						{
 							"keyA": "valueA",
@@ -2468,7 +2468,7 @@ func TestClusterSyncObjectsGetHandler(t *testing.T) {
 			name: "ClusterSyncObject2",
 			clusterClient: &mockClusterManager{
 				//Items that will be returned by the mocked Client
-				ClusterSyncObjectsItems: []cluster.ClusterSyncObjects{
+				ClusterSyncObjectsItems: []types.ClusterSyncObjects{
 					{
 						Metadata: types.Metadata{
 							Name:        "ClusterSyncObject2",
@@ -2476,7 +2476,7 @@ func TestClusterSyncObjectsGetHandler(t *testing.T) {
 							UserData1:   "some user data A",
 							UserData2:   "some user data B",
 						},
-						Spec: cluster.ClusterSyncObjectSpec{
+						Spec: types.ClusterSyncObjectSpec{
 							Kv: []map[string]interface{}{
 								{
 									"keyA": "valueA",
@@ -2495,7 +2495,7 @@ func TestClusterSyncObjectsGetHandler(t *testing.T) {
 			expectedCode: http.StatusNotFound,
 			name:         "nonexistingclustersyncobjects",
 			clusterClient: &mockClusterManager{
-				ClusterSyncObjectsItems: []cluster.ClusterSyncObjects{},
+				ClusterSyncObjectsItems: []types.ClusterSyncObjects{},
 				Err:                     pkgerrors.New("Cluster sync object not found"),
 			},
 		},
@@ -2504,7 +2504,7 @@ func TestClusterSyncObjectsGetHandler(t *testing.T) {
 			expectedCode: http.StatusNotFound,
 			name:         "nonexistingclustersyncobjects",
 			clusterClient: &mockClusterManager{
-				ClusterSyncObjectsItems: []cluster.ClusterSyncObjects{},
+				ClusterSyncObjectsItems: []types.ClusterSyncObjects{},
 				Err:                     pkgerrors.New("Cluster sync object not found"),
 			},
 		},
@@ -2513,7 +2513,7 @@ func TestClusterSyncObjectsGetHandler(t *testing.T) {
 			expectedCode: http.StatusInternalServerError,
 			name:         "testGetClusterSyncObjectDBError",
 			clusterClient: &mockClusterManager{
-				ClusterSyncObjectsItems: []cluster.ClusterSyncObjects{},
+				ClusterSyncObjectsItems: []types.ClusterSyncObjects{},
 				Err:                     pkgerrors.New("db Find error"),
 			},
 		},
@@ -2531,7 +2531,7 @@ func TestClusterSyncObjectsGetHandler(t *testing.T) {
 
 			//Check returned body only if statusOK
 			if resp.StatusCode == http.StatusOK {
-				got := cluster.ClusterSyncObjects{}
+				got := types.ClusterSyncObjects{}
 				json.NewDecoder(resp.Body).Decode(&got)
 
 				if reflect.DeepEqual(testCase.expected, got) == false {
@@ -2561,7 +2561,7 @@ func TestClusterSyncObjectsGetValueHandler(t *testing.T) {
 			key:          "keyB",
 			clusterClient: &mockClusterManager{
 				//Items that will be returned by the mocked Client
-				ClusterSyncObjectsItems: []cluster.ClusterSyncObjects{
+				ClusterSyncObjectsItems: []types.ClusterSyncObjects{
 					{
 						Metadata: types.Metadata{
 							Name:        "ClusterSyncObject2",
@@ -2569,7 +2569,7 @@ func TestClusterSyncObjectsGetValueHandler(t *testing.T) {
 							UserData1:   "some user data A",
 							UserData2:   "some user data B",
 						},
-						Spec: cluster.ClusterSyncObjectSpec{
+						Spec: types.ClusterSyncObjectSpec{
 							Kv: []map[string]interface{}{
 								{
 									"keyA": "valueA",
@@ -2589,7 +2589,7 @@ func TestClusterSyncObjectsGetValueHandler(t *testing.T) {
 			name:         "nonexistingclustersyncobjects",
 			key:          "keyB",
 			clusterClient: &mockClusterManager{
-				ClusterSyncObjectsItems: []cluster.ClusterSyncObjects{},
+				ClusterSyncObjectsItems: []types.ClusterSyncObjects{},
 				Err:                     pkgerrors.New("Cluster sync object not found"),
 			},
 		},
@@ -2599,7 +2599,7 @@ func TestClusterSyncObjectsGetValueHandler(t *testing.T) {
 			name:         "nonexistingclustersyncobjects",
 			key:          "keyB",
 			clusterClient: &mockClusterManager{
-				ClusterSyncObjectsItems: []cluster.ClusterSyncObjects{},
+				ClusterSyncObjectsItems: []types.ClusterSyncObjects{},
 				Err:                     pkgerrors.New("Cluster sync object not found"),
 			},
 		},
@@ -2609,7 +2609,7 @@ func TestClusterSyncObjectsGetValueHandler(t *testing.T) {
 			name:         "testGetClusterSyncObjectDBError",
 			key:          "keyB",
 			clusterClient: &mockClusterManager{
-				ClusterSyncObjectsItems: []cluster.ClusterSyncObjects{},
+				ClusterSyncObjectsItems: []types.ClusterSyncObjects{},
 				Err:                     pkgerrors.New("db Find error"),
 			},
 		},
@@ -2643,7 +2643,7 @@ func TestClusterSyncObjectsGetAllHandler(t *testing.T) {
 
 	testCases := []struct {
 		label         string
-		expected      []cluster.ClusterSyncObjects
+		expected      []types.ClusterSyncObjects
 		name, version string
 		expectedCode  int
 		clusterClient *mockClusterManager
@@ -2651,7 +2651,7 @@ func TestClusterSyncObjectsGetAllHandler(t *testing.T) {
 		{
 			label:        "Get Cluster SyncObjects",
 			expectedCode: http.StatusOK,
-			expected: []cluster.ClusterSyncObjects{
+			expected: []types.ClusterSyncObjects{
 				{
 					Metadata: types.Metadata{
 						Name:        "ClusterSyncObject1",
@@ -2659,7 +2659,7 @@ func TestClusterSyncObjectsGetAllHandler(t *testing.T) {
 						UserData1:   "some user data 1",
 						UserData2:   "some user data 2",
 					},
-					Spec: cluster.ClusterSyncObjectSpec{
+					Spec: types.ClusterSyncObjectSpec{
 						Kv: []map[string]interface{}{
 							{
 								"key1": "value1",
@@ -2677,7 +2677,7 @@ func TestClusterSyncObjectsGetAllHandler(t *testing.T) {
 						UserData1:   "some user data A",
 						UserData2:   "some user data B",
 					},
-					Spec: cluster.ClusterSyncObjectSpec{
+					Spec: types.ClusterSyncObjectSpec{
 						Kv: []map[string]interface{}{
 							{
 								"keyA": "valueA",
@@ -2691,7 +2691,7 @@ func TestClusterSyncObjectsGetAllHandler(t *testing.T) {
 			},
 			clusterClient: &mockClusterManager{
 				//Items that will be returned by the mocked Client
-				ClusterSyncObjectsItems: []cluster.ClusterSyncObjects{
+				ClusterSyncObjectsItems: []types.ClusterSyncObjects{
 					{
 						Metadata: types.Metadata{
 							Name:        "ClusterSyncObject1",
@@ -2699,7 +2699,7 @@ func TestClusterSyncObjectsGetAllHandler(t *testing.T) {
 							UserData1:   "some user data 1",
 							UserData2:   "some user data 2",
 						},
-						Spec: cluster.ClusterSyncObjectSpec{
+						Spec: types.ClusterSyncObjectSpec{
 							Kv: []map[string]interface{}{
 								{
 									"key1": "value1",
@@ -2717,7 +2717,7 @@ func TestClusterSyncObjectsGetAllHandler(t *testing.T) {
 							UserData1:   "some user data A",
 							UserData2:   "some user data B",
 						},
-						Spec: cluster.ClusterSyncObjectSpec{
+						Spec: types.ClusterSyncObjectSpec{
 							Kv: []map[string]interface{}{
 								{
 									"keyA": "valueA",
@@ -2745,7 +2745,7 @@ func TestClusterSyncObjectsGetAllHandler(t *testing.T) {
 
 			//Check returned body only if statusOK
 			if resp.StatusCode == http.StatusOK {
-				got := []cluster.ClusterSyncObjects{}
+				got := []types.ClusterSyncObjects{}
 				json.NewDecoder(resp.Body).Decode(&got)
 
 				if reflect.DeepEqual(testCase.expected, got) == false {
@@ -2796,8 +2796,8 @@ func TestClusterGitOpsCreateHandler(t *testing.T) {
 					UserData1:   "some cluster data abc",
 					UserData2:   "some cluster data abc",
 				},
-				Spec: cluster.GitOpsSpec{
-					Props: cluster.GitOpsProps{
+				Spec: types.GitOpsSpec{
+					Props: types.GitOpsProps{
 						GitOpsType:            "fluxv2",
 						GitOpsReferenceObject: "GitObjectMyRepo",
 						GitOpsResourceObject:  "GitObjectMyRepo",
@@ -2814,8 +2814,8 @@ func TestClusterGitOpsCreateHandler(t *testing.T) {
 							UserData1:   "some cluster data abc",
 							UserData2:   "some cluster data abc",
 						},
-						Spec: cluster.GitOpsSpec{
-							Props: cluster.GitOpsProps{
+						Spec: types.GitOpsSpec{
+							Props: types.GitOpsProps{
 								GitOpsType:            "fluxv2",
 								GitOpsReferenceObject: "GitObjectMyRepo",
 								GitOpsResourceObject:  "GitObjectMyRepo",
@@ -2924,8 +2924,8 @@ func TestClusterGitOpsGetAllHandler(t *testing.T) {
 						UserData1:   "some user data 1",
 						UserData2:   "some user data 2",
 					},
-					Spec: cluster.GitOpsSpec{
-						Props: cluster.GitOpsProps{
+					Spec: types.GitOpsSpec{
+						Props: types.GitOpsProps{
 							GitOpsType:            "fluxv2",
 							GitOpsReferenceObject: "GitObjectMyRepo",
 							GitOpsResourceObject:  "GitObjectMyRepo",
@@ -2939,8 +2939,8 @@ func TestClusterGitOpsGetAllHandler(t *testing.T) {
 						UserData1:   "some user data 1",
 						UserData2:   "some user data 2",
 					},
-					Spec: cluster.GitOpsSpec{
-						Props: cluster.GitOpsProps{
+					Spec: types.GitOpsSpec{
+						Props: types.GitOpsProps{
 							GitOpsType:            "azureArc",
 							GitOpsReferenceObject: "GitObjectMyRepo",
 							GitOpsResourceObject:  "GitObjectMyRepo",
@@ -2958,8 +2958,8 @@ func TestClusterGitOpsGetAllHandler(t *testing.T) {
 							UserData1:   "some user data 1",
 							UserData2:   "some user data 2",
 						},
-						Spec: cluster.GitOpsSpec{
-							Props: cluster.GitOpsProps{
+						Spec: types.GitOpsSpec{
+							Props: types.GitOpsProps{
 								GitOpsType:            "fluxv2",
 								GitOpsReferenceObject: "GitObjectMyRepo",
 								GitOpsResourceObject:  "GitObjectMyRepo",
@@ -2973,8 +2973,8 @@ func TestClusterGitOpsGetAllHandler(t *testing.T) {
 							UserData1:   "some user data 1",
 							UserData2:   "some user data 2",
 						},
-						Spec: cluster.GitOpsSpec{
-							Props: cluster.GitOpsProps{
+						Spec: types.GitOpsSpec{
+							Props: types.GitOpsProps{
 								GitOpsType:            "azureArc",
 								GitOpsReferenceObject: "GitObjectMyRepo",
 								GitOpsResourceObject:  "GitObjectMyRepo",
@@ -3031,8 +3031,8 @@ func TestClusterGetGitOpsHandler(t *testing.T) {
 					UserData1:   "some user data 1",
 					UserData2:   "some user data 2",
 				},
-				Spec: cluster.GitOpsSpec{
-					Props: cluster.GitOpsProps{
+				Spec: types.GitOpsSpec{
+					Props: types.GitOpsProps{
 						GitOpsType:            "fluxv2",
 						GitOpsReferenceObject: "GitObjectMyRepo",
 						GitOpsResourceObject:  "GitObjectMyRepo",
@@ -3050,8 +3050,8 @@ func TestClusterGetGitOpsHandler(t *testing.T) {
 							UserData1:   "some user data 1",
 							UserData2:   "some user data 2",
 						},
-						Spec: cluster.GitOpsSpec{
-							Props: cluster.GitOpsProps{
+						Spec: types.GitOpsSpec{
+							Props: types.GitOpsProps{
 								GitOpsType:            "fluxv2",
 								GitOpsReferenceObject: "GitObjectMyRepo",
 								GitOpsResourceObject:  "GitObjectMyRepo",

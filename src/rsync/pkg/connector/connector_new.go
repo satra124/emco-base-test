@@ -7,12 +7,12 @@ import (
 	"fmt"
 
 	pkgerrors "github.com/pkg/errors"
-	clm "gitlab.com/project-emco/core/emco-base/src/clm/pkg/cluster"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/fluxv2"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/k8s"
 	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
 	"strings"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 )
 
 // Connection is for a cluster
@@ -35,13 +35,8 @@ func (p *Provider) GetClientProviders(app, cluster, level, namespace string) (Cl
 		log.Error("Invalid cluster name format::", log.Fields{"cluster": cluster})
 		return nil, pkgerrors.New("Invalid cluster name format")
 	}
-	cc := clm.NewClusterClient()
-	c, err := cc.GetCluster(result[0], result[1])
-	if err != nil {
-		return nil, err
-	}
 
-	kc, err := GetKubeConfig(cluster, level, namespace)
+	kc, err := utils.GetKubeConfig(cluster, level, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +44,11 @@ func (p *Provider) GetClientProviders(app, cluster, level, namespace string) (Cl
 	if len(kc) > 0 {
 		providerType = "k8s"
 	} else {
-		providerType = c.Spec.Props.GitOpsType
+		c, err := utils.GetGitOpsConfig(cluster, level, namespace)
+		if err != nil {
+			return nil, err
+		}
+		providerType = c.Props.GitOpsType
 		if providerType == "" {
 			return nil, pkgerrors.New("No provider type specified")
 		}

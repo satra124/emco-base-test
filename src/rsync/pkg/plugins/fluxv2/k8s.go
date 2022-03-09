@@ -10,8 +10,9 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	clm "gitlab.com/project-emco/core/emco-base/src/clm/pkg/cluster"
 	emcogithub "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogithub"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
 )
 
 // Connection is for a cluster
@@ -32,24 +33,24 @@ type Fluxv2Provider struct {
 func NewFluxv2Provider(cid, app, cluster, level, namespace string) (*Fluxv2Provider, error) {
 
 	result := strings.SplitN(cluster, "+", 2)
-	cc := clm.NewClusterClient()
-	c, err := cc.GetCluster(result[0], result[1])
+
+	c, err := utils.GetGitOpsConfig(cluster, level, namespace)
 	if err != nil {
 		return nil, err
 	}
-	if c.Spec.Props.GitOpsType != "fluxcd" {
+	if c.Props.GitOpsType != "fluxcd" {
 		log.Error("Invalid GitOps type:", log.Fields{})
-		return nil, pkgerrors.Errorf("Invalid GitOps type: " + c.Spec.Props.GitOpsType)
+		return nil, pkgerrors.Errorf("Invalid GitOps type: " + c.Props.GitOpsType)
 	}
-
-	refObject, err := cc.GetClusterSyncObjects(result[0], c.Spec.Props.GitOpsReferenceObject)
+	// Read from database
+	ccc := db.NewCloudConfigClient()
+	refObject, err := ccc.GetClusterSyncObjects(result[0], c.Props.GitOpsReferenceObject)
 	if err != nil {
-		log.Error("Invalid refObject :", log.Fields{"refObj": c.Spec.Props.GitOpsReferenceObject, "error": err})
+		log.Error("Invalid refObject :", log.Fields{"refObj": c.Props.GitOpsReferenceObject, "error": err})
 		return nil, err
 	}
 
 	kv := refObject.Spec.Kv
-
 	var githubToken, branch, userName, repoName string
 
 	for _, kvpair := range kv {
