@@ -10,14 +10,14 @@ func (c *AzureArcProvider) StartClusterWatcher() error {
 }
 
 // ApplyStatusCR applies status CR
-func (p *AzureArcProvider) ApplyStatusCR(content []byte) error {
+func (p *AzureArcProvider) ApplyStatusCR(name string, content []byte) error {
 
 	return nil
 
 }
 
 // DeleteStatusCR deletes status CR
-func (p *AzureArcProvider) DeleteStatusCR(content []byte) error {
+func (p *AzureArcProvider) DeleteStatusCR(name string, content []byte) error {
 
 	return nil
 }
