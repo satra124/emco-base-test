@@ -51,7 +51,8 @@ spec:
               value: "monitor"
              {{- if eq (.Values.git.enabled) true }}
             - name: GIT_USERNAME
-              secretKeyRef:
+              valueFrom:
+                secretKeyRef:
                   name: {{ .Release.Name }}-git-monitor
                   key: username
             - name: GIT_TOKEN
@@ -64,6 +65,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-git-monitor
                   key: repo
+            - name: GIT_CLUSTERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-git-monitor
+                  key: clustername
               {{- end }}
       volumes:
       - name: config-volume
