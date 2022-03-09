@@ -59,3 +59,4 @@ func (m *Fluxv2Provider) TagResource(res []byte, label string) ([]byte, error) {
 	}
 	return b, nil
 }
+
