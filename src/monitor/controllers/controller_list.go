@@ -1,18 +1,5 @@
-/*
-Copyright 2022.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2022 Intel Corporation
 
 package controllers
 
@@ -32,7 +19,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	slog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	//k8spluginv1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/api/v1alpha1"
 )
 
 type GvkElement struct {
@@ -56,8 +42,8 @@ var GVKList = map[schema.GroupVersionKind]GvkElement{
 	{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "RoleBinding"}:         {resource: "rolebindings", defaultRes: false},
 	{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRole"}:         {resource: "roles", defaultRes: false},
 	{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRoleBinding"}:  {resource: "clusterrolebindings", defaultRes: false},
-	{Version: "v1", Kind: "ResourceQuota"}:  {resource: "resourcequotas", defaultRes: false},
-	{Version: "v1", Kind: "Namespace"}:  {resource: "namespaces", defaultRes: false},
+	{Version: "v1", Kind: "ResourceQuota"}:                                           {resource: "resourcequotas", defaultRes: false},
+	{Version: "v1", Kind: "Namespace"}:                                               {resource: "namespaces", defaultRes: false},
 }
 
 var GvkMap map[schema.GroupVersionKind]GvkElement
@@ -114,6 +100,7 @@ func (r *ControllerListReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 	if err != nil {
 		// Requeue the update
+		log.Println("Requeue due to error", err)
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
@@ -193,7 +180,7 @@ func readGVKList(file string) ([]configResource, error) {
 	}
 	defer f.Close()
 
-	// // Read the configuration from json file
+	// Read the configuration from json file
 	result := make([]configResource, 0)
 	decoder := json.NewDecoder(f)
 	decoder.DisallowUnknownFields()
@@ -218,7 +205,7 @@ func SetupControllers(mgr ctrl.Manager) error {
 	if err != nil {
 		log.Println("Error reading configmap for GVK List")
 	}
-	//var gvk schema.GroupVersionKind
+
 	for _, gv := range l {
 		_, err = GetResourcesDynamically(gv.Group, gv.Version, gv.Resource, "default")
 		if err != nil {

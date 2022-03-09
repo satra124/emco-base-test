@@ -1,25 +1,11 @@
-/*
-Copyright 2022.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2022 Intel Corporation
 
 package main
 
 import (
 	"flag"
 	"os"
-	//"log"
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -75,7 +61,9 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-
+	// Setup Github client, ignore errors. On error Monitor continues to
+	// work normally without updating CR in Github
+	controllers.SetupGitHubClient()
 	if err = (&controllers.ResourceBundleStateReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
@@ -90,4 +78,3 @@ func main() {
 		os.Exit(1)
 	}
 }
-

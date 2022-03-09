@@ -7,10 +7,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
-	"strings"
-
 	k8spluginv1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
+	"log"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -108,6 +106,8 @@ func UpdateCR(c client.Client, item *unstructured.Unstructured, namespacedName t
 	}
 
 	for _, cr := range rbStatusList.Items {
+		orgStatus := cr.Status.DeepCopy()
+
 		// Not scheduled for deletion
 		if item.GetDeletionTimestamp() == nil {
 			_, err := UpdateStatus(&cr, item)
@@ -116,7 +116,7 @@ func UpdateCR(c client.Client, item *unstructured.Unstructured, namespacedName t
 				return err
 			}
 			// Commit
-			err = CommitCR(c, &cr)
+			err = CommitCR(c, &cr, orgStatus)
 			if err != nil {
 				return err
 			}
@@ -124,7 +124,7 @@ func UpdateCR(c client.Client, item *unstructured.Unstructured, namespacedName t
 			// Scheduled for deletion
 			found, err := DeleteObj(&cr, namespacedName.Name, gvk)
 			if found && err == nil {
-				err = CommitCR(c, &cr)
+				err = CommitCR(c, &cr, orgStatus)
 			}
 		}
 	}
@@ -200,9 +200,10 @@ func DeleteFromAllCRs(c client.Client, namespacedName types.NamespacedName, gvk 
 		return fmt.Errorf("Did not find any CRs tracking this resource")
 	}
 	for _, cr := range rbStatusList.Items {
+		orgStatus := cr.Status.DeepCopy()
 		found, err := DeleteObj(&cr, namespacedName.Name, gvk)
 		if found && err == nil {
-			err = CommitCR(c, &cr)
+			err = CommitCR(c, &cr, orgStatus)
 		}
 	}
 	return err
@@ -216,7 +217,7 @@ func ClearLastApplied(annotations map[string]string) map[string]string {
 	return annotations
 }
 
-//Update CR status and also store in Git location if needed
+//Update CR status for generic resources
 func UpdateResourceStatus(c client.Client, item *unstructured.Unstructured, name, namespace string) error {
 	var err error
 
@@ -226,17 +227,18 @@ func UpdateResourceStatus(c client.Client, item *unstructured.Unstructured, name
 	}
 	var found bool
 	for _, cr := range rbStatusList.Items {
+		orgStatus := cr.Status.DeepCopy()
 		// Not scheduled for deletion
 		if item.GetDeletionTimestamp() == nil {
 			found, err = UpdateResourceStatusCR(&cr, item, name, namespace)
 
 			if err == nil {
-				CommitCR(c, &cr)
+				CommitCR(c, &cr, orgStatus)
 			}
 		} else {
 			found, err = DeleteResourceStatusCR(&cr, item.GetName(), item.GetNamespace(), item.GroupVersionKind())
 			if found && err == nil {
-				err = CommitCR(c, &cr)
+				err = CommitCR(c, &cr, orgStatus)
 			}
 		}
 
@@ -253,9 +255,10 @@ func DeleteResourceStatusFromAllCRs(c client.Client, namespacedName types.Namesp
 		return fmt.Errorf("Did not find any CRs tracking this resource")
 	}
 	for _, cr := range rbStatusList.Items {
+		orgStatus := cr.Status.DeepCopy()
 		found, err := DeleteResourceStatusCR(&cr, namespacedName.Name, namespacedName.Namespace, gvk)
 		if found && err == nil {
-			CommitCR(c, &cr)
+			CommitCR(c, &cr, orgStatus)
 		}
 	}
 	return nil
@@ -322,17 +325,4 @@ func UpdateResourceStatusCR(cr *k8spluginv1alpha1.ResourceBundleState, item *uns
 		cr.Status.ResourceStatuses = append(cr.Status.ResourceStatuses, res)
 	}
 	return found, nil
-}
-
-func CommitCR(c client.Client, cr *k8spluginv1alpha1.ResourceBundleState) error {
-
-	err := c.Status().Update(context.TODO(), cr)
-	if err != nil {
-		if !strings.Contains(err.Error(), "the object has been modified") {
-			log.Println("CR Update Error::", err)
-		}
-		return err
-	}
-	return nil
-
 }
