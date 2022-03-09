@@ -1,0 +1,47 @@
+    PackagesPath: output
+    ProjectName: proj-arc-1
+    ClusterProvider: provider-arc
+    ClusterLabel: edge-cluster
+    AdminCloud: default
+    CompositeApp: test-composite-app
+    CompositeProfile: test-composite-profile
+    GenericPlacementIntent: test-placement-intent
+    DeploymentIntent: test-deployment-intent
+    Intent: intent
+    RsyncPort: 30441
+    GacPort: 30493
+    OvnPort: 30473
+    DtcPort: 30483
+    NpsPort: 30485
+    HostIP: 10.10.10.3
+    APP1: http-server
+    APP2: collectd
+    APP3: operator
+    GitObj: GitObjectFluxRepo
+    GithubUser: chitti-intel
+    GithubToken: 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
+    GithubRepo: test-flux
+    Branch: main
+    GitResObj: GitObjectAzure
+    ClientID: a61fca65-1f43-46cb-bd52-48f891203272
+    TenantID: 1e452d66-a99c-413b-b87f-bc0c04219888
+    ClientSecret: 3R07Q~RMwTldmA.xi2ARx6jvBUa_BQDF4Jw5R
+    SubscriptionID: a68d0074-3737-48ac-9af0-b4a2e93f5e11
+    ArcCluster: flux-demo-arc
+    ArcResourceGroup: flux-demo-rg
+    ConfigDeleteDelay: "2"
+
+
+    Clusters:
+      - Name: cluster1
+      - Name: cluster2
+    K8sClusters:
+      - Name: cluster1
+        KubeConfig: /home/vagrant/git/multicloud-k8s/cluster-configs/config-edge02
+    FluxClusters:
+      - Name: cluster2
+    Applist:
+      - Name: collectd
+        Cluster:
+          - cluster2
+

@@ -6,14 +6,16 @@ package connector
 import (
 	"fmt"
 
+	"strings"
+
 	pkgerrors "github.com/pkg/errors"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/azurearc"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/fluxv2"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/k8s"
-	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
-	"strings"
-	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/k8sexp"
+	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
 )
 
 // Connection is for a cluster
@@ -66,9 +68,9 @@ func (p *Provider) GetClientProviders(app, cluster, level, namespace string) (Cl
 		// In the above case K8s plugin each resource is written
 		// to the cluster individually. The disadvantage is
 		// that if any resource fails then the application is
-		// left in bad state on the cluster with some resources 
-		// already applied on the cluster. In this plugin all 
-		// application resources are collected in a temporary 
+		// left in bad state on the cluster with some resources
+		// already applied on the cluster. In this plugin all
+		// application resources are collected in a temporary
 		// file, and then applied together to the cluster.
 		// All or no resources will be applied to the cluster.
 		// More Disk space is required in this approach.
@@ -86,6 +88,12 @@ func (p *Provider) GetClientProviders(app, cluster, level, namespace string) (Cl
 		}
 		return cl, nil
 		//Add other types like Azure Arc, Anthos etc here
+	case "azureArc":
+		cl, err := azurearc.NewAzureArcProvider(p.cid, app, cluster, level, namespace)
+		if err != nil {
+			return nil, err
+		}
+		return cl, nil
 	}
 	return nil, pkgerrors.New("Provider type not supported")
 }

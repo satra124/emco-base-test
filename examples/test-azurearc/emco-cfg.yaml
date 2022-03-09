@@ -1,0 +1,24 @@
+  orchestrator:
+    host: 10.10.10.3
+    port: 30415
+    statusPort: 30416
+  clm:
+    host: 10.10.10.3
+    port: 30461
+  ncm:
+    host: 10.10.10.3
+    port: 30431
+    statusPort: 30482
+  ovnaction:
+    host: 10.10.10.3
+    port: 30471
+  dcm:
+    host: 10.10.10.3
+    port: 30477
+    statusPort: 30478
+  gac:
+    host: 10.10.10.3
+    port: 30491
+  dtc:
+   host: 10.10.10.3
+   port: 30481
