@@ -5,14 +5,15 @@ package fluxv2
 
 import (
 	"context"
+	"time"
+
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomize "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	fluxsc "github.com/fluxcd/source-controller/api/v1beta1"
 	yaml "github.com/ghodss/yaml"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
-	emcogithub "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogithub"
+	emcogit "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 // Create GitRepository and Kustomization CR's for Flux
@@ -25,13 +26,13 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 			Kind:       "GitRepository",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      p.cid,
-			Namespace: p.namespace,
+			Name:      p.gitProvider.Cid,
+			Namespace: p.gitProvider.Namespace,
 		},
 		Spec: fluxsc.GitRepositorySpec{
-			URL:       p.url,
+			URL:       p.gitProvider.Url,
 			Interval:  metav1.Duration{Duration: time.Second * 30},
-			Reference: &fluxsc.GitRepositoryRef{Branch: p.branch},
+			Reference: &fluxsc.GitRepositoryRef{Branch: p.gitProvider.Branch},
 		},
 	}
 	x, err := yaml.Marshal(&gr)
@@ -39,9 +40,9 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 		log.Error("ApplyConfig:: Marshal err", log.Fields{"err": err, "gr": gr})
 		return err
 	}
-	path := "clusters/" + p.cluster + "/" + gr.Name + ".yaml"
+	path := "clusters/" + p.gitProvider.Cluster + "/" + gr.Name + ".yaml"
 	// Add to the commit
-	gp := emcogithub.Add(path, string(x), []gitprovider.CommitFile{})
+	gp := emcogit.Add(path, string(x), []gitprovider.CommitFile{}, p.gitProvider.GitType)
 
 	kc := kustomize.Kustomization{
 		TypeMeta: metav1.TypeMeta{
@@ -49,18 +50,18 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 			Kind:       "Kustomization",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kcust" + p.cid,
-			Namespace: p.namespace,
+			Name:      "kcust" + p.gitProvider.Cid,
+			Namespace: p.gitProvider.Namespace,
 		},
 		Spec: kustomize.KustomizationSpec{
 			Interval: metav1.Duration{Duration: time.Second * 300},
-			Path:     "clusters/" + p.cluster + "/context/" + p.cid,
+			Path:     "clusters/" + p.gitProvider.Cluster + "/context/" + p.gitProvider.Cid,
 			Prune:    true,
 			SourceRef: kustomize.CrossNamespaceSourceReference{
 				Kind: "GitRepository",
 				Name: gr.Name,
 			},
-			TargetNamespace: p.namespace,
+			TargetNamespace: p.gitProvider.Namespace,
 		},
 	}
 	y, err := yaml.Marshal(&kc)
@@ -68,11 +69,10 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 		log.Error("ApplyConfig:: Marshal err", log.Fields{"err": err, "kc": kc})
 		return err
 	}
-	path = "clusters/" + p.cluster + "/" + kc.Name + ".yaml"
-	// Add to the commit
-	gp = emcogithub.Add(path, string(y), gp)
+	path = "clusters/" + p.gitProvider.Cluster + "/" + kc.Name + ".yaml"
+	gp = emcogit.Add(path, string(y), gp, p.gitProvider.GitType)
 	// Commit
-	err = emcogithub.CommitFiles(ctx, p.client, p.userName, p.repoName, p.branch, "Commit for "+p.getPath("context"), gp)
+	err = emcogit.CommitFiles(ctx, p.gitProvider.Client, p.gitProvider.UserName, p.gitProvider.RepoName, p.gitProvider.Branch, "Commit for "+p.gitProvider.GetPath("context"), gp, p.gitProvider.GitType)
 	if err != nil {
 		log.Error("ApplyConfig:: Commit files err", log.Fields{"err": err, "gp": gp})
 	}
@@ -81,11 +81,11 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 
 // Delete GitRepository and Kustomization CR's for Flux
 func (p *Fluxv2Provider) DeleteConfig(ctx context.Context, config interface{}) error {
-	path := "clusters/" + p.cluster + "/" + p.cid + ".yaml"
-	gp := emcogithub.Delete(path, []gitprovider.CommitFile{})
-	path = "clusters/" + p.cluster + "/" + "kcust" + p.cid + ".yaml"
-	gp = emcogithub.Delete(path, gp)
-	err := emcogithub.CommitFiles(ctx, p.client, p.userName, p.repoName, p.branch, "Commit for "+p.getPath("context"), gp)
+	path := "clusters/" + p.gitProvider.Cluster + "/" + p.gitProvider.Cid + ".yaml"
+	gp := emcogit.Delete(path, []gitprovider.CommitFile{}, p.gitProvider.GitType)
+	path = "clusters/" + p.gitProvider.Cluster + "/" + "kcust" + p.gitProvider.Cid + ".yaml"
+	gp = emcogit.Delete(path, gp, p.gitProvider.GitType)
+	err := emcogit.CommitFiles(ctx, p.gitProvider.Client, p.gitProvider.UserName, p.gitProvider.RepoName, p.gitProvider.Branch, "Commit for "+p.gitProvider.GetPath("context"), gp, p.gitProvider.GitType)
 	if err != nil {
 		log.Error("ApplyConfig:: Commit files err", log.Fields{"err": err, "gp": gp})
 	}

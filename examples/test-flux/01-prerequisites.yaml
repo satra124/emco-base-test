@@ -40,7 +40,7 @@ spec:
   kv:
   - gitType: github
   - userName: {{ $.GithubUser }}
-  - githubToken:  {{ $.GithubToken }}
+  - gitToken:  {{ $.GithubToken }}
   - repoName: {{ $.GithubRepo }}
   - branch: main
 
