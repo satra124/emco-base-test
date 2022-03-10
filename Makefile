@@ -78,16 +78,16 @@ pre-compile: clean
 	 done
 	@echo "    Done."
 
-compile-container: pre-compile
+compile: pre-compile
 	@echo "Building artifacts"
 	@for m in $(MODS); do \
 	    $(MAKE) -C ./src/$$m all; \
 	 done
 	@echo "    Done."
 
-compile: check-env
+deploy-compile: check-env
 	@echo "Building microservices within Docker build container"
-	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} -v `pwd`:/repo golang:${GO_VERSION} /bin/sh -c "cd /repo; make compile-container"
+	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} -v `pwd`:/repo golang:${GO_VERSION} /bin/sh -c "cd /repo; make compile"
 	@echo "    Done."
 
 # Modules that follow naming conventions are done in a loop, rest later
@@ -107,7 +107,7 @@ build-containers:
 	 done
 	@echo "    Done."
 
-deploy: check-env compile build-containers
+deploy: check-env deploy-compile build-containers
 	@echo "Creating helm charts. Pushing microservices to registry & copying docker-compose files if BUILD_CAUSE set to DEV_TEST"
 	@docker run --env USER=${USER} --env EMCODOCKERREPO=${EMCODOCKERREPO} --env MAINDOCKERREPO=${MAINDOCKERREPO} --env BUILD_CAUSE=${BUILD_CAUSE} --env BRANCH=${BRANCH} --env TAG=${TAG} --env EMCOSRV_RELEASE_TAG=${EMCOSRV_RELEASE_TAG} --rm --user `id -u`:`id -g` --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache -v `pwd`:/repo ${EMCODOCKERREPO}${BUILD_BASE_IMAGE_NAME}:${BUILD_BASE_IMAGE_VERSION} /bin/sh -c "cd /repo/scripts ; sh deploy_emco.sh"
 	@MODS=`echo ${MODS} | sed 's/ovnaction/ovn/;s/genericactioncontroller/gac/;s/orchestrator/orch/;'` ./scripts/push_to_registry.sh
@@ -143,10 +143,9 @@ build-base:
 	./scripts/build-base-images.sh
 
 develop-compile: check-env
-	@echo "Building microservices for develpment within Docker build container with GOPATH set"
-	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo golang:${GO_VERSION} /bin/sh -c "cd /repo; make compile-container"
+	@echo "Building microservices for development within Docker build container with GOPATH set"
+	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo golang:${GO_VERSION} /bin/sh -c "cd /repo; make compile"
 	@echo "    Done."
 
 develop: develop-compile build-containers
 	@MODS=`echo ${MODS} | sed 's/ovnaction/ovn/;s/genericactioncontroller/gac/;s/orchestrator/orch/;'` ./scripts/push_to_registry.sh
-

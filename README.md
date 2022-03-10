@@ -141,3 +141,106 @@ Do the following steps:
 See [this Readme](examples/single-cluster/Readme.md) on how to setup an environment and run a few test cases with EMCO.
 
 See [this tutorial](docs/user/install/Tutorial_Helm.md) for further details.
+
+
+## Top-level build system (Makefile)
+
+The following outlines and describes all important top-level `Makefile` targets. Each target has been expanded to include all the targets executed through dependency, iteratively until the last non-dependent target. As such, you will see that a great number of lines/steps are replicating throughout the targets outlined below. The list of targets and tasks executed is current as of EMCO 22.03.
+
+`check-env:`
+
+* enforces that `EMCODOCKERREPO` is set, for those target that really require it
+
+`clean:`
+
+* cleans up all compiled binaries
+* does NOT clean up any artifacts, such as config.json, json-schemas and ref-schemas
+
+`clean-all:`
+
+* cleans up all compiled binaries
+* removes the entire bin/ directories, which include config.json, json-schemas and ref-schemas
+
+`test:`
+
+* run unit tests for all services
+
+`tidy:`
+
+* runs `go mod tidy` for all services
+
+`pre-compile: clean`
+
+* cleans up all compiled binaries
+* does NOT clean up any artifacts, such as config.json, json-schemas and ref-schemas
+* replaces artifacts, such config.json, json-schemas and ref-schemas with default ones
+
+`deploy-compile: check-env`
+
+* enforces that `EMCODOCKERREPO` is set, for those target that really require it
+* same as `make develop-compile`, it launches `make compile` inside a container (golang:v.vv):
+    - cleans up all compiled binaries
+    - does NOT clean up any artifacts, such as config.json, json-schemas and ref-schemas
+    - replaces artifacts, such config.json, json-schemas and ref-schemas with default ones
+    - compiles each of the EMCO binaries
+
+`build-containers:`
+
+* creates container images with each of the compiled EMCO binaries (emco-servicename:yy.mm extended from alpine:v.vv)
+
+`develop-compile: check-env`
+
+* enforces that `EMCODOCKERREPO` is set, for those target that really require it
+* same as `make deploy-compile`, it launches `make compile` inside a container (golang:v.vv):
+    - cleans up all compiled binaries
+    - does NOT clean up any artifacts, such as config.json, json-schemas and ref-schemas
+    - replaces artifacts, such config.json, json-schemas and ref-schemas with default ones
+    - compiles each of the EMCO binaries
+* but also sets `--env GOPATH=/repo/bin` in docker to reuse downloaded dependencies
+
+`compile: pre-compile`
+
+* cleans up all compiled binaries
+* does NOT clean up any artifacts, such as config.json, json-schemas and ref-schemas
+* replaces artifacts, such config.json, json-schemas and ref-schemas with default ones
+* compiles each of the EMCO binaries
+
+`deploy: check-env deploy-compile build-containers`
+
+* enforces that `EMCODOCKERREPO` is set, for those target that really require it
+* same as `make develop-compile`, it launches `make compile` inside a container (golang:v.vv):
+    - cleans up all compiled binaries
+    - does NOT clean up any artifacts, such as config.json, json-schemas and ref-schemas
+    - replaces artifacts, such config.json, json-schemas and ref-schemas with default ones
+    - compiles each of the EMCO binaries
+* creates container images with each of the compiled EMCO binaries (emco-servicename:yy.mm extended from alpine:v.vv)
+* creates helm charts (assumes build-base image exists even though it's not a checked dependency)
+* pushes microservices to registry
+* copies docker-compose files if BUILD_CAUSE set to DEV_TEST
+
+`build-base:`
+
+* creates build base image (emco-build-base:: extended from alpine:v.vv) and pushes it to registry
+
+`develop: develop-compile build-containers`
+
+* same as `make deploy-compile`, it launches `make compile` inside a container (golang:v.vv):
+    - cleans up all compiled binaries
+    - does NOT clean up any artifacts, such as config.json, json-schemas and ref-schemas
+    - replaces artifacts, such config.json, json-schemas and ref-schemas with default ones
+    - compiles each of the EMCO binaries
+* but also sets `--env GOPATH=/repo/bin` in docker to reuse downloaded dependencies
+* creates container images with each of the compiled EMCO binaries (emco-servicename:yy.mm extended from alpine:v.vv)
+* fixes the names of some services
+* pushes microservices to registry
+
+`all: check-env compile build-containers`
+
+* enforces that `EMCODOCKERREPO` is set, for those target that really require it
+* launches `make compile` inside a container (golang:v.vv):
+    - cleans up all compiled binaries
+    - does NOT clean up any artifacts, such as config.json, json-schemas and ref-schemas
+    - replaces artifacts, such config.json, json-schemas and ref-schemas with default ones
+    - compiles each of the EMCO binaries
+* creates container images with each of the compiled EMCO binaries (emco-servicename:yy.mm extended from alpine:v.vv)
+* (nothing else is done)
