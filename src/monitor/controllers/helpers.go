@@ -99,7 +99,8 @@ func GetCRListForResource(client client.Client, item *unstructured.Unstructured)
 }
 
 func UpdateCR(c client.Client, item *unstructured.Unstructured, namespacedName types.NamespacedName, gvk schema.GroupVersionKind) error {
-
+	var err error
+	var found bool
 	rbStatusList, err := GetCRListForResource(c, item)
 	if err != nil {
 		return err
@@ -117,18 +118,15 @@ func UpdateCR(c client.Client, item *unstructured.Unstructured, namespacedName t
 			}
 			// Commit
 			err = CommitCR(c, &cr, orgStatus)
-			if err != nil {
-				return err
-			}
 		} else {
 			// Scheduled for deletion
-			found, err := DeleteObj(&cr, namespacedName.Name, gvk)
+			found, err = DeleteObj(&cr, namespacedName.Name, gvk)
 			if found && err == nil {
 				err = CommitCR(c, &cr, orgStatus)
 			}
 		}
 	}
-	return nil
+	return err
 }
 
 func UpdateStatus(cr *k8spluginv1alpha1.ResourceBundleState, item *unstructured.Unstructured) (bool, error) {
@@ -192,16 +190,17 @@ func DeleteFromSingleCR(c client.Client, cr *k8spluginv1alpha1.ResourceBundleSta
 }
 
 func DeleteFromAllCRs(c client.Client, namespacedName types.NamespacedName, gvk schema.GroupVersionKind) error {
-
+	var err error
+	var found bool
 	rbStatusList := &k8spluginv1alpha1.ResourceBundleStateList{}
-	err := listResources(c, namespacedName.Namespace, nil, rbStatusList)
+	err = listResources(c, namespacedName.Namespace, nil, rbStatusList)
 	if err != nil || len(rbStatusList.Items) == 0 {
 		log.Printf("Did not find any CRs tracking this resource\n")
 		return fmt.Errorf("Did not find any CRs tracking this resource")
 	}
 	for _, cr := range rbStatusList.Items {
 		orgStatus := cr.Status.DeepCopy()
-		found, err := DeleteObj(&cr, namespacedName.Name, gvk)
+		found, err = DeleteObj(&cr, namespacedName.Name, gvk)
 		if found && err == nil {
 			err = CommitCR(c, &cr, orgStatus)
 		}
@@ -233,7 +232,7 @@ func UpdateResourceStatus(c client.Client, item *unstructured.Unstructured, name
 			found, err = UpdateResourceStatusCR(&cr, item, name, namespace)
 
 			if err == nil {
-				CommitCR(c, &cr, orgStatus)
+				err = CommitCR(c, &cr, orgStatus)
 			}
 		} else {
 			found, err = DeleteResourceStatusCR(&cr, item.GetName(), item.GetNamespace(), item.GroupVersionKind())
@@ -247,21 +246,22 @@ func UpdateResourceStatus(c client.Client, item *unstructured.Unstructured, name
 }
 
 func DeleteResourceStatusFromAllCRs(c client.Client, namespacedName types.NamespacedName, gvk schema.GroupVersionKind) error {
-
+	var err error
+	var found bool
 	rbStatusList := &k8spluginv1alpha1.ResourceBundleStateList{}
-	err := listResources(c, namespacedName.Namespace, nil, rbStatusList)
+	err = listResources(c, namespacedName.Namespace, nil, rbStatusList)
 	if err != nil || len(rbStatusList.Items) == 0 {
 		log.Printf("Did not find any CRs tracking this resource\n")
 		return fmt.Errorf("Did not find any CRs tracking this resource")
 	}
 	for _, cr := range rbStatusList.Items {
 		orgStatus := cr.Status.DeepCopy()
-		found, err := DeleteResourceStatusCR(&cr, namespacedName.Name, namespacedName.Namespace, gvk)
+		found, err = DeleteResourceStatusCR(&cr, namespacedName.Name, namespacedName.Namespace, gvk)
 		if found && err == nil {
-			CommitCR(c, &cr, orgStatus)
+			err = CommitCR(c, &cr, orgStatus)
 		}
 	}
-	return nil
+	return err
 }
 
 func DeleteResourceStatusCR(cr *k8spluginv1alpha1.ResourceBundleState, name, namespace string, gvk schema.GroupVersionKind) (bool, error) {

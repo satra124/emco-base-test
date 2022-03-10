@@ -112,7 +112,6 @@ func (r *ResourceBundleStateReconciler) Reconcile(ctx context.Context, req ctrl.
 
 	err = CommitCR(r.Client, rbstate, orgStatus)
 	if err != nil {
-		log.Printf("failed to update rbstate: %v\n", err)
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
@@ -138,11 +137,13 @@ func (r *ResourceBundleStateReconciler) updateServices(rbstate *k8spluginv1alpha
 	}
 
 	for _, svc := range serviceList.Items {
-		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(svc)
-		un := &unstructured.Unstructured{}
-		un.SetUnstructuredContent(newUnstr)
+		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&svc)
 		if err == nil {
+			un := &unstructured.Unstructured{}
+			un.SetUnstructuredContent(newUnstr)
 			ServiceUpdateStatus(rbstate, un)
+		} else {
+			return err
 		}
 	}
 
@@ -161,11 +162,13 @@ func (r *ResourceBundleStateReconciler) updatePods(rbstate *k8spluginv1alpha1.Re
 	}
 
 	for _, pod := range podList.Items {
-		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(pod)
-		un := &unstructured.Unstructured{}
-		un.SetUnstructuredContent(newUnstr)
+		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&pod)
 		if err == nil {
+			un := &unstructured.Unstructured{}
+			un.SetUnstructuredContent(newUnstr)
 			PodUpdateStatus(rbstate, un)
+		} else {
+			return err
 		}
 	}
 	return nil
@@ -181,13 +184,14 @@ func (r *ResourceBundleStateReconciler) updateConfigMaps(rbstate *k8spluginv1alp
 		log.Printf("Failed to list configMaps: %v", err)
 		return err
 	}
-
 	for _, cm := range configMapList.Items {
-		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(cm)
-		un := &unstructured.Unstructured{}
-		un.SetUnstructuredContent(newUnstr)
+		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&cm)
 		if err == nil {
+			un := &unstructured.Unstructured{}
+			un.SetUnstructuredContent(newUnstr)
 			ConfigMapUpdateStatus(rbstate, un)
+		} else {
+			return err
 		}
 	}
 
@@ -206,11 +210,13 @@ func (r *ResourceBundleStateReconciler) updateDeployments(rbstate *k8spluginv1al
 	}
 
 	for _, dep := range deploymentList.Items {
-		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(dep)
-		un := &unstructured.Unstructured{}
-		un.SetUnstructuredContent(newUnstr)
+		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&dep)
 		if err == nil {
+			un := &unstructured.Unstructured{}
+			un.SetUnstructuredContent(newUnstr)
 			DeploymentUpdateStatus(rbstate, un)
+		} else {
+			return err
 		}
 	}
 	return nil
@@ -228,11 +234,13 @@ func (r *ResourceBundleStateReconciler) updateDaemonSets(rbstate *k8spluginv1alp
 	}
 
 	for _, ds := range daemonSetList.Items {
-		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(ds)
-		un := &unstructured.Unstructured{}
-		un.SetUnstructuredContent(newUnstr)
+		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&ds)
 		if err == nil {
+			un := &unstructured.Unstructured{}
+			un.SetUnstructuredContent(newUnstr)
 			DaemonSetUpdateStatus(rbstate, un)
+		} else {
+			return err
 		}
 	}
 
@@ -251,11 +259,13 @@ func (r *ResourceBundleStateReconciler) updateJobs(rbstate *k8spluginv1alpha1.Re
 	}
 
 	for _, job := range jobList.Items {
-		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(job)
-		un := &unstructured.Unstructured{}
-		un.SetUnstructuredContent(newUnstr)
+		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&job)
 		if err == nil {
+			un := &unstructured.Unstructured{}
+			un.SetUnstructuredContent(newUnstr)
 			JobUpdateStatus(rbstate, un)
+		} else {
+			return err
 		}
 	}
 
@@ -274,11 +284,13 @@ func (r *ResourceBundleStateReconciler) updateStatefulSets(rbstate *k8spluginv1a
 	}
 
 	for _, sfs := range statefulSetList.Items {
-		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(sfs)
-		un := &unstructured.Unstructured{}
-		un.SetUnstructuredContent(newUnstr)
+		newUnstr, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&sfs)
 		if err == nil {
+			un := &unstructured.Unstructured{}
+			un.SetUnstructuredContent(newUnstr)
 			StatefulSetUpdateStatus(rbstate, un)
+		} else {
+			return err
 		}
 	}
 

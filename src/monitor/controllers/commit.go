@@ -11,6 +11,7 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	k8spluginv1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"log"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -81,9 +82,12 @@ func CommitCR(c client.Client, cr *k8spluginv1alpha1.ResourceBundleState, org *k
 	}
 	err = c.Status().Update(context.TODO(), cr)
 	if err != nil {
-		log.Println("CR Update Error::", err)
-		return err
-
+		if k8serrors.IsConflict(err) {
+			return err
+		} else {
+			log.Println("CR Update Error::", err)
+			return err
+		}
 	}
 	resBytes, err := json.Marshal(cr)
 	if err != nil {

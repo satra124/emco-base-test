@@ -77,13 +77,14 @@ func (r *ControllerListReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	err := r.Get(ctx, req.NamespacedName, resource)
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
-			log.Println(err, "Failed getting resource", req)
 			if g, ok := GvkMap[*r.gvk]; ok {
+				var err1 error
 				if g.defaultRes {
-					DeleteFromAllCRs(r.Client, req.NamespacedName, *r.gvk)
+					err1 = DeleteFromAllCRs(r.Client, req.NamespacedName, *r.gvk)
 				} else {
-					DeleteResourceStatusFromAllCRs(r.Client, req.NamespacedName, *r.gvk)
+					err1 = DeleteResourceStatusFromAllCRs(r.Client, req.NamespacedName, *r.gvk)
 				}
+				return ctrl.Result{}, err1
 			}
 			return ctrl.Result{}, nil
 		}
@@ -100,7 +101,6 @@ func (r *ControllerListReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 	if err != nil {
 		// Requeue the update
-		log.Println("Requeue due to error", err)
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
