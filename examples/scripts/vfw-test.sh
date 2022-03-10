@@ -7,11 +7,13 @@ set -o pipefail
 
 source _functions.sh
 
-base_url_clm=${base_url_clm:-"http://10.10.10.6:31856/v2"}
-base_url_ncm=${base_url_ncm:-"http://10.10.10.6:32737/v2"}
-base_url_orchestrator=${base_url_orchestrator:-"http://10.10.10.6:31298/v2"}
-base_url_ovnaction=${base_url_ovnaction:-"http://10.10.10.6:31181/v2"}
-base_url_dcm=${base_url_dcm:-"http://10.10.10.6:31877/v2"}
+HOST_IP=${HOST_IP:-"oops"}
+
+base_url_clm=${base_url_clm:-"http://${HOST_IP}:30461/v2"}
+base_url_ncm=${base_url_ncm:-"http://${HOST_IP}:30481/v2"}
+base_url_orchestrator=${base_url_orchestrator:-"http://${HOST_IP}:30415/v2"}
+base_url_ovnaction=${base_url_ovnaction:-"http://${HOST_IP}:30451/v2"}
+base_url_dcm=${base_url_dcm:-"http://${HOST_IP}:30477/v2"}
 
 
 # add clusters to clm
@@ -1114,6 +1116,10 @@ function usage {
 
 function check_for_env_settings {
     ok=""
+    if [ "${HOST_IP}" == "oops" ] ; then
+        echo -e "ERROR - HOST_IP environment variable needs to be set"
+        ok="no"
+    fi
     if [ "${kubeconfigfile}" == "oops" ] ; then
         echo -e "ERROR - kubeconfigfile environment variable needs to be set"
         ok="no"
