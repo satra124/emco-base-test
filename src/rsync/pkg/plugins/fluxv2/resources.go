@@ -8,6 +8,9 @@ import (
 
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
+
 )
 
 // Creates a new resource if the not already existing
@@ -20,7 +23,20 @@ func (p *Fluxv2Provider) Create(name string, ref interface{}, content []byte) (i
 // Apply resource to the cluster
 func (p *Fluxv2Provider) Apply(name string, ref interface{}, content []byte) (interface{}, error) {
 
-	res, err := p.gitProvider.Apply(name, ref, content)
+	//Decode the yaml to create a runtime.Object
+	unstruct := &unstructured.Unstructured{}
+	//Ignore the returned obj as we expect the data in unstruct
+	_, err := utils.DecodeYAMLData(string(content), unstruct)
+	if err != nil {
+		return nil, err
+	}
+	// Set Namespace
+	unstruct.SetNamespace(p.gitProvider.Namespace)
+	b, err := unstruct.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	res, err := p.gitProvider.Apply(name, ref, b)
 	return res, err
 
 }

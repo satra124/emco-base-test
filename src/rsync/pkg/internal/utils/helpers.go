@@ -20,6 +20,7 @@ func DecodeYAMLData(data string, into runtime.Object) (runtime.Object, error) {
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	obj, _, err := decode([]byte(data), nil, into)
 	if err != nil {
+		log.Error("Error DecodeYAMLData", log.Fields{"error": err})
 		return nil, pkgerrors.Wrap(err, "Deserialize YAML error")
 	}
 

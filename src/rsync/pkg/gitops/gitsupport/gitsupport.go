@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
-
+	"time"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -15,7 +15,9 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
 	emcogit "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	v1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
+
 )
 
 type GitProvider struct {
@@ -143,22 +145,8 @@ func (p *GitProvider) Create(name string, ref interface{}, content []byte) (inte
 */
 func (p *GitProvider) Apply(name string, ref interface{}, content []byte) (interface{}, error) {
 
-	//Decode the yaml to create a runtime.Object
-	unstruct := &unstructured.Unstructured{}
-	//Ignore the returned obj as we expect the data in unstruct
-	_, err := utils.DecodeYAMLData(string(content), unstruct)
-	if err != nil {
-		return nil, err
-	}
-	// Set Namespace
-	unstruct.SetNamespace(p.Namespace)
-	b, err := unstruct.MarshalJSON()
-	if err != nil {
-		return nil, err
-	}
-
 	path := p.GetPath("context") + name + ".yaml"
-	ref = emcogit.Add(path, string(b), ref, p.GitType)
+	ref = emcogit.Add(path, string(content), ref, p.GitType)
 	return ref, nil
 
 }
@@ -218,4 +206,64 @@ func (p *GitProvider) Commit(ctx context.Context, ref interface{}) error {
 */
 func (p *GitProvider) IsReachable() error {
 	return nil
+}
+
+// Wait time between reading git status (seconds)
+var waitTime int = 60
+// StartClusterWatcher watches for CR changes in git location
+// go routine starts and reads after waitTime
+// Thread exists when the AppContext is deleted
+func (p *GitProvider) StartClusterWatcher() error {
+	// Start thread to sync monitor CR
+	go func() error {
+		ctx := context.Background()
+		for {
+			select {
+			case <-time.After(time.Duration(waitTime) * time.Second):
+				if ctx.Err() != nil {
+					return ctx.Err()
+				}
+				// Check if AppContext doesn't exist then exit the thread
+				if _, err := utils.NewAppContextReference(p.Cid); err != nil {
+					// Delete the Status CR updated by Monitor running on the cluster
+					p.DeleteClusterStatusCR()
+					// AppContext deleted - Exit thread
+					return nil
+				}
+				path :=  p.GetPath("status")
+				// Read file
+				c, err := emcogit.GetFiles(ctx, p.Client, p.UserName, p.RepoName, p.Branch, path, p.GitType)
+				if err != nil {
+					log.Error("Status file not available", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
+					continue
+				}
+				cp := c.([]*gitprovider.CommitFile)
+				if len(cp) > 0 {
+					// Only one file expected in the location
+					content := &v1alpha1.ResourceBundleState{}
+					_, err := utils.DecodeYAMLData(*cp[0].Content, content)
+					if err != nil {
+						log.Error("", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
+						return err
+					}
+					status.HandleResourcesStatus(p.Cid, p.App, p.Cluster, content)
+				}
+			// Check if the context is canceled
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+	}()
+	return nil
+}
+
+// DeleteClusterStatusCR deletes the status CR provided by the monitor on the cluster
+func (p *GitProvider) DeleteClusterStatusCR() error {
+	// Delete the status CR
+	path := p.GetPath("status") + p.Cid + "-" + p.App
+	rf := []gitprovider.CommitFile{}
+	ref := emcogit.Delete(path, rf, p.GitType)
+	err := emcogit.CommitFiles(context.Background(), p.Client, p.UserName, p.RepoName, p.Branch,
+	"Commit for Delete Status CR "+p.GetPath("status"), ref, p.GitType)
+	return err
 }
