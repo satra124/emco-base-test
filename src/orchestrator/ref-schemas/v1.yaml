@@ -34,6 +34,10 @@ resources:
     parent: inboundServerIntent
     references:
       - name: app
+  - name: inboundClientsAccessIntent
+    parent: inboundClientsIntent
+    references:
+      - name: app
 #emco-gac
   - name: genericK8sIntent
     parent: deploymentIntentGroup

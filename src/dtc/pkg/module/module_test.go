@@ -22,6 +22,7 @@ var _ = Describe("Trafficgroupintent", func() {
 		client.TrafficGroupIntent = module.NewTrafficGroupIntentClient()
 		client.ServerInboundIntent = module.NewServerInboundIntentClient()
 		client.ClientsInboundIntent = module.NewClientsInboundIntentClient()
+		client.ClientsAccessInboundIntent = module.NewClientsAccessInboundIntentClient()
 		client.Controller = controller.NewControllerClient("resources", "data", "dtc")
 	})
 

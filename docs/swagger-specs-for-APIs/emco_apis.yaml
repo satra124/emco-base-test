@@ -5413,6 +5413,147 @@ paths:
         '500':
           description: Internal Server Error
 
+################## Inbound Client Access Intents ##################################
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/traffic-group-intents/{trafficGroupIntent}/inbound-intents/{inboundServerIntent}/clients/{inboundClientIntent}/access-points:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/compositeAppName'
+      - $ref: '#/components/parameters/compositeAppVersion'
+      - $ref: '#/components/parameters/deploymentIntentGroupName'
+      - $ref: '#/components/parameters/trafficControlIntent'
+      - $ref: '#/components/parameters/trafficInboundIntent'
+      - $ref: '#/components/parameters/trafficInboundClientIntent'
+    post:
+      tags:
+        - Traffic Controller Intent
+      summary: Traffic Controller Client Access Inbound Intent API's
+      description: Add a new `traffic controller client access inbound intent`
+      operationId: addTrafficControllerInboundClientAccessIntent
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/InboundClientAccessIntent'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/InboundClientAccessIntent'
+    get: # documentation for GET operation for this path
+      tags:
+        - Traffic Controller Intent
+      summary: Get all Traffic Controller Client Access Inbound Intent
+
+      description: |
+        Get all `traffic controller client access inbound intent`
+      operationId: getAllTrafficControllerInboundClientAccessIntent
+      responses: # list of responses
+        '200':
+          description: Success
+          content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/InboundClientAccessIntentArray'
+        '404':
+          description: No Traffic Controller Client Access Inbound Intent found
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/traffic-group-intents/{trafficGroupIntent}/inbound-intents/{inboundServerIntent}/clients/{inboundClientIntent}/access-points/{inboundClientAccessIntent}:
+    # parameters list that are used with each operation for this path
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/compositeAppName'
+      - $ref: '#/components/parameters/compositeAppVersion'
+      - $ref: '#/components/parameters/deploymentIntentGroupName'
+      - $ref: '#/components/parameters/trafficControlIntent'
+      - $ref: '#/components/parameters/trafficInboundIntent'
+      - $ref: '#/components/parameters/trafficInboundClientIntent'
+      - $ref: '#/components/parameters/trafficInboundClientAccessIntent'
+    get: # documentation for GET operation for this path
+      tags:
+        - Traffic Controller Intent
+      summary: Get Traffic Controller Client Access Inbound Intent
+
+      description: |
+        Get `traffic controller client access inbound intent`
+      operationId: getTrafficControllerAccessInboundClientIntent
+      responses: # list of responses
+        '200':
+          description: Success
+          content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/InboundClientAccessIntent'
+        '404':
+          description: Traffic Controller Client Access Inbound Intent not found
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+    put:
+      tags:
+        - Traffic Controller Intent
+      summary: Update Traffic Controller Client Access Inbound Intent
+      description: Update `Traffic Controller Client Access Inbound Intent`
+      operationId: updateTrafficControllerInboundClientAccessIntent
+      responses:
+        '200':
+          content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/InboundClientAccessIntent'
+          description: Success
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: Internal Server Error
+      # request body documentation
+      requestBody:
+        content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/InboundClientAccessIntent'
+        required: true
+
+    delete: # documentation for DELETE operation for this path
+      tags:
+        - Traffic Controller Intent
+      summary: Delete Traffic Controller Client Access Inbound Intent
+
+      description: |
+        Delete `Traffic Controller Client Access Inbound Intent`
+      operationId: deleteTrafficControllerInboundClientAccessIntent
+      responses: # list of responses
+        '204':
+          description: Delete
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '500':
+          description: Internal Server Error
+
+####################### HPA Intents ##################################
   # HPA INTENTS API
   /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/hpa-intents/:
     parameters:
@@ -7159,6 +7300,53 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/InboundClientIntent'
+    InbondClientAccessIntentSpec:
+      type: object
+      properties:
+        app:
+          description: Application name
+          type: string
+          maxLength: 128
+          example: "vfw"
+        appLabel:
+          description: Application label
+          type: string
+          maxLength: 128
+          example: "app=vfw"
+        serviceName:
+          description: Service name
+          type: string
+          maxLength: 128
+          example: "sink"
+        namespaces:
+          description: namespaces for the
+          type: array
+          items:
+            type: string
+            maxLength: 128
+        cidrs:
+          description: Ip Range list
+          type: array
+          items:
+            type: string
+            maxLength: 128
+      required:
+        - app
+        - serviceName
+        - namespaces
+        - cidrs
+        - appLabel
+    InboundClientAccessIntent:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/MetadataBase'
+        spec:
+          $ref: '#/components/schemas/InbondClientAccessIntentSpec'
+    InboundClientAccessIntentArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/InboundClientAccessIntent'
     DeploymentHpaIntent:
       type: object
       properties:
@@ -7605,6 +7793,14 @@ components:
       name: inboundClientIntent
       in: path
       description: Traffic Controller Client Inbound Intent
+      required: true
+      schema:
+        type: string
+        maxLength: 128
+    trafficInboundClientAccessIntent:
+      name: inboundClientAccessIntent
+      in: path
+      description: Traffic Controller Client Access Inbound Intent
       required: true
       schema:
         type: string
