@@ -27,6 +27,25 @@ var dbErrors = []APIError{
 	{ID: "db Insert referential schema missing", Message: "Cannot perform requested operation. The requested resource is not defined in the referential schema", Status: http.StatusConflict},
 }
 
+// shared list the errors a controller can get from a dependent controller
+// for example, DTC calls the orchestrator to check the status of a deployment intent group
+// and the orchestrator returns `DeploymentIntentGroup not found`
+var shared = []APIError{
+	{ID: "App not found", Message: "app not found", Status: http.StatusNotFound},
+	{ID: "AppDependency not found", Message: "appDependency not found", Status: http.StatusNotFound},
+	{ID: "AppIntent not found", Message: "appIntent not found", Status: http.StatusNotFound},
+	{ID: "AppProfile not found", Message: "appProfile not found", Status: http.StatusNotFound},
+	{ID: "CompositeApp not found", Message: "compositeApp not found", Status: http.StatusNotFound},
+	{ID: "CompositeProfile not found", Message: "compositeProfile not found", Status: http.StatusNotFound},
+	{ID: "Controller not found", Message: "controller not found", Status: http.StatusNotFound},
+	{ID: "Cluster not found", Message: "cluster not found", Status: http.StatusNotFound},
+	{ID: "DeploymentIntentGroup not found", Message: "deploymentIntentGroup not found", Status: http.StatusNotFound},
+	{ID: "GenericPlacementIntent not found", Message: "genericPlacementIntent not found", Status: http.StatusNotFound},
+	{ID: "Intent not found", Message: "intent not found", Status: http.StatusNotFound},
+	{ID: "LogicalCloud not found", Message: "logicalCloud not found", Status: http.StatusNotFound},
+	{ID: "Project not found", Message: "project not found", Status: http.StatusNotFound},
+}
+
 // HandleErrors handles api resources add/update/create errors
 // Returns APIError with the ID, message and the http status based on the error
 func HandleErrors(params map[string]string, err error, mod interface{}, apiErr []APIError) APIError {
@@ -41,6 +60,13 @@ func HandleErrors(params map[string]string, err error, mod interface{}, apiErr [
 
 	// api specific errors
 	for _, e := range apiErr {
+		if strings.Contains(err.Error(), e.ID) {
+			return e
+		}
+	}
+
+	// conditional errors
+	for _, e := range shared {
 		if strings.Contains(err.Error(), e.ID) {
 			return e
 		}
