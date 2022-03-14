@@ -410,7 +410,7 @@ func populateCustomizationTestData() []mockCustomization {
 						{
 							"op":    "replace",
 							"path":  "/spec/replicas",
-							"value": 6,
+							"value": "6",
 						},
 					},
 					ConfigMapOptions: module.ConfigMapOptions{
@@ -446,7 +446,7 @@ func populateCustomizationTestData() []mockCustomization {
 						{
 							"op":    "replace",
 							"path":  "/spec/replicas",
-							"value": 6,
+							"value": "6",
 						},
 					},
 					ConfigMapOptions: module.ConfigMapOptions{
@@ -486,7 +486,7 @@ func populateCustomizationTestData() []mockCustomization {
 						{
 							"op":    "replace",
 							"path":  "/spec/replicas",
-							"value": 6,
+							"value": "6",
 						},
 					},
 					ConfigMapOptions: module.ConfigMapOptions{
@@ -540,7 +540,7 @@ func populateCustomizationTestData() []mockCustomization {
 						{
 							"op":    "replace",
 							"path":  "/spec/replicas",
-							"value": 6,
+							"value": "6",
 						},
 					},
 					ConfigMapOptions: module.ConfigMapOptions{
@@ -600,7 +600,7 @@ func customizationInput(name string) io.Reader {
 				{
 					"op": "replace",
 					"path": "/spec/replicas",
-					"value": 6
+					"value": "6"
 				}
 			],
 			"configMapOptions": {
@@ -638,7 +638,7 @@ func customizationResult(name string) mockCustomization {
 					{
 						"op":    "replace",
 						"path":  "/spec/replicas",
-						"value": float64(6),
+						"value": "6",
 					},
 				},
 				ConfigMapOptions: module.ConfigMapOptions{
@@ -678,7 +678,7 @@ func customizationWithFileContent(name string) mockCustomization {
 					{
 						"op":    "replace",
 						"path":  "/spec/replicas",
-						"value": float64(6),
+						"value": "6",
 					},
 				},
 				ConfigMapOptions: module.ConfigMapOptions{

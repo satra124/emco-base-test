@@ -7,7 +7,6 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -18,9 +17,9 @@ import (
 	"strconv"
 	"strings"
 
-	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	pkgerrors "github.com/pkg/errors"
 	"github.com/xeipuuv/gojsonschema"
+	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
@@ -351,16 +350,16 @@ func ValidateJsonSchemaData(jsonSchemaFile string, jsonData interface{}) (error,
 		return pkgerrors.Wrap(err, "JsonSchemaValidation: Validation error"), http.StatusInternalServerError
 	}
 
-	var reason string
 	// Validate document against Json Schema
 	if !result.Valid() {
-		for _, desc := range result.Errors() {
+		var errList = []string{"Invalid Input:"}
+		for _, err := range result.Errors() {
 			log.Error("The document is not valid", log.Fields{
-				"param": desc.Field(), "reason": desc.Description(), "req": string(req),
+				"param": err.Field(), "reason": err.Description(), "req": string(req),
 			})
-			reason = reason + desc.Description()
+			errList = append(errList, err.Description())
 		}
-		return pkgerrors.Wrap(errors.New(reason), "Invalid Input:"), http.StatusBadRequest
+		return pkgerrors.New(strings.Join(errList, "\n")), http.StatusBadRequest
 	}
 
 	return nil, 0

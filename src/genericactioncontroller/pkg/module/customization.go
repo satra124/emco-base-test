@@ -48,8 +48,8 @@ type SecretOptions struct {
 
 // KeyOptions holds properties for customizing ConfigMap/Secret configuration data keys
 type KeyOptions struct {
-	FileName string `json:"fileName"`
-	KeyName  string `json:"keyName"`
+	FileName string `json:"fileName,omitempty"`
+	KeyName  string `json:"keyName,omitempty"`
 }
 
 // Content holds the configuration data for a ConfigMap/Secret
