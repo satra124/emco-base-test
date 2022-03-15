@@ -8,6 +8,7 @@ import (
 	"errors"
 	"mime"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -312,6 +313,24 @@ func validateCustomizationData(customization module.Customization) error {
 		log.Error("Mode may not be empty",
 			log.Fields{})
 		err = append(err, "mode may not be empty")
+	}
+
+	for _, p := range customization.Spec.PatchJSON {
+		switch value := p["value"].(type) {
+		case string:
+			if strings.HasPrefix(value, "$(http") &&
+				strings.HasSuffix(value, ")$") {
+				rawURL := strings.ReplaceAll(strings.ReplaceAll(value, "$(", ""), ")$", "")
+				if _, e := url.ParseRequestURI(rawURL); e != nil {
+					log.Error("Failed to parse the raw URL into a URL structure",
+						log.Fields{
+							"URL":   rawURL,
+							"Error": e.Error()})
+					err = append(err, e.Error())
+				}
+
+			}
+		}
 	}
 
 	if len(err) > 0 {

@@ -452,5 +452,9 @@ func getJSONPatchValueFromExternalService(rawURL string) (interface{}, error) {
 		return nil, err
 	}
 
+	if _, exist := v["value"]; !exist {
+		return nil, fmt.Errorf("unexpected patch value from %s. response: %v", u.String(), v)
+	}
+
 	return v["value"], nil
 }
