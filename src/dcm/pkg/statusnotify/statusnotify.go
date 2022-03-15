@@ -44,13 +44,13 @@ func (d lcHelpers) GetAppContextId(reg *statusnotifypb.StatusRegistration) (stri
 	return state.GetStatusContextIdFromStateInfo(si), nil
 }
 
-func (d lcHelpers) StatusQuery(reg *statusnotifypb.StatusRegistration, qStatusInstance, qType, qOutput string, qApps, qClusters, qResources []string) status.StatusResult {
+func (d lcHelpers) StatusQuery(reg *statusnotifypb.StatusRegistration, qStatusInstance, qType, qOutput string, fApps, fClusters, fResources []string) status.StatusResult {
 	p, lc, err := getLcKeyValues(reg)
 	if err != nil {
 		return status.StatusResult{}
 	}
 
-	statusResult, err := dcm.NewLogicalCloudClient().GenericStatus(p, lc, qStatusInstance, qType, qOutput, qApps, qClusters, qResources)
+	statusResult, err := dcm.NewLogicalCloudClient().GenericStatus(p, lc, qStatusInstance, qType, qOutput, fClusters, fResources)
 	if err != nil {
 		return status.StatusResult{}
 	}

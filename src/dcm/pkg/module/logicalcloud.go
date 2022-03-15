@@ -59,7 +59,10 @@ type LogicalCloudManager interface {
 	GetState(p string, lc string) (state.StateInfo, error)
 	Delete(project, name string) error
 	Update(project, name string, c LogicalCloud) (LogicalCloud, error)
-	GenericStatus(project, name, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (status.StatusResult, error)
+	GenericStatus(project, name, qStatusInstance, qType, qOutput string, fClusters, fResources []string) (status.StatusResult, error)
+	StatusClusters(p, lc, qStatusInstance string) (status.LogicalCloudClustersStatus, error)
+	StatusResources(p, lc, qStatusInstance, qType string, fClusters []string) (status.LogicalCloudResourcesStatus, error)
+	Status(p, lc, qStatusInstance, qType, qOutput string, fClusters, fResources []string) (status.LogicalCloudStatus, error)
 }
 
 // LogicalCloudClient implements the LogicalCloudManager
@@ -332,15 +335,10 @@ func GetAppContextStatus(ac appcontext.AppContext) (*appcontext.AppContextStatus
 	return &acStatus, nil
 }
 
-/*
-GenericStatus takes in projectName, logicalCloud name,
-This method is responsible obtaining the status of
-the logical, which is made available in the appcontext.
-*/
-func (v *LogicalCloudClient) GenericStatus(project, logicalCloud, qStatusInstance, qType, qOutput string, fApps, fClusters, fResources []string) (status.StatusResult, error) {
-	stateInfo, err := v.GetState(project, logicalCloud)
+func (v *LogicalCloudClient) GenericStatus(p, lc, qStatusInstance, qType, qOutput string, fClusters, fResources []string) (status.StatusResult, error) {
+	stateInfo, err := v.GetState(p, lc)
 	if err != nil {
-		return status.StatusResult{}, pkgerrors.Wrap(err, "LogicalCloud state not found: "+logicalCloud)
+		return status.StatusResult{}, pkgerrors.Wrap(err, "LogicalCloud state not found: "+lc)
 	}
 
 	qInstance, err := state.GetContextIdForStatusContextId(stateInfo, qStatusInstance)
@@ -348,11 +346,71 @@ func (v *LogicalCloudClient) GenericStatus(project, logicalCloud, qStatusInstanc
 		return status.StatusResult{}, err
 	}
 
-	statusResponse, err := status.GenericPrepareStatusResult(status.LcStatusQuery, stateInfo, qInstance, qType, qOutput, fApps, fClusters, fResources)
+	statusResponse, err := status.GenericPrepareStatusResult(status.LcStatusQuery, stateInfo, qInstance, qType, qOutput, make([]string, 0), fClusters, fResources)
 	if err != nil {
 		return status.StatusResult{}, err
 	}
-	statusResponse.Name = logicalCloud
+	statusResponse.Name = lc
 
 	return statusResponse, nil
+}
+
+func (v *LogicalCloudClient) StatusClusters(p, lc, qStatusInstance string) (status.LogicalCloudClustersStatus, error) {
+	lcState, err := v.GetState(p, lc)
+	if err != nil {
+		return status.LogicalCloudClustersStatus{}, pkgerrors.Wrap(err, "Logical Cloud state not found")
+	}
+
+	statusResponse, err := status.PrepareClustersByAppStatusResult(lcState, qStatusInstance, []string{"logical-cloud"})
+	if err != nil {
+		return status.LogicalCloudClustersStatus{}, err
+	}
+	statusResponse.Name = lc
+	lcStatus := status.LogicalCloudClustersStatus{
+		Project:             p,
+		LogicalCloud:        lc,
+		ClustersByAppResult: statusResponse,
+	}
+
+	return lcStatus, nil
+}
+
+func (v *LogicalCloudClient) StatusResources(p, lc, qStatusInstance, qType string, fClusters []string) (status.LogicalCloudResourcesStatus, error) {
+	lcState, err := v.GetState(p, lc)
+	if err != nil {
+		return status.LogicalCloudResourcesStatus{}, pkgerrors.Wrap(err, "Logical Cloud state not found")
+	}
+
+	statusResponse, err := status.PrepareResourcesByAppStatusResult(lcState, qStatusInstance, qType, []string{"logical-cloud"}, fClusters)
+	if err != nil {
+		return status.LogicalCloudResourcesStatus{}, err
+	}
+	statusResponse.Name = lc
+	lcStatus := status.LogicalCloudResourcesStatus{
+		Project:              p,
+		LogicalCloud:         lc,
+		ResourcesByAppResult: statusResponse,
+	}
+
+	return lcStatus, nil
+}
+
+func (v *LogicalCloudClient) Status(p, lc, qStatusInstance, qType, qOutput string, fClusters, fResources []string) (status.LogicalCloudStatus, error) {
+	lcState, err := v.GetState(p, lc)
+	if err != nil {
+		return status.LogicalCloudStatus{}, pkgerrors.Wrap(err, "Logical Cloud state not found")
+	}
+
+	statusResponse, err := status.PrepareStatusResult(lcState, qStatusInstance, qType, qOutput, make([]string, 0), fClusters, fResources)
+	if err != nil {
+		return status.LogicalCloudStatus{}, err
+	}
+	statusResponse.Name = lc
+	lcStatus := status.LogicalCloudStatus{
+		Project:      p,
+		LogicalCloud: lc,
+		StatusResult: statusResponse,
+	}
+
+	return lcStatus, nil
 }

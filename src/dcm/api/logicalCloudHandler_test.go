@@ -14,7 +14,8 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/dcm/api/mocks"
 	"gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 	orch_mocks "gitlab.com/project-emco/core/emco-base/src/orchestrator/api/mocks"
-	state "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 )
 
 func init() {
@@ -36,7 +37,8 @@ var _ = Describe("LogicalCloudHandler", func() {
 		quotaClient  *mocks.QuotaManager
 		kvClient     *mocks.KeyValueManager
 		prClient     *orch_mocks.ProjectManager
-		stateInfo    state.StateInfo
+		lcStatus     status.LogicalCloudStatus
+		// stateInfo    state.StateInfo
 	}
 
 	DescribeTable("Create LogicalCloud tests",
@@ -582,7 +584,7 @@ var _ = Describe("LogicalCloudHandler", func() {
 		func(t testCase) {
 			// set up client mock responses
 			t.lcClient.On("Get", "test-project", "testlogicalcloud").Return(t.mockVal, t.mockError)
-			t.lcClient.On("GetState", "test-project", "testlogicalcloud").Return(t.stateInfo, t.mockError)
+			t.lcClient.On("Status", "test-project", "testlogicalcloud", "", "", "all", []string{}, []string{}).Return(t.lcStatus, t.mockError)
 
 			// make HTTP request
 			request := httptest.NewRequest("GET", "/v2/projects/test-project/logical-clouds/"+t.inputName+"/status", nil)
@@ -592,18 +594,21 @@ var _ = Describe("LogicalCloudHandler", func() {
 			Expect(resp.StatusCode).To(Equal(t.expectedCode))
 
 			// Check returned body
-			got := state.StateInfo{}
+			got := status.LogicalCloudStatus{}
 			json.NewDecoder(resp.Body).Decode(&got)
-			Expect(got).To(Equal(t.stateInfo))
+			Expect(got).To(Equal(t.lcStatus))
 		},
 
 		Entry("successful get", testCase{
 			inputName:    "testlogicalcloud",
 			expectedCode: http.StatusOK,
 			mockError:    nil,
-			stateInfo: state.StateInfo{
-				StatusContextId: "",
-				Actions:         nil,
+			lcStatus: status.LogicalCloudStatus{
+				Project:      "test-project",
+				LogicalCloud: "testlogicalcloud",
+				StatusResult: status.StatusResult{"logical-cloud", state.StateInfo{}, "", "", "", nil, nil, nil, nil, nil, nil},
+				// StatusContextId: "",
+				// Actions:         nil,
 			},
 			lcClient: &mocks.LogicalCloudManager{},
 		}),

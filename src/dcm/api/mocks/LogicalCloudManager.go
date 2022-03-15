@@ -116,21 +116,84 @@ func (_m *LogicalCloudManager) Update(project string, name string, c module.Logi
 
 // GenericStatus returns the StatusResult StateInfo with a given logical cloud name and project and
 // set of query parameters
-func (_m *LogicalCloudManager) GenericStatus(project, name, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (status.StatusResult, error) {
-	ret := _m.Called(project, name, qInstance, qType, qOutput, fApps, fClusters, fResources)
+func (_m *LogicalCloudManager) GenericStatus(project, name, qInstance, qType, qOutput string, fClusters, fResources []string) (status.StatusResult, error) {
+	ret := _m.Called(project, name, qInstance, qType, qOutput, fClusters, fResources)
 
 	var r0 status.StatusResult
-	if rf, ok := ret.Get(0).(func(string, string, string, string, string, []string, []string, []string) status.StatusResult); ok {
-		r0 = rf(project, name, qInstance, qType, qOutput, fApps, fClusters, fResources)
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, []string, []string) status.StatusResult); ok {
+		r0 = rf(project, name, qInstance, qType, qOutput, fClusters, fResources)
 	} else {
 		r0 = ret.Get(0).(status.StatusResult)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, string, string, string, []string, []string, []string) error); ok {
-		r1 = rf(project, name, qInstance, qType, qOutput, fApps, fClusters, fResources)
+	if rf, ok := ret.Get(1).(func(string, string, string, string, string, []string, []string) error); ok {
+		r1 = rf(project, name, qInstance, qType, qOutput, fClusters, fResources)
 	} else {
 		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Status provides a mock function with given fields: p, lc, qStatusInstance, qType, qOutput, fClusters, fResources
+func (_m *LogicalCloudManager) Status(p string, lc string, qStatusInstance string, qType string, qOutput string, fClusters []string, fResources []string) (status.LogicalCloudStatus, error) {
+	ret := _m.Called(p, lc, qStatusInstance, qType, qOutput, fClusters, fResources)
+
+	var r0 status.LogicalCloudStatus
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, []string, []string) status.LogicalCloudStatus); ok {
+			r0 = rf(p, lc, qStatusInstance, qType, qOutput, fClusters, fResources)
+	} else {
+			r0 = ret.Get(0).(status.LogicalCloudStatus)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string, string, string, []string, []string) error); ok {
+			r1 = rf(p, lc, qStatusInstance, qType, qOutput, fClusters, fResources)
+	} else {
+			r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StatusClusters provides a mock function with given fields: p, lc, qStatusInstance
+func (_m *LogicalCloudManager) StatusClusters(p string, lc string, qStatusInstance string) (status.LogicalCloudClustersStatus, error) {
+	ret := _m.Called(p, lc, qStatusInstance)
+
+	var r0 status.LogicalCloudClustersStatus
+	if rf, ok := ret.Get(0).(func(string, string, string) status.LogicalCloudClustersStatus); ok {
+			r0 = rf(p, lc, qStatusInstance)
+	} else {
+			r0 = ret.Get(0).(status.LogicalCloudClustersStatus)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+			r1 = rf(p, lc, qStatusInstance)
+	} else {
+			r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StatusResources provides a mock function with given fields: p, lc, qStatusInstance, qType, fClusters
+func (_m *LogicalCloudManager) StatusResources(p string, lc string, qStatusInstance string, qType string, fClusters []string) (status.LogicalCloudResourcesStatus, error) {
+	ret := _m.Called(p, lc, qStatusInstance, qType, fClusters)
+
+	var r0 status.LogicalCloudResourcesStatus
+	if rf, ok := ret.Get(0).(func(string, string, string, string, []string) status.LogicalCloudResourcesStatus); ok {
+			r0 = rf(p, lc, qStatusInstance, qType, fClusters)
+	} else {
+			r0 = ret.Get(0).(status.LogicalCloudResourcesStatus)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string, string, []string) error); ok {
+			r1 = rf(p, lc, qStatusInstance, qType, fClusters)
+	} else {
+			r1 = ret.Error(1)
 	}
 
 	return r0, r1

@@ -53,19 +53,6 @@ type ClusterStatusResult struct {
 	Cluster        ClusterStatus          `json:"cluster,omitempty,inline"`
 }
 
-type LCStatusResult struct {
-	Name           string                 `json:"name,omitempty,inline"`
-	State          state.StateInfo        `json:"states,omitempty,inline"`
-	Status         appcontext.StatusValue `json:"status,omitempty,inline"` // deprecated
-	DeployedStatus appcontext.StatusValue `json:"deployedStatus,omitempty,inline"`
-	ReadyStatus    string                 `json:"readyStatus,omitempty,inline"`
-	RsyncStatus    map[string]int         `json:"rsyncStatus,omitempty,inline"`   // deprecated
-	ClusterStatus  map[string]int         `json:"clusterStatus,omitempty,inline"` // deprecated
-	DeployedCounts map[string]int         `json:"deployedCounts,omitempty,inline"`
-	ReadyCounts    map[string]int         `json:"readyCounts,omitempty,inline"`
-	LogicalCloud   LogicalCloudStatus     `json:"logicalCloud,omitempty,inline"`
-}
-
 type StatusResult struct {
 	Name            string                 `json:"name,omitempty,inline"`
 	State           state.StateInfo        `json:"states,omitempty,inline"`
@@ -93,16 +80,35 @@ type ClusterStatus struct {
 	Resources       []ResourceStatus `json:"resources,omitempty"`
 }
 
+// DeploymentStatus is the structure used to return general status results
+// for the Deployment Intent Group
 type LogicalCloudStatus struct {
 	Project      string `json:"project,omitempty"`
 	LogicalCloud string `json:"logicalCloud,omitempty"`
+	StatusResult `json:",inline"`
+}
+
+// LogicalCloudClustersStatus is the structure used to return the status
+// of the Clusters that have been/were deployed for the Logical Cloud
+type LogicalCloudClustersStatus struct {
+	Project             string `json:"project,omitempty"`
+	LogicalCloud        string `json:"logicalCloud,omitempty"`
+	ClustersByAppResult `json:",inline"`
+}
+
+// LogicalCloudResourcesStatus is the structure used to return the status
+// of the resources that have been/were deployed for the DeploymentIntentGroup
+type LogicalCloudResourcesStatus struct {
+	Project              string `json:"project,omitempty"`
+	LogicalCloud         string `json:"logicalCloud,omitempty"`
+	ResourcesByAppResult `json:",inline"`
 }
 
 type ResourceStatus struct {
 	Gvk            schema.GroupVersionKind `json:"GVK,omitempty"`
 	Name           string                  `json:"name,omitempty"`
 	Detail         interface{}             `json:"detail,omitempty"`
-	RsyncStatus    string                  `json:"rsyncStatus,omitempty"`   // deprecate - to be replaced with DeployedStatus
+	RsyncStatus    string                  `json:"rsyncStatus,omitempty"`   // deprecated - to be replaced with DeployedStatus
 	ClusterStatus  string                  `json:"clusterStatus,omitempty"` // deprecated - to be replaced with ReadyStatus
 	DeployedStatus string                  `json:"deployedStatus,omitempty"`
 	ReadyStatus    string                  `json:"readyStatus,omitempty"`

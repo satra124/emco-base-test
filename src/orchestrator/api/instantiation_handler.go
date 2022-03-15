@@ -244,14 +244,14 @@ func (h instantiationHandler) statusHandler(w http.ResponseWriter, r *http.Reque
 	// invoked:
 	//   if queryApps ("apps") == true then
 	//		call StatusAppsList()
-	//   if queryClusters ("clusters") == true then
+	//   else if queryClusters ("clusters") == true then
 	//		call StatusClustersByApp()
-	//   if queryResources ("resources") == true then
+	//   else if queryResources ("resources") == true then
 	//		call StatusResourcesByApp()
 	//   else
 	//      call Status()
 	//
-	// Supplied query parameters which not appropriate for the select function call are simply ignored.
+	// Supplied query parameters which are not appropriate for the select function call are simply ignored.
 	var iErr error
 	var status interface{}
 

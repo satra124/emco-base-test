@@ -7,15 +7,15 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/gorilla/mux"
-	pkgerrors "github.com/pkg/errors"
 	dcm "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/apierror"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 	orch "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 )
 
 var logicalCloudJSONValidation string = "json-schemas/logical-cloud.json"
@@ -334,26 +334,127 @@ func (h logicalCloudHandler) stopHandler(w http.ResponseWriter, r *http.Request)
 
 func (h logicalCloudHandler) statusHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	project := vars["project"]
-	name := vars["logicalCloud"]
+	p := vars["project"]
+	lc := vars["logicalCloud"]
 	var status interface{}
 	var err error
+	// variables prepended with "q" are for queries, and with "f" for filters
 
-	// Get logical cloud
-	_, err = h.client.Get(project, name)
+	qParams, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
-		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
-		http.Error(w, apiErr.Message, apiErr.Status)
+		log.Error(err.Error(), log.Fields{})
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Try to get status for the logical cloud
-	status, err = _status(h, project, name)
+	// /status?instance = "<instance id>"
+	var qInstance string
+	if o, found := qParams["instance"]; found {
+		qInstance = o[0]
+		if qInstance == "" {
+			log.Error("Invalid query instance", log.Fields{})
+			http.Error(w, "Invalid query instance", http.StatusBadRequest)
+			return
+		}
+	} else {
+		qInstance = "" // default instance value
+	}
+
+	// /status?status = "ready" or "deployed"
+	var qType string
+	if t, found := qParams["status"]; found {
+		qType = t[0]
+		if qType != "ready" && qType != "deployed" {
+			log.Error("Invalid query status", log.Fields{})
+			http.Error(w, "Invalid query status", http.StatusBadRequest)
+			return
+		}
+	}
+
+	// /status?output = "summary" or "all" or "detail"
+	var qOutput string
+	if o, found := qParams["output"]; found {
+		qOutput = o[0]
+		if qOutput != "summary" && qOutput != "all" && qOutput != "detail" {
+			log.Error("Invalid query output", log.Fields{})
+			http.Error(w, "Invalid query output", http.StatusBadRequest)
+			return
+		}
+	} else {
+		qOutput = "all" // default output format
+	}
+
+	// /status?clusters
+	var qClusters bool
+	if _, found := qParams["clusters"]; found {
+		qClusters = true
+	} else {
+		qClusters = false
+	}
+
+	// /status?resources
+	var qResources bool
+	if _, found := qParams["resources"]; found {
+		qResources = true
+	} else {
+		qResources = false
+	}
+
+	// /status?cluster =
+	var fClusters []string
+	if c, found := qParams["cluster"]; found {
+		fClusters = c
+		for _, cl := range fClusters {
+			parts := strings.Split(cl, "+")
+			if len(parts) != 2 {
+				log.Error("Invalid cluster query", log.Fields{})
+				http.Error(w, "Invalid cluster query", http.StatusBadRequest)
+				return
+			}
+			for _, p := range parts {
+				errs := validation.IsValidName(p)
+				if len(errs) > 0 {
+					log.Error(errs[len(errs)-1], log.Fields{}) // log the most recently appended msg
+					http.Error(w, "Invalid cluster query", http.StatusBadRequest)
+					return
+				}
+			}
+		}
+	} else {
+		fClusters = make([]string, 0)
+	}
+
+	// /status?resource =
+	var fResources []string
+	if r, found := qParams["resource"]; found {
+		fResources = r
+		for _, res := range fResources {
+			errs := validation.IsValidName(res)
+			if len(errs) > 0 {
+				log.Error(errs[len(errs)-1], log.Fields{}) // log the most recently appended msg
+				http.Error(w, "Invalid resources query", http.StatusBadRequest)
+				return
+			}
+		}
+	} else {
+		fResources = make([]string, 0)
+	}
+
+	// Different backend status functions are invoked based on which query parameters have been provided.
+	// The query parameters will be handled with the following precedence to determine which status query is
+	// invoked: i. clusters, ii. resources, iii. default.
+	// Supplied query parameters which are not appropriate for the select function call are simply ignored.
+	if qClusters {
+		status, err = h.client.StatusClusters(p, lc, qInstance)
+	} else if qResources {
+		status, err = h.client.StatusResources(p, lc, qInstance, qType, fClusters)
+	} else {
+		status, err = h.client.Status(p, lc, qInstance, qType, qOutput, fClusters, fResources)
+	}
 	if err != nil {
 		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
 		log.Error(apiErr.Message, log.Fields{})
 		http.Error(w, apiErr.Message, apiErr.Status)
-		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -365,38 +466,4 @@ func (h logicalCloudHandler) statusHandler(w http.ResponseWriter, r *http.Reques
 		http.Error(w, apiErr.Message, apiErr.Status)
 		return
 	}
-}
-
-// LogicalCloudStatus is the structure used to return general status results
-// for the Logical Cloud
-type LogicalCloudStatus struct {
-	Project               string `json:"project,omitempty"`
-	LogicalCloudName      string `json:"project,omitempty"`
-	status.LCStatusResult `json:",inline"`
-}
-
-/*
-status takes in the handler, projectName and logicalCloudName.
-This method is responsible for obtaining the status of
-the logical cloud, which is made available in the appcontext.
-*/
-func _status(h logicalCloudHandler, p string, lc string) (LogicalCloudStatus, error) {
-
-	lcState, err := h.client.GetState(p, lc)
-	if err != nil {
-		return LogicalCloudStatus{}, pkgerrors.Wrap(err, "Logical Cloud state not found")
-	}
-
-	statusResponse, err := status.PrepareLCStatusResult(lcState)
-	if err != nil {
-		return LogicalCloudStatus{}, err
-	}
-	statusResponse.Name = lc
-	lcStatus := LogicalCloudStatus{
-		Project:          p,
-		LogicalCloudName: lc,
-		LCStatusResult:   statusResponse,
-	}
-
-	return lcStatus, nil
 }

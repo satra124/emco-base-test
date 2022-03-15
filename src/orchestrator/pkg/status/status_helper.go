@@ -593,27 +593,6 @@ func PrepareClusterStatusResult(stateInfo state.StateInfo, qInstance, qType, qOu
 	}
 }
 
-// PrepareLCStatusResult takes in a resource stateInfo object for the Logical Cloud only.
-// It then fills out the StatusResult structure appropriately from information in the AppContext
-func PrepareLCStatusResult(stateInfo state.StateInfo) (LCStatusResult, error) {
-	var emptyList []string
-	// NOTE - dcm should eventually support (and pass in) the set of status query attributes
-	status, err := prepareStatusResult(LcStatusQuery, stateInfo, "", "deployed", "", emptyList, emptyList, emptyList)
-	if err != nil {
-		return LCStatusResult{}, err
-	} else {
-		rval := LCStatusResult{
-			Name:           status.Name,
-			State:          status.State,
-			DeployedStatus: status.DeployedStatus,
-			ReadyStatus:    status.ReadyStatus,
-			DeployedCounts: status.DeployedCounts,
-			ReadyCounts:    status.ReadyCounts,
-		}
-		return rval, nil
-	}
-}
-
 // GenericPrepareStatusResult takes in a resource stateInfo object, the list of apps and the query parameters.
 // It then fills out the StatusResult structure appropriately from information in the AppContext
 func GenericPrepareStatusResult(statusType string, stateInfo state.StateInfo, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (StatusResult, error) {
