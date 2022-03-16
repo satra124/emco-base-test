@@ -1737,11 +1737,17 @@ paths:
       - $ref: '#/components/parameters/deploymentIntentGroupName'
       - in: query
         name: type
-        description: source of status information
+        description: (DEPRECATED - see status parameter) source of status information
         schema:
           type: string
           enum: [rsync, cluster]
           default: rsync
+      - in: query
+        name: status
+        description:  source of status information (default value will be ready after type query is removed)
+        schema:
+          type: string
+          enum: [deployed, ready]
       - in: query
         name: output
         description: output format
@@ -1783,7 +1789,7 @@ paths:
         schema: {}
       - in: query
         name: resources
-        description: query parameter (no value) to get list of resources, optionally filtered by app and/or cluster (if output=cluster)
+        description: query parameter (no value) to get list of resources, optionally filtered by app and/or cluster
         schema: {}
     get:
       tags:
@@ -2919,11 +2925,17 @@ paths:
       - $ref: '#/components/parameters/clusterName'
       - in: query
         name: type
-        description: source of status information
+        description: (DEPRECATED - see status parameter) source of status information
         schema:
           type: string
           enum: [rsync, cluster]
           default: rsync
+      - in: query
+        name: status
+        description:  source of status information (default value will be ready after type query is removed)
+        schema:
+          type: string
+          enum: [deployed, ready]
       - in: query
         name: output
         description: output format
@@ -4209,6 +4221,72 @@ paths:
           content: {}
       requestBody:
         content: {}
+  /projects/{project}/logical-clouds/{logicalCloud}/status:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/logicalCloudName'
+      - in: query
+        name: type
+        description: (DEPRECATED - see status parameter) source of status information
+        schema:
+          type: string
+          enum: [rsync, cluster]
+          default: rsync
+      - in: query
+        name: status
+        description:  source of status information (default value will be ready after type query is removed)
+        schema:
+          type: string
+          enum: [deployed, ready]
+      - in: query
+        name: output
+        description: output format
+        schema:
+          type: string
+          enum: [summary, all, detail]
+          default: all
+      - in: query
+        name: instance
+        description: display status for given instance identifier
+        schema:
+          type: string
+          maxLength: 32
+      - in: query
+        name: cluster
+        description: filter status query results by given cluster-provider+cluster
+        schema:
+          type: string
+          maxLength: 128
+      - in: query
+        name: resource
+        description: filter status query results by given resource name
+        schema:
+          type: string
+          maxLength: 64
+      - in: query
+        name: clusters
+        description: query parameter (no value) to get list of clusters, optionally filtered by app
+        schema: {}
+      - in: query
+        name: resources
+        description: query parameter (no value) to get list of resources, optionally filtered by app and/or cluster
+        schema: {}
+    get:
+      tags:
+        - Logical Clouds
+      summary: Status of Logical Cloud
+      description: Status of Logical Cloud
+      operationId: statusLogicalCloud
+      responses:
+        '200':
+          description: Success
+          content: {}
+        '404':
+          description: No Status found
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
 
 ############################ Logical Cloud Cluster Reference API's ###############################
   /projects/{project}/logical-clouds/{logicalCloud}/cluster-references:
