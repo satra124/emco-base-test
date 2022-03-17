@@ -564,7 +564,7 @@ func GetURL(anchor string) (string, error) {
 	switch s[0] {
 	case "cluster-providers":
 		if len(s) >= 5 && (s[4] == "networks" || s[4] == "provider-networks" ||
-			s[4] == "apply" || s[4] == "terminate" || s[4] == "status" || s[4] == "stop") {
+			s[4] == "apply" || s[4] == "terminate" || strings.HasPrefix(s[4], "status") || s[4] == "stop") {
 			baseUrl = GetNcmURL()
 		} else {
 			baseUrl = GetClmURL()
