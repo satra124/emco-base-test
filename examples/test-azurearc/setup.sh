@@ -47,11 +47,11 @@ function create_common_values {
     GenericPlacementIntent: test-placement-intent
     DeploymentIntent: test-deployment-intent
     Intent: intent
-    RsyncPort: 30441
-    GacPort: 30493
-    OvnPort: 30473
-    DtcPort: 30483
-    NpsPort: 30485
+    RsyncPort: 30431
+    GacPort: 30433
+    OvnPort: 30432
+    DtcPort: 30448
+    NpsPort: 30438
     HostIP: $host_ip
     APP1: http-server
     APP2: collectd

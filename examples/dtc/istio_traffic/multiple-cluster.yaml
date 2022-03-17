@@ -9,7 +9,7 @@ metadata :
   name: its
 spec:
   host: 192.168.121.26
-  port: 30487
+  port: 30440
   type: "action"
   priority: 1
 ---
@@ -23,7 +23,7 @@ metadata :
    userData2: test2
 spec:
   host: 192.168.121.26
-  port: 30441
+  port: 30431
 
 ---
 version: emco/v2
@@ -36,7 +36,7 @@ metadata :
     userData2: test2
 spec:
   host: 192.168.121.26
-  port: 30483
+  port: 30448
   type: "action"
   priority: 1
 ---

@@ -124,7 +124,7 @@ function create {
     HostIP: $HOST_IP
     RsyncPort: 9031
     HpaPlacementPort: 9099
-    OvnActionPort: 9053
+    OvnActionPort: 9032
     HpaActionPort:  9042
 
 NET
@@ -138,27 +138,28 @@ clm:
   port: 30461
 ncm:
   host: $HOST_IP
-  port: 30431
+  port: 30481
   statusPort: 30482
 ovnaction:
   host: $HOST_IP
-  port: 30471
+  port: 30451
 dcm:
   host: $HOST_IP
   port: 30477
   statusPort: 30478
 gac:
   host: $HOST_IP
-  port: 30493
+  port: 30420
 dtc:
   host: $HOST_IP
-  port: 30483
+  port: 30418
 hpaplacement:
   host: $HOST_IP
-  port: 30451
+  port: 30491
 hpaaction:
   host: $HOST_IP
-  port: 30443
+  port: 30442
+
 NET
 }
 

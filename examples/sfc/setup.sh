@@ -160,12 +160,13 @@ function create {
 
     # controller port numbers
     RsyncPort: 9031
-    OvnPort: 9053
+    OvnPort: 9032
     SfcPort: 9056
     SfcClientPort: 9058
 
 NET
 cat << NET > emco-cfg.yaml
+   
   orchestrator:
     host: $HOST_IP
     port: 30415
@@ -175,21 +176,21 @@ cat << NET > emco-cfg.yaml
     port: 30461
   ncm:
     host: $HOST_IP
-    port: 30431
+    port: 30481
     statusPort: 30482
   ovnaction:
     host: $HOST_IP
-    port: 30471
+    port: 30451
   dcm:
     host: $HOST_IP
     port: 30477
     statusPort: 30478
   gac:
     host: $HOST_IP
-    port: 30491
+    port: 30420
   dtc:
    host: $HOST_IP
-   port: 30481
+   port: 30418
   sfc:
    host: $HOST_IP
    port: 30455

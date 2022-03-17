@@ -9,7 +9,7 @@ metadata :
   name: nps
 spec:
   host: <node-IP>
-  port: 30485
+  port: 30438
   type: "action"
   priority: 1
 ---
@@ -20,7 +20,7 @@ metadata :
   name: sds
 spec:
   host: <node-IP>
-  port: 30486
+  port: 30439
   type: "action"
   priority: 2
 ---

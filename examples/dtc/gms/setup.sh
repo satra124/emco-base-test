@@ -82,9 +82,9 @@ function create {
     DtcRediscartServerIntent: rediscartserver
     DtcShippingServerIntent: shippingserver
     Intent: gmsintent
-    RsyncPort: 30441
-    DtcPort: 30483
-    ItsPort: 30487
+    RsyncPort: 30431
+    DtcPort: 30448
+    ItsPort: 30440
     HostIP: $HOST_IP
 NET
 cat << NET > emco-cfg.yaml
@@ -96,22 +96,22 @@ cat << NET > emco-cfg.yaml
     port: 30461
   ncm:
     host: $HOST_IP
-    port: 30431
+    port: 30481
   ovnaction:
     host: $HOST_IP
-    port: 30471
+    port: 30451
   dcm:
     host: $HOST_IP
     port: 30477
   gac:
     host: $HOST_IP
-    port: 30491
+    port: 30420
   dtc:
    host: $HOST_IP
-   port: 30481
+   port: 30418
   rsync:
    host: $HOST_IP
-   port: 30441
+   port: 30431
 NET
 
 }

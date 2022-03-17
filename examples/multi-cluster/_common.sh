@@ -89,17 +89,17 @@ function create_values_yaml_one_cluster {
     CompositeProfile: collection-composite-profile
     GenericPlacementIntent: collection-placement-intent
     DeploymentIntent: collection-deployment-intent-group
-    RsyncPort: 30441
+    RsyncPort: 30431
     CompositeAppGac: gac-composite-app
     GacIntent: collectd-gac-intent
     CompositeAppDtc: dtc-composite-app
     DtcIntent: collectd-dtc-intent
     CompositeAppMonitor: monitor-composite-app
     ConfigmapFile: info.json
-    GacPort: 30493
-    OvnPort: 30473
-    DtcPort: 30483
-    NpsPort: 30485
+    GacPort: 30433
+    OvnPort: 30432
+    DtcPort: 30448
+    NpsPort: 30438
     HostIP: $host_ip
 
 NET
@@ -117,21 +117,21 @@ cat << NET > emco-cfg.yaml
     port: 30461
   ncm:
     host: $host_ip
-    port: 30431
+    port: 30481
     statusPort: 30482
   ovnaction:
     host: $host_ip
-    port: 30471
+    port: 30451
   dcm:
     host: $host_ip
     port: 30477
     statusPort: 30478
   gac:
     host: $host_ip
-    port: 30491
+    port: 30420
   dtc:
    host: $host_ip
-   port: 30481
+   port: 30418
 NET
 }
 

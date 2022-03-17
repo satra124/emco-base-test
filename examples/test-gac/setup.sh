@@ -42,10 +42,10 @@ CompositeAppGac: gac-composite-app
 GacIntent: operator-gac-intent
 IstioIngressGatewayKvName: istioingressgatewaykvpairs
 DatabaseAuthorizationKvName: databaseauthorizationkvpairs
-RsyncPort: 30441
-GacPort: 30493
-DtcPort: 30483
-NpsPort: 30485
+RsyncPort: 30431
+GacPort: 30433
+DtcPort: 30448
+NpsPort: 30438
 HostIP: $HOST_IP
 NET
 
@@ -64,10 +64,10 @@ dcm:
   statusPort: 30478
 gac:
   host: $HOST_IP
-  port: 30491
+  port: 30420
 dtc:
   host: $HOST_IP
-  port: 30481
+  port: 30418
 NET
 
 # head of prerequisites.yaml
