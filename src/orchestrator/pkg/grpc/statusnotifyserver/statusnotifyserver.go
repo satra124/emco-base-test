@@ -192,14 +192,14 @@ func queryNeeded(qType string, apps, clusters map[string]struct{}, acInfo appCon
 	filters := acInfo.queryFilters[qType]
 	if len(filters.apps) == 0 {
 		doQuery = true
-		for app, _ := range apps {
-			qApps = append(qApps, app)
-		}
 	} else {
 		for app, _ := range apps {
 			if _, ok := filters.apps[app]; ok {
-				qApps = append(qApps, app)
+				for a, _ := range filters.apps {
+					qApps = append(qApps, a)
+				}
 				doQuery = true
+				break
 			}
 		}
 	}
@@ -209,18 +209,21 @@ func queryNeeded(qType string, apps, clusters map[string]struct{}, acInfo appCon
 
 	if len(filters.clusters) == 0 {
 		doQuery = true
-		for cluster, _ := range clusters {
-			qClusters = append(qClusters, cluster)
-		}
 	} else {
 		for cluster, _ := range clusters {
 			if _, ok := filters.clusters[cluster]; ok {
-				qClusters = append(qClusters, cluster)
+				for c, _ := range filters.clusters {
+					qClusters = append(qClusters, c)
+				}
 				doQuery = true
+				break
 			}
 		}
 	}
 
+	for r, _ := range filters.resources {
+		qResources = append(qResources, r)
+	}
 	if filters.qOutputSummary {
 		qOutput = "summary"
 	} else {
@@ -303,7 +306,7 @@ func (s *StatusNotifyServer) StatusRegister(reg *pb.StatusRegistration, stream p
 		if err != nil {
 			s.mutex.Unlock()
 			log.Error("[StatusNotify gRPC] Could not get ReadyNotify Stream",
-				log.Fields{"appContextID": appContextID, "client": clientId})
+				log.Fields{"appContextID": appContextID, "client": clientId, "error": err})
 			return err
 		}
 
@@ -385,7 +388,7 @@ func sendStatusNotifications(stream readynotifypb.ReadyNotify_AlertClient, wg *s
 			}
 			apps[event.app] = struct{}{}
 			clusters[event.cluster] = struct{}{}
-			log.Info("[StatusNotify gRPC] Accumulating monitor events", log.Fields{"app": event.app, "cluster": event.cluster})
+			log.Trace("[StatusNotify gRPC] Accumulating monitor events", log.Fields{"app": event.app, "cluster": event.cluster})
 
 			tNow := time.Now()
 			if tNow.Sub(tLast) > 3*time.Second {
@@ -395,11 +398,11 @@ func sendStatusNotifications(stream readynotifypb.ReadyNotify_AlertClient, wg *s
 					time.Sleep(tNow.Sub(tLast))
 					tChan <- true
 				}()
-				log.Info("[StatusNotify gRPC] setting timer", log.Fields{"time": tNow.Sub(tLast)})
+				log.Trace("[StatusNotify gRPC] setting timer", log.Fields{"time": tNow.Sub(tLast)})
 				timerRunning = true
 			}
 		case <-tChan:
-			log.Info("[StatusNotify gRPC] time done", log.Fields{"apps": apps, "clusters": clusters})
+			log.Trace("[StatusNotify gRPC] timeout done", log.Fields{"apps": apps, "clusters": clusters})
 			timerRunning = false
 			tLast = time.Now()
 		}
@@ -407,7 +410,7 @@ func sendStatusNotifications(stream readynotifypb.ReadyNotify_AlertClient, wg *s
 		if timerRunning {
 			continue
 		}
-		log.Info("[StatusNotify gRPC] handling status events", log.Fields{"apps": apps, "clusters": clusters})
+		log.Trace("[StatusNotify gRPC] handling status events", log.Fields{"apps": apps, "clusters": clusters})
 
 		notifServer.mutex.Lock()
 		acInfo, ok := notifServer.appContexts[appContextID]
@@ -418,7 +421,7 @@ func sendStatusNotifications(stream readynotifypb.ReadyNotify_AlertClient, wg *s
 		}
 
 		// loop through each type of status query
-		// do one query for each type that will satisfy all registrations as well as the set of evetns which
+		// do one query for each type that will satisfy all registrations as well as the set of events which
 		// have occurred
 		// prepare and send notifications for all registrations
 		for _, qType := range []string{"ready", "deployed"} {
@@ -443,7 +446,7 @@ func sendStatusNotifications(stream readynotifypb.ReadyNotify_AlertClient, wg *s
 				continue
 			}
 
-			statusResult := notifServer.sh.StatusQuery(reg, "", qType, qOutput, qApps, qClusters, qResources)
+			statusResult := notifServer.sh.StatusQuery(reg, appContextID, qType, qOutput, qApps, qClusters, qResources)
 
 			// For a given alert, send a status notification to each status client watching the appcontextId
 			for clientId, _ := range acInfo.statusClientIDs {
@@ -455,27 +458,15 @@ func sendStatusNotifications(stream readynotifypb.ReadyNotify_AlertClient, wg *s
 
 				notification := notifServer.sh.PrepareStatusNotification(si.reg, statusResult)
 				if si.lastNotif != nil && proto.Equal(si.lastNotif, notification) {
-					log.Info("[StatusNotify gRPC] Status notification equal to last notification - skipping",
+					log.Trace("[StatusNotify gRPC] Status notification equal to last notification - skipping",
 						log.Fields{"clientId": clientId, "appContextID": appContextID})
 					continue
-				} else {
-					if si.lastNotif != nil {
-						log.Info("[StatusNotify gRPC] Status notification not equal to last notification",
-							log.Fields{"last": *si.lastNotif, "current": *notification})
-					} else {
-						log.Info("[StatusNotify gRPC] Status notification not equal to last notification",
-							log.Fields{"current": *notification})
-					}
 				}
 				si.lastNotif = notification
 				notifServer.statusClients[clientId] = si
-				log.Info("[StatusNotify gRPC] Status notification setting last notification",
-					log.Fields{"last": *si.lastNotif, "current": *notification})
 				err := si.stream.Send(notification)
 				if err != nil {
-					log.Error("[StatusNotify gRPC] Status notification failed to be sent", log.Fields{"clientId": clientId, "err": err})
-				} else {
-					log.Info("[StatusNotify gRPC] Status notification was sent", log.Fields{"clientId": clientId, "appContextID": appContextID})
+					log.Error("[StatusNotify gRPC] Status notification failed to be sent", log.Fields{"clientId": clientId, "appContextID": appContextID, "err": err})
 				}
 			}
 		}
@@ -517,12 +508,12 @@ func cleanup(clientId string) {
 		}
 
 		delete(notifServer.appContexts, si.appContextID)
-		log.Info("[StatusNotify gRPC] Cleaned up appContextId after last client removed", log.Fields{"clientId": clientId, "appContextID": si.appContextID})
+		log.Trace("[StatusNotify gRPC] Cleaned up appContextId after last client removed", log.Fields{"clientId": clientId, "appContextID": si.appContextID})
 	}
 	delete(notifServer.statusClients, clientId)
 	delete(notifServer.streamChannels, si.stream)
 
-	log.Info("[StatusNotify gRPC] Cleaned up clientId", log.Fields{"clientId": clientId, "appContextID": si.appContextID})
+	log.Trace("[StatusNotify gRPC] Cleaned up clientId", log.Fields{"clientId": clientId, "appContextID": si.appContextID})
 	return
 }
 

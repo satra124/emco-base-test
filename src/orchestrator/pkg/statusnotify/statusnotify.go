@@ -8,6 +8,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	statusnotifypb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/statusnotify"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/statusnotifyserver"
+	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
@@ -35,9 +36,13 @@ func (d digHelpers) GetAppContextId(reg *statusnotifypb.StatusRegistration) (str
 	if err != nil {
 		return "", err
 	}
+	log.Trace("[StatusNotify] Deployment Intent Group Key",
+		log.Fields{"project": p, "compositeApp": ca, "caVersion": v, "dig": di})
 
 	si, err := module.NewDeploymentIntentGroupClient().GetDeploymentIntentGroupState(di, p, ca, v)
 	if err != nil {
+		log.Info("[StatusNotify] Deployment Intent Group Not Found",
+			log.Fields{"Error": err})
 		return "", pkgerrors.Wrap(err, "DeploymentIntentGroup state not found: "+di)
 	}
 
@@ -62,6 +67,9 @@ func (d digHelpers) StatusQuery(reg *statusnotifypb.StatusRegistration, qStatusI
 // The status result is used to populate and return a StatusNotification.
 func (d digHelpers) PrepareStatusNotification(reg *statusnotifypb.StatusRegistration, statusResult status.StatusResult) *statusnotifypb.StatusNotification {
 	n := new(statusnotifypb.StatusNotification)
+
+	log.Trace("[StatusNotify] Preparing Notification",
+		log.Fields{"statusResult": statusResult})
 
 	if statusResult.DeployedStatus == appcontext.AppContextStatusEnum.Instantiated {
 		switch reg.StatusType {

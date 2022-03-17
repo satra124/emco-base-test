@@ -114,8 +114,8 @@ var _ = Describe("StatusNotifyServer", func() {
 		clusters := make(map[string]struct{})
 		clusters["cluster1"] = struct{}{}
 		queryNeeded, qOutput, qApps, qClusters, qResources := queryNeeded("ready", apps, clusters, ns.appContexts["appcontext1"])
-		Expect(len(qApps)).Should(Equal(1))
-		Expect(len(qClusters)).Should(Equal(1))
+		Expect(len(qApps)).Should(Equal(0))
+		Expect(len(qClusters)).Should(Equal(0))
 		Expect(len(qResources)).Should(Equal(0))
 		Expect(queryNeeded).Should(Equal(true))
 		Expect(qOutput).Should(Equal("summary"))
