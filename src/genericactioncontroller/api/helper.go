@@ -366,7 +366,7 @@ func validateKey(key string, keys map[string]string) error {
 		log.Error("Invalid key",
 			log.Fields{
 				"Key":   key,
-				"Error": strings.Join(errs, ",")})
+				"Error": strings.Join(errs, "\n")})
 		return fmt.Errorf("%s is not a valid key name for a ConfigMap or Secret",
 			key)
 	}
@@ -376,7 +376,7 @@ func validateKey(key string, keys map[string]string) error {
 			log.Fields{
 				"Key":   key,
 				"Error": "A key with the name already exists in Data"})
-		return fmt.Errorf("cannot add key %s, a key with the name already exists in Data", key)
+		return fmt.Errorf("a key with the name %s already exists in Data", key)
 	}
 
 	return nil

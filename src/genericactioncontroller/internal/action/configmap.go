@@ -136,11 +136,22 @@ func handleConfigMapCustomization(cm *ConfigMap, customizations []module.Content
 func validateConfigMapDataKey(cm *ConfigMap, key string) error {
 	//  check whether the key is a valid key for the ConfigMap
 	if errs := validation.IsConfigMapKey(key); len(errs) > 0 {
-		return fmt.Errorf("%q is not a valid key name for a ConfigMap: %s", key, strings.Join(errs, ","))
+		logutils.Error("Invalid key",
+			logutils.Fields{
+				"ConfigMap": cm.MetaData.Name,
+				"Key":       key,
+				"Error":     strings.Join(errs, "\n")})
+		return fmt.Errorf("%s is not a valid key name for a ConfigMap", key)
 	}
 
+	// check for duplicate key
 	if _, exists := cm.Data[key]; exists {
-		return fmt.Errorf("cannot add key %q, another key by that name already exists in Data for ConfigMap %q", key, cm.MetaData.Name)
+		logutils.Error("Duplicate key",
+			logutils.Fields{
+				"ConfigMap": cm.MetaData.Name,
+				"Key":       key,
+				"Error":     "A key with the name already exists in Data"})
+		return fmt.Errorf("a key with the name %s already exists in Data for ConfigMap %s", key, cm.MetaData.Name)
 	}
 
 	return nil

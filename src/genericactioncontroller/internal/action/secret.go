@@ -137,11 +137,22 @@ func handleSecretCustomization(s *Secret, customizations []module.Content) error
 func validateSecretDataKey(s *Secret, key string) error {
 	//  check whether the key is a valid key for the Secret
 	if errs := validation.IsConfigMapKey(key); len(errs) > 0 {
-		return fmt.Errorf("%q is not a valid key name for a Secret: %s", key, strings.Join(errs, ","))
+		logutils.Error("Invalid key",
+			logutils.Fields{
+				"Secret": s.MetaData.Name,
+				"Key":    key,
+				"Error":  strings.Join(errs, "\n")})
+		return fmt.Errorf("%s is not a valid key name for a Secret", key)
 	}
 
+	// check for duplicate key
 	if _, exists := s.Data[key]; exists {
-		return fmt.Errorf("cannot add key %q, another key by that name already exists in Data for Secret %q", key, s.MetaData.Name)
+		logutils.Error("Duplicate key",
+			logutils.Fields{
+				"Secret": s.MetaData.Name,
+				"Key":    key,
+				"Error":  "A key with the name already exists in Data"})
+		return fmt.Errorf("a key with the name %s already exists in Data for Secret %s", key, s.MetaData.Name)
 	}
 
 	return nil
