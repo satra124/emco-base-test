@@ -447,7 +447,7 @@ var _ = Describe("Logicalcloud", func() {
 				logicalCloud := _createTestLogicalCloud("testlogicalCloud", "1")
 				_, _ = client.Create("project", logicalCloud)
 				logicalCloud.MetaData.UserData1 = "new user data"
-				logicalCloud, err := client.Update("project", "testlogicalCloud", logicalCloud)
+				logicalCloud, err := client.UpdateLogicalCloud("project", "testlogicalCloud", logicalCloud)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(logicalCloud.MetaData.LogicalCloudName).To(Equal("testlogicalCloud"))
 				Expect(logicalCloud.MetaData.Description).To(Equal(""))
@@ -458,7 +458,7 @@ var _ = Describe("Logicalcloud", func() {
 				logicalCloud := _createTestLogicalCloud("testlogicalCloud", "1")
 				_, _ = client.Create("project", logicalCloud)
 				logicalCloud.MetaData.LogicalCloudName = "updated"
-				logicalCloud, err := client.Update("project", "testlogicalCloud", logicalCloud)
+				logicalCloud, err := client.UpdateLogicalCloud("project", "testlogicalCloud", logicalCloud)
 				Expect(err).Should(HaveOccurred())
 				Expect(logicalCloud).To(Equal(dcm.LogicalCloud{}))
 			})

@@ -58,11 +58,12 @@ type LogicalCloudManager interface {
 	GetAll(project string) ([]LogicalCloud, error)
 	GetState(p string, lc string) (state.StateInfo, error)
 	Delete(project, name string) error
-	Update(project, name string, c LogicalCloud) (LogicalCloud, error)
 	GenericStatus(project, name, qStatusInstance, qType, qOutput string, fClusters, fResources []string) (status.StatusResult, error)
 	StatusClusters(p, lc, qStatusInstance string) (status.LogicalCloudClustersStatus, error)
 	StatusResources(p, lc, qStatusInstance, qType string, fClusters []string) (status.LogicalCloudResourcesStatus, error)
 	Status(p, lc, qStatusInstance, qType, qOutput string, fClusters, fResources []string) (status.LogicalCloudStatus, error)
+	UpdateLogicalCloud(project, name string, c LogicalCloud) (LogicalCloud, error)
+	UpdateInstantiation(project, name string, c LogicalCloud) (LogicalCloud, error)
 }
 
 // LogicalCloudClient implements the LogicalCloudManager
@@ -291,7 +292,7 @@ func (v *LogicalCloudClient) Delete(project, logicalCloudName string) error {
 }
 
 // Update an entry for the Logical Cloud in the database
-func (v *LogicalCloudClient) Update(project, logicalCloudName string, c LogicalCloud) (LogicalCloud, error) {
+func (v *LogicalCloudClient) UpdateLogicalCloud(project, logicalCloudName string, c LogicalCloud) (LogicalCloud, error) {
 
 	key := LogicalCloudKey{
 		Project:          project,
@@ -302,13 +303,29 @@ func (v *LogicalCloudClient) Update(project, logicalCloudName string, c LogicalC
 		return LogicalCloud{}, pkgerrors.New("Logical Cloud name mismatch")
 	}
 	//Check if this Logical Cloud exists
-	logicalCloud, err := v.Get(project, logicalCloudName)
+	_, err := v.Get(project, logicalCloudName)
 	if err != nil {
 		return LogicalCloud{}, err
 	}
 	err = db.DBconn.Insert(v.storeName, key, nil, v.tagMeta, c)
 	if err != nil {
 		return LogicalCloud{}, pkgerrors.Wrap(err, "Updating DB Entry")
+	}
+	return c, nil
+}
+
+// Update an entry for the Logical Cloud in the database
+func (v *LogicalCloudClient) UpdateInstantiation(project, logicalCloudName string, c LogicalCloud) (LogicalCloud, error) {
+
+	key := LogicalCloudKey{
+		Project:          project,
+		LogicalCloudName: logicalCloudName,
+	}
+
+	//Check if this Logical Cloud exists
+	logicalCloud, err := v.Get(project, logicalCloudName)
+	if err != nil {
+		return LogicalCloud{}, err
 	}
 
 	// If Logical Cloud was already instantiated, then prepare new appcontext to give to rsync
@@ -405,7 +422,7 @@ func (v *LogicalCloudClient) Update(project, logicalCloudName string, c LogicalC
 				// Call rsync grpc streaming api, which launches a goroutine to wait for the response of
 				// every cluster (function should know how many clusters are expected and only finish when
 				// all respective certificates have been obtained and all kubeconfigs stored in CloudConfig)
-				err = callRsyncReadyNotify(newCID)
+				err = callRsyncReadyNotify(oldCID)
 				if err != nil {
 					log.Error("Failed calling rsync ready-notify", log.Fields{"err": err})
 					return LogicalCloud{}, pkgerrors.Wrap(err, "Failed calling rsync ready-notify")
