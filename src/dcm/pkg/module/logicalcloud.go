@@ -371,7 +371,7 @@ func (v *LogicalCloudClient) UpdateInstantiation(project, logicalCloudName strin
 				if err != nil {
 					return LogicalCloud{}, err
 				}
-				_, newCID, err = blindInstantiateL1(project, logicalCloud, v, clusterList, quotaList, userPermissionList)
+				_, newCID, err = blindInstantiateL1(oldCID, project, logicalCloud, v, clusterList, quotaList, userPermissionList)
 				log.Debug("", log.Fields{"newCID": newCID})
 			} else if level == "0" {
 				_, newCID, err = blindInstantiateL0(project, logicalCloud, v, clusterList)
@@ -408,7 +408,6 @@ func (v *LogicalCloudClient) UpdateInstantiation(project, logicalCloudName strin
 				TimeStamp: time.Now(),
 				Revision:  newRev,
 			}
-			lcStateInfo.StatusContextId = newCID
 			lcStateInfo.Actions = append(lcStateInfo.Actions, a)
 
 			err = db.DBconn.Insert(v.storeName, key, nil, v.tagState, lcStateInfo)

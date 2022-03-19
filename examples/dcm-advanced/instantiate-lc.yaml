@@ -3,4 +3,3 @@
 version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/logical-clouds/{{.LogicalCloud}}/instantiate
-

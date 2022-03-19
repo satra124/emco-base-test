@@ -424,7 +424,7 @@ func callRsyncUpdate(FromContextid, ToContextid interface{}) error {
 }
 
 // TODO: use context.ctxid instead of passing cid
-func prepL1ClusterAppContext(logicalcloud LogicalCloud, cluster Cluster, quotaList []Quota, userPermissionList []UserPermission, lcclient *LogicalCloudClient, lckey LogicalCloudKey, context appcontext.AppContext, cid string) error {
+func prepL1ClusterAppContext(oldCid string, logicalcloud LogicalCloud, cluster Cluster, quotaList []Quota, userPermissionList []UserPermission, lcclient *LogicalCloudClient, lckey LogicalCloudKey, context appcontext.AppContext, cid string) error {
 	logicalCloudName := logicalcloud.MetaData.LogicalCloudName
 	clusterName := strings.Join([]string{cluster.Specification.ClusterProvider, "+", cluster.Specification.ClusterName}, "")
 	appHandle, err := context.GetAppHandle(lcAppName)                // caution: ignoring error
@@ -462,6 +462,12 @@ func prepL1ClusterAppContext(logicalcloud LogicalCloud, cluster Cluster, quotaLi
 		return pkgerrors.Wrap(err, "Error Creating User CSR and Key for logical cloud")
 	}
 
+	// check to see if - in case of an update - if the csr was already created for this logical cloud
+	gotCsr, oldCsr := alreadyGotCsr(oldCid, context, lcAppName, clusterName, csrName)
+	if gotCsr {
+		csr = oldCsr
+	}
+
 	approval, err := createApprovalSubresource(logicalcloud)
 	if err != nil {
 		return pkgerrors.Wrap(err, "Error Creating approval subresource for logical cloud")
@@ -479,16 +485,18 @@ func prepL1ClusterAppContext(logicalcloud LogicalCloud, cluster Cluster, quotaLi
 		return cleanupCompositeApp(context, err, "Error adding CSR Resource to AppContext", details)
 	}
 
-	// Add csr approval as a subresource of csr:
+	// Add csr approval as a subresource of csr
 	_, err = context.AddLevelValue(csrHandle, "subresource/approval", approval)
 	if err != nil {
 		return cleanupCompositeApp(context, err, "Error approving CSR via AppContext", details)
 	}
 
 	// Add private key to MongoDB
-	err = db.DBconn.Insert(lcclient.storeName, lckey, nil, "privatekey", key)
-	if err != nil {
-		return cleanupCompositeApp(context, err, "Error adding private key to DB", details)
+	if !gotCsr {
+		err = db.DBconn.Insert(lcclient.storeName, lckey, nil, "privatekey", key)
+		if err != nil {
+			return cleanupCompositeApp(context, err, "Error adding private key to DB", details)
+		}
 	}
 
 	// Add [Cluster]Role resources to each cluster
@@ -661,8 +669,37 @@ func blindInstantiateL0(project string, logicalcloud LogicalCloud, lcclient *Log
 	return context, cid, nil
 }
 
+func alreadyGotCsr(oldCid string, newAc appcontext.AppContext, app, cluster, csrName string) (bool, string) {
+	if oldCid == "" {
+		return false, ""
+	}
+	var oldAc appcontext.AppContext
+	_, err := oldAc.LoadAppContext(oldCid)
+	if err != nil {
+		log.Info("[CSR} Error getting old appcontext",
+			log.Fields{"oldCid": oldCid, "app": app, "cluster": cluster, "csrName": csrName})
+		return false, ""
+	}
+
+	csrH, err := oldAc.GetResourceHandle(app, cluster, csrName)
+	if err != nil {
+		log.Info("[CSR} Error getting old appcontext resource handle",
+			log.Fields{"oldCid": oldCid, "app": app, "cluster": cluster, "csrName": csrName})
+		return false, ""
+	}
+	csr, err := oldAc.GetValue(csrH)
+	if err != nil {
+		log.Info("[CSR} Error getting old appcontext resource handle",
+			log.Fields{"oldCid": oldCid, "app": app, "cluster": cluster, "csrName": csrName})
+		return false, ""
+	}
+	log.Trace("[CSR} Got old CSR",
+		log.Fields{"oldCid": oldCid, "app": app, "cluster": cluster, "csrName": csrName, "csr": csr})
+	return true, csr.(string)
+}
+
 // // blindInstantiateL1 is the equivalent of blindInstantiateL0 but for Level-1 Logical Clouds.
-func blindInstantiateL1(project string, logicalcloud LogicalCloud, lcclient *LogicalCloudClient,
+func blindInstantiateL1(oldCid string, project string, logicalcloud LogicalCloud, lcclient *LogicalCloudClient,
 	clusterList []Cluster, quotaList []Quota, userPermissionList []UserPermission) (appcontext.AppContext, string, error) {
 	var err error
 	var context appcontext.AppContext
@@ -739,7 +776,7 @@ func blindInstantiateL1(project string, logicalcloud LogicalCloud, lcclient *Log
 
 	// Iterate through cluster list and add all the clusters
 	for _, cluster := range clusterList {
-		err = prepL1ClusterAppContext(logicalcloud, cluster, quotaList, userPermissionList, lcclient, lckey, context, cid)
+		err = prepL1ClusterAppContext(oldCid, logicalcloud, cluster, quotaList, userPermissionList, lcclient, lckey, context, cid)
 		if err != nil {
 			return context, "", err
 		}
@@ -824,7 +861,7 @@ func Instantiate(project string, logicalcloud LogicalCloud, clusterList []Cluste
 	if level == "0" {
 		context, newcid, err = blindInstantiateL0(project, logicalcloud, lcclient, clusterList)
 	} else {
-		context, newcid, err = blindInstantiateL1(project, logicalcloud, lcclient, clusterList, quotaList, userPermissionList)
+		context, newcid, err = blindInstantiateL1("", project, logicalcloud, lcclient, clusterList, quotaList, userPermissionList)
 	}
 	if err != nil {
 		return err

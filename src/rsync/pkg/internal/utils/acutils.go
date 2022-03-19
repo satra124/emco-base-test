@@ -416,15 +416,50 @@ func (a *AppContextReference) GetSubResApprove(name, app, cluster string) ([]byt
 
 	rh, err := a.ac.GetResourceHandle(app, cluster, name)
 	if err != nil {
+		log.Error("GetSubResApprove - Error getting resource handle", log.Fields{"name": name, "cluster": cluster, "app": app, "error": err})
 		return nil, nil, err
 	}
+
+	// Look up the subresource approval by following the reference
+	var val = ""
+	refh, err := a.ac.GetLevelHandle(rh, "reference")
+	if err == nil {
+		s, err := a.ac.GetValue(refh)
+		if err == nil {
+			js, err := json.Marshal(s)
+			if err == nil {
+				json.Unmarshal(js, &val)
+			}
+		}
+	}
+	if err != nil {
+		log.Error("GetSubResApprove - Error getting reference handle and value", log.Fields{"name": name, "cluster": cluster, "app": app, "error": err})
+		return nil, nil, err
+	}
+
+	// Load the reference appContext
+	ref := appcontext.AppContext{}
+	_, err = ref.LoadAppContext(val)
+	if err != nil {
+		log.Error(":: Error loading the referenced app context::", log.Fields{"reference Cid": val, "error": err})
+		return nil, nil, err
+	}
+
+	// get referenced resource handle
+	rh, err = ref.GetResourceHandle(app, cluster, name)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// Check if Subresource defined
-	sh, err := a.ac.GetLevelHandle(rh, "subresource/approval")
+	sh, err := ref.GetLevelHandle(rh, "subresource/approval")
 	if err != nil {
+		log.Error("GetSubResApprove - Error getting referenced subresource/approval handle", log.Fields{"resource handle": rh, "name": name, "cluster": cluster, "app": app, "error": err})
 		return nil, nil, err
 	}
-	resval, err := a.ac.GetValue(sh)
+	resval, err := ref.GetValue(sh)
 	if err != nil {
+		log.Error("GetSubResApprove - Error getting referenced subresource/approval value", log.Fields{"subresource handle": sh, "name": name, "cluster": cluster, "app": app, "error": err})
 		return nil, sh, err
 	}
 	if resval != "" {

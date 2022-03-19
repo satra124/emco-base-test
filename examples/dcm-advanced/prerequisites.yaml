@@ -21,31 +21,6 @@ spec:
   port: {{.RsyncPort}}
 
 ---
-version: emco/v2
-resourceContext:
-  anchor: controllers
-metadata :
-   name: dtc
-spec:
-  host: {{.HostIP}}
-  port: {{.DtcPort}}
-  type: "action"
-  priority: 1
-
----
-#creating dtc controller entries
-version: emco/v2
-resourceContext:
-  anchor: dtc-controllers
-metadata :
-   name: nps
-spec:
-  host:  {{.HostIP}}
-  port: {{.NpsPort}}
-  type: "action"
-  priority: 1
-
----
 #creating cluster provider
 version: emco/v2
 resourceContext:
@@ -53,40 +28,18 @@ resourceContext:
 metadata :
    name: {{.ClusterProvider}}
 
----
-#creating cluster
-version: emco/v2
-resourceContext:
-  anchor: cluster-providers/{{.ClusterProvider}}/clusters
-metadata :
-   name: {{.Cluster1}}
-file:
-  {{.KubeConfig}}
+{{- range $index, $cluster := .Clusters }}
 
 ---
 #creating cluster
 version: emco/v2
 resourceContext:
-  anchor: cluster-providers/{{.ClusterProvider}}/clusters
+  anchor: cluster-providers/{{ $.ClusterProvider }}/clusters
 metadata :
-   name: {{.Cluster2}}
+   name: {{ $cluster.Name }}
 file:
-  {{.KubeConfig2}}
-
----
-#Add label cluster
-version: emco/v2
-resourceContext:
-  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/labels
-clusterLabel: {{.ClusterLabel}}
-
----
-#Add label cluster
-version: emco/v2
-resourceContext:
-  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster2}}/labels
-clusterLabel: {{.ClusterLabel}}
-
+  {{ $cluster.KubeConfig }}
+{{- end }}
 ---
 #create privileged logical cloud
 version: emco/v2
