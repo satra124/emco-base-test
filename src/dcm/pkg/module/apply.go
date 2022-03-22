@@ -615,6 +615,22 @@ func blindInstantiateL0(project string, logicalcloud LogicalCloud, lcclient *Log
 		return context, "", cleanupCompositeApp(context, err, "Error adding App to L0 LC AppContext", []string{logicalCloudName, cid})
 	}
 
+	// Create a Logical Cloud Meta that will store the project and the logical cloud name in the AppContext:
+	err = context.AddCompositeAppMeta(appcontext.CompositeAppMeta{Project: project, LogicalCloud: logicalCloudName})
+	if err != nil {
+		return context, "", pkgerrors.Wrap(err, "Error Adding Logical Cloud Meta to AppContext")
+	}
+
+	// Create a Logical Cloud Meta with basic information about the Logical Cloud:
+	// project name and logical cloud name
+	err = context.AddCompositeAppMeta(
+		appcontext.CompositeAppMeta{
+			Project:      project,
+			LogicalCloud: logicalCloudName})
+	if err != nil {
+		return context, "", cleanupCompositeApp(context, err, "Error Adding Logical Cloud Meta to AppContext", []string{logicalCloudName, cid})
+	}
+
 	// iterate through cluster list and add all the clusters (as empty-shells)
 	for _, cluster := range clusterList {
 		clusterName := strings.Join([]string{cluster.Specification.ClusterProvider, "+", cluster.Specification.ClusterName}, "")
@@ -702,7 +718,7 @@ func blindInstantiateL1(project string, logicalcloud LogicalCloud, lcclient *Log
 	}
 
 	// Create a Logical Cloud Meta with all data needed for a successful L1 (standard/privileged) instantiation:
-	// project name, logical cloud name, level=0 and namespace=default (for rsync cluster access - may get modularized in the future)
+	// project name, logical cloud name, level="0" and namespace="default"
 	err = context.AddCompositeAppMeta(
 		appcontext.CompositeAppMeta{
 			Project:      project,
