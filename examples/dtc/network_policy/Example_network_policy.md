@@ -31,7 +31,7 @@ Install the Kubernetes edge cluster and make sure it supports network policy. No
 ## Configure
 (1) Copy the config file
 ```shell
-$ cp src/tools/emcoctl/examples/emco-cfg-remote.yaml examples/dtc/network_policy/emco-cfg-dtc.yaml
+$ cp examples/dtc/emco-cfg-remote.yaml examples/dtc/network_policy/emco-cfg-dtc.yaml
 ```
 (2) Modify examples/dtc/network_policy/emco-dtc-single-cluster.yaml and examples/dtc/network_policy/emco-cfg-dtc.yaml files to change host name, port number and kubeconfig path.
 

@@ -31,7 +31,7 @@ Install the Kubernetes edge clusters and make sure it supports istio with single
 ## Configure
 (1) Copy the config file
 ```shell
-$ cp src/tools/emcoctl/examples/emco-cfg-remote.yaml examples/dtc/istio_traffic/emco-cfg-dtc.yaml
+$ cp examples/dtc/emco-cfg-remote.yaml examples/dtc/istio_traffic/emco-cfg-dtc.yaml
 ```
 (2) Modify examples/dtc/istio_traffic/multiple-cluster.yaml and examples/dtc/istio_traffic/emco-cfg-dtc.yaml files to change host name, port number, kubeconfig path and istioingress details.
 

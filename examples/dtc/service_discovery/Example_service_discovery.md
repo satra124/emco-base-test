@@ -36,7 +36,7 @@ NOTE: Public cloud scenarios are experimental and are not tested with public clo
 
     (1) Copy the config file
     ```shell
-    $ cp src/tools/emcoctl/examples/emco-cfg-remote.yaml examples/dtc/service_discovery/private_cluster/l0_logical_cloud/emco-cfg-dtc.yaml
+    $ cp examples/dtc/emco-cfg-remote.yaml examples/dtc/service_discovery/private_cluster/l0_logical_cloud/emco-cfg-dtc.yaml
     ```
     (2) Modify examples/dtc/service_discovery/private_cluster/l0_logical_cloud/emco-dtc-multiple-cluster-l0.yaml and examples/dtc/service_discovery/private_cluster/l0_logical_cloud/emco-cfg-dtc.yaml files to change host name, port number and kubeconfig path.
 
@@ -105,7 +105,7 @@ NOTE: Public cloud scenarios are experimental and are not tested with public clo
 
     (1) Copy the config file
     ```shell
-    $ cp src/tools/emcoctl/examples/emco-cfg-remote.yaml examples/dtc/service_discovery/private_cluster/l1_logical_cloud/emco-cfg-dtc.yaml
+    $ cp examples/dtc/emco-cfg-remote.yaml examples/dtc/service_discovery/private_cluster/l1_logical_cloud/emco-cfg-dtc.yaml
     ```
     (2) Modify examples/dtc/service_discovery/private_cluster/l1_logical_cloud/emco-dtc-multiple-cluster-l1-step1.yaml, examples/dtc/service_discovery/private_cluster/l1_logical_cloud/emco-dtc-multiple-cluster-l1-step2.yaml and examples/dtc/service_discovery/private_cluster/l1_logical_cloud/emco-cfg-dtc.yaml files to change host name, port number and kubeconfig path.
 
@@ -176,7 +176,7 @@ NOTE: Public cloud scenarios are experimental and are not tested with public clo
 
     (1) Copy the config file
     ```shell
-    $ cp src/tools/emcoctl/examples/emco-cfg-remote.yaml examples/dtc/service_discovery/public_cluster/l0_logical_cloud/emco-cfg-dtc.yaml
+    $ cp examples/dtc/emco-cfg-remote.yaml examples/dtc/service_discovery/public_cluster/l0_logical_cloud/emco-cfg-dtc.yaml
     ```
     (2) Modify examples/dtc/service_discovery/public_cluster/l0_logical_cloud/emco-dtc-multiple-cluster-l0.yaml and examples/dtc/service_discovery/public_cluster/l0_logical_cloud/emco-cfg-dtc.yaml files to change host name, port number and kubeconfig path.
 
@@ -244,7 +244,7 @@ NOTE: Public cloud scenarios are experimental and are not tested with public clo
 
     (1) Copy the config file
     ```shell
-    $ cp src/tools/emcoctl/examples/emco-cfg-remote.yaml examples/dtc/service_discovery/public_cluster/l1_logical_cloud/emco-cfg-dtc.yaml
+    $ cp examples/dtc/emco-cfg-remote.yaml examples/dtc/service_discovery/public_cluster/l1_logical_cloud/emco-cfg-dtc.yaml
     ```
     (2) Modify examples/dtc/service_discovery/public_cluster/l1_logical_cloud/emco-dtc-multiple-cluster-l1-step1.yaml, examples/dtc/service_discovery/public_cluster/l1_logical_cloud/emco-dtc-multiple-cluster-l1-step2.yaml and examples/dtc/service_discovery/public_cluster/l1_logical_cloud/emco-cfg-dtc.yaml files to change host name, port number and kubeconfig path.
 
