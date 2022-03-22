@@ -584,7 +584,7 @@ var _ = Describe("LogicalCloudHandler", func() {
 		func(t testCase) {
 			// set up client mock responses
 			t.lcClient.On("Get", "test-project", "testlogicalcloud").Return(t.mockVal, t.mockError)
-			t.lcClient.On("Status", "test-project", "testlogicalcloud", "", "", "all", []string{}, []string{}).Return(t.lcStatus, t.mockError)
+			t.lcClient.On("Status", "test-project", "testlogicalcloud", "", "ready", "all", []string{}, []string{}).Return(t.lcStatus, t.mockError)
 
 			// make HTTP request
 			request := httptest.NewRequest("GET", "/v2/projects/test-project/logical-clouds/"+t.inputName+"/status", nil)

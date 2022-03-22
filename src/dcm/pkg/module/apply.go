@@ -615,12 +615,6 @@ func blindInstantiateL0(project string, logicalcloud LogicalCloud, lcclient *Log
 		return context, "", cleanupCompositeApp(context, err, "Error adding App to L0 LC AppContext", []string{logicalCloudName, cid})
 	}
 
-	// Create a Logical Cloud Meta that will store the project and the logical cloud name in the AppContext:
-	err = context.AddCompositeAppMeta(appcontext.CompositeAppMeta{Project: project, LogicalCloud: logicalCloudName})
-	if err != nil {
-		return context, "", pkgerrors.Wrap(err, "Error Adding Logical Cloud Meta to AppContext")
-	}
-
 	// Create a Logical Cloud Meta with basic information about the Logical Cloud:
 	// project name and logical cloud name
 	err = context.AddCompositeAppMeta(
@@ -709,12 +703,6 @@ func blindInstantiateL1(project string, logicalcloud LogicalCloud, lcclient *Log
 	_, err = context.AddApp(handle, lcAppName)
 	if err != nil {
 		return context, "", cleanupCompositeApp(context, err, "Error adding App to AppContext", []string{logicalCloudName, cid})
-	}
-
-	// Create a Logical Cloud Meta that will store the project and the logical cloud name in the AppContext:
-	err = context.AddCompositeAppMeta(appcontext.CompositeAppMeta{Project: project, LogicalCloud: logicalCloudName})
-	if err != nil {
-		return context, "", pkgerrors.Wrap(err, "Error Adding Logical Cloud Meta to AppContext")
 	}
 
 	// Create a Logical Cloud Meta with all data needed for a successful L1 (standard/privileged) instantiation:

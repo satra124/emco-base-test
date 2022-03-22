@@ -401,6 +401,9 @@ func (h logicalCloudHandler) statusHandler(w http.ResponseWriter, r *http.Reques
 			http.Error(w, "Invalid query status", http.StatusBadRequest)
 			return
 		}
+	} else {
+		// default ?status="ready" if not specified by the API request
+		qType = "ready"
 	}
 
 	// /status?output = "summary" or "all" or "detail"

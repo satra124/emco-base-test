@@ -86,6 +86,7 @@ type LogicalCloudStatus struct {
 	Project      string `json:"project,omitempty"`
 	LogicalCloud string `json:"logicalCloud,omitempty"`
 	StatusResult `json:",inline"`
+	Clusters     []ClusterStatus `json:"clusters,omitempty"`
 }
 
 // LogicalCloudClustersStatus is the structure used to return the status

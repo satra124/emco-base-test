@@ -490,7 +490,6 @@ func (v *LogicalCloudClient) StatusClusters(p, lc, qStatusInstance string) (stat
 	statusResponse.Name = lc
 	lcStatus := status.LogicalCloudClustersStatus{
 		Project:             p,
-		LogicalCloud:        lc,
 		ClustersByAppResult: statusResponse,
 	}
 
@@ -510,7 +509,6 @@ func (v *LogicalCloudClient) StatusResources(p, lc, qStatusInstance, qType strin
 	statusResponse.Name = lc
 	lcStatus := status.LogicalCloudResourcesStatus{
 		Project:              p,
-		LogicalCloud:         lc,
 		ResourcesByAppResult: statusResponse,
 	}
 
@@ -530,9 +528,14 @@ func (v *LogicalCloudClient) Status(p, lc, qStatusInstance, qType, qOutput strin
 	statusResponse.Name = lc
 	lcStatus := status.LogicalCloudStatus{
 		Project:      p,
-		LogicalCloud: lc,
 		StatusResult: statusResponse,
 	}
+	if len(statusResponse.Apps) < 1 {
+		// there will be no composite app for the logical cloud when it's L0 (admin)
+		return lcStatus, nil
+	}
+	lcStatus.Clusters = statusResponse.Apps[0].Clusters
+	lcStatus.StatusResult.Apps = nil
 
 	return lcStatus, nil
 }
