@@ -282,13 +282,12 @@ func PodUpdateStatus(cr *k8spluginv1alpha1.ResourceBundleState, obj *unstructure
 	if !found {
 		// Add it to CR
 		ps := v1.Pod{
+
 			TypeMeta:   pod.TypeMeta,
 			ObjectMeta: pod.ObjectMeta,
 			Status:     pod.Status,
 			Spec:       pod.Spec,
 		}
-		ps.ObjectMeta = metav1.ObjectMeta{}
-		ps.ObjectMeta.Name = pod.GetName()
 		ps.ObjectMeta.ManagedFields = []metav1.ManagedFieldsEntry{}
 		ps.Annotations = ClearLastApplied(ps.Annotations)
 		cr.Status.PodStatuses = append(cr.Status.PodStatuses, ps)
