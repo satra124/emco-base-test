@@ -257,8 +257,10 @@ $ flux bootstrap github --owner=$OWNER --repository=$REPO --branch=main --path=.
 On the edge cluster that supports Flux v2 install monitor like the example below. Note the name of the cluster. That name should match the name provided above.
 
 ```
-emco-base/deployments/helm/monitor>  helm  install --kubeconfig $KUBE_PATH  --set git.token=$GITHUB_TOKEN --set git.repo=SREPO --set git.username=$OWNER --set git.clustername="provider1flux+cluster2" --set git.enabled=true  -n emco monitor .
-
+$ cd emco-base/deployments/helm/monitor 
+```
+```
+$ helm  install --kubeconfig $KUBE_PATH  --set git.token=$GITHUB_TOKEN --set git.repo=SREPO --set git.username=$OWNER --set git.clustername="provider1flux+cluster2" --set git.enabled=true  -n emco monitor .
 ```
 
 Follow the example below to install and monitor an application on Fluxv2 based cluster and a regular direct access cluster
@@ -266,3 +268,113 @@ Follow the example below to install and monitor an application on Fluxv2 based c
 https://gitlab.com/project-emco/core/emco-base/-/tree/main/examples/test-flux
 
 export $GITHUB_USER, $GITHUB_TOKEN, $GITHUB_REPO and $KUBE_PATH1 and run setup.sh create script.
+
+### Azure Arc Setup
+
+#### Obtaining credentials to access Azure account
+
+- We obtain access to the Azure account by registering an app to the account. Follow the steps mentioned here https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#register-an-application to register an app and obtain the client ID and tenant ID.
+- To secure the access we also need a client secret. Follow the steps mentioned here https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#add-a-client-secret
+to create a client secret.
+- Note down these client ID, tenant ID, client secret as well as the subscription ID.
+
+#### Creating Azure Arc Cluster
+
+- Follow the steps mentioned here https://docs.microsoft.com/en-us/azure/azure-arc/kubernetes/quickstart-connect-cluster?tabs=azure-cli to connect your Kubernetes cluster to Azure Arc.
+- Note down the Azure resource group name and Azure Arc cluster name that you used while connecting your Kubernetes cluster to Azure Arc.
+
+#### Installing Monitor
+
+Follow steps mentioned below
+
+```
+$ git clone https://gitlab.com/project-emco/core/emco-base.git
+```
+
+```
+$ cd emco-base/deployments/helm/monitor/templates
+```
+
+Update the secret.yaml with git username, git token, git repo name, and clustername. Ensure that the values are base64 encoded.
+
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-git-monitor
+  namespace: {{ .Release.Namespace }}
+type: Opaque
+data:
+  username: abc
+  token: XXXX
+  repo: test
+  clustername: <base64 encoded value of "provider-arc-1+cluster2">
+
+```
+
+```
+$ cd ../
+```
+
+Update the registryPrefix and tag in values.yaml to pull in the monitor image and set git enabled to true.
+
+```
+registryPrefix: <Registry Prefix>
+tag: <tag for example latest>
+
+workingDir: /opt/emco/monitor
+git:
+  enabled: true
+```
+Make use of the example provided in https://gitlab.com/project-emco/core/emco-base/-/tree/main/examples/test-azurearc
+
+```
+$ cd emco-base/examples/test-azurearc
+```
+
+Replace the app name to monitor in the setup.sh script as shown below. Ensure that the ProjectName and Cluster are consistent with the clustername mentioned above, clustername is formed as "ProjectName+Cluster".
+
+```
+    Applist:
+      - Name: monitor
+        Cluster:
+          - cluster2
+```
+  export $GITHUB_USER, $GITHUB_TOKEN, $GITHUB_REPO, $HOST_IP, $CLIENT_ID, $TENANT_ID, $CLIENT_SECRET, $SUB_ID, $ARC_CLUSTER, $ARC_RG, $DELAY and $GIT_BRANCH.
+
+  Refer https://gitlab.com/project-emco/core/emco-base/-/tree/main/examples/test-azurearc/README.md for further steps to install monitor.
+
+
+#### Running Test Case
+
+Run the example provided in https://gitlab.com/project-emco/core/emco-base/-/tree/main/examples/test-azurearc.
+
+```
+$ cd emco-base/examples/test-azurearc
+```
+
+You can change the name of app in setup.sh as shown in "Installing monitor section", by default its collectd. 
+
+```
+    Applist:
+      - Name: collectd
+        Cluster:
+          - cluster2
+```
+export $GITHUB_USER, $GITHUB_TOKEN, $GITHUB_REPO, $HOST_IP, $CLIENT_ID, $TENANT_ID, $CLIENT_SECRET, $SUB_ID, $ARC_CLUSTER, $ARC_RG, $DELAY and $GIT_BRANCH.
+
+Refer https://gitlab.com/project-emco/core/emco-base/-/tree/main/examples/test-azurearc/README.md for further steps to run the testcase.
+
+
+| Variable  | Definition |
+| ------------- | ------------- |
+| GITHUB_USER   | Username of the Github account. |
+| GITHUB_TOKEN  | Git Token for accessing the Github account. |
+| HOST_IP    | IP of the cluster where EMCO is installed and running. |
+| CLIENT_ID | Obtained on registering an app (Refer "Obtaining credentials to access Azure account" section), used for accessing Azure account.  |
+| TENANT_ID    | Obtained on registering an app (Refer "Obtaining credentials to access Azure account" section), used for accessing Azure account.  |
+| SUB_ID  | Subscription ID of the Azure account.  |
+| ARC_CLUSTER  | Name of the Azure Arc connected cluster (Refer "Creating Azure Arc Cluster" section). |
+| ARC_RG  | Name of the Azure resource group in which the Azure Arc cluster is created (Refer Section B). |
+| DELAY  | The delay between the deletion of Git resources and Git configuration.  |
+| GIT_BRANCH  | Git branch name in which resources are stored.  |
