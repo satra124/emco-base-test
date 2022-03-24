@@ -22,7 +22,8 @@ collectd_folder=../helm_charts/collectd
 prometheus_operator_folder=../helm_charts/prometheus-operator
 operator_latest_folder=../helm_charts/operators-latest
 m3db_folder=../helm_charts/m3db
-monitor_folder=../helm_charts/monitor
+monitor_folder=../../deployments/helm
+profiles_folder=../profiles
 
 function create {
     mkdir -p output
@@ -42,7 +43,8 @@ function create {
     tar -czf output/packetgen.tar.gz -C $firewall_folder/helm packetgen
     tar -czf output/sink.tar.gz -C $firewall_folder/helm sink
     tar -czf output/profile.tar.gz -C $firewall_folder/profile manifest.yaml override_values.yaml
-    tar -czf output/monitor.tar.gz -C $monitor_folder/helm monitor
+    tar -czf output/monitor.tar.gz -C $monitor_folder monitor
+    tar -czf output/monitor_profile.tar.gz -C $profiles_folder/default/profile .
 
         cat << NET > values.yaml
     ProjectName: proj1
