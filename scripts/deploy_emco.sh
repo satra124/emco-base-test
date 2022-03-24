@@ -20,6 +20,14 @@ EOF
   cat > ${BIN_PATH}/helm/monitor/values.yaml <<EOF
 registryPrefix: ${REGISTRY}
 tag: ${TAG}
+
+workingDir: /opt/emco/monitor
+git:
+  enabled: false
+
+noProxyHosts: ${NO_PROXY}
+httpProxy: ${HTTP_PROXY}
+httpsProxy: ${HTTPS_PROXY}
 EOF
   cat > ${BIN_PATH}/helm/helm_value_overrides.yaml <<EOF
 #update proxies
