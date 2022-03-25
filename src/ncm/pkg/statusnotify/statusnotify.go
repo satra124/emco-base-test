@@ -10,6 +10,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	statusnotifypb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/statusnotify"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/statusnotifyserver"
+	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 )
@@ -60,8 +61,11 @@ func (d clusterHelpers) StatusQuery(reg *statusnotifypb.StatusRegistration, qSta
 
 func (d clusterHelpers) PrepareStatusNotification(reg *statusnotifypb.StatusRegistration, statusResult status.StatusResult) *statusnotifypb.StatusNotification {
 	n := new(statusnotifypb.StatusNotification)
+	log.Trace("[StatusNotify] Preparing Notification",
+		log.Fields{"statusResult": statusResult})
 
-	if statusResult.DeployedStatus == appcontext.AppContextStatusEnum.Instantiated {
+	if statusResult.DeployedStatus == appcontext.AppContextStatusEnum.Instantiated ||
+		statusResult.DeployedStatus == appcontext.AppContextStatusEnum.Updated {
 		switch reg.StatusType {
 		case statusnotifypb.StatusValue_DEPLOYED:
 			n.StatusValue = statusnotifypb.StatusValue_DEPLOYED

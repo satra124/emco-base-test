@@ -71,7 +71,8 @@ func (d digHelpers) PrepareStatusNotification(reg *statusnotifypb.StatusRegistra
 	log.Trace("[StatusNotify] Preparing Notification",
 		log.Fields{"statusResult": statusResult})
 
-	if statusResult.DeployedStatus == appcontext.AppContextStatusEnum.Instantiated {
+	if statusResult.DeployedStatus == appcontext.AppContextStatusEnum.Instantiated ||
+		statusResult.DeployedStatus == appcontext.AppContextStatusEnum.Updated {
 		switch reg.StatusType {
 		case statusnotifypb.StatusValue_DEPLOYED:
 			n.StatusValue = statusnotifypb.StatusValue_DEPLOYED
