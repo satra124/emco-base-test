@@ -4,7 +4,12 @@
 package module
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"time"
 
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
@@ -107,6 +112,26 @@ func (v *LogicalCloudClient) Create(project string, c LogicalCloud) (LogicalClou
 	err = db.DBconn.Insert(v.storeName, key, nil, v.tagMeta, c)
 	if err != nil {
 		return LogicalCloud{}, pkgerrors.Wrap(err, "Creating DB Entry")
+	}
+
+	// Generate and store Logical Cloud user private key (Level 1 only)
+	if c.Specification.Level == "1" {
+		pk, err := rsa.GenerateKey(rand.Reader, 4096)
+		if err != nil {
+			return LogicalCloud{}, pkgerrors.New("Failure generating Logical Cloud user key")
+		}
+
+		pkData := base64.StdEncoding.EncodeToString(pem.EncodeToMemory(
+			&pem.Block{
+				Type:  "RSA PRIVATE KEY",
+				Bytes: x509.MarshalPKCS1PrivateKey(pk),
+			},
+		))
+
+		err = db.DBconn.Insert(v.storeName, key, nil, "privatekey", string(pkData))
+		if err != nil {
+			return LogicalCloud{}, pkgerrors.New("Failure storing Logical Cloud user key")
+		}
 	}
 
 	// Add the state info record (initial state)

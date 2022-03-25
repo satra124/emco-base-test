@@ -1,6 +1,11 @@
 package module_test
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
 	"fmt"
 	"strings"
 
@@ -516,8 +521,23 @@ var _ = Describe("Logicalcloud", func() {
 				quota := _createTestQuota("testquota")
 				up := _createTestUserPermission("testup", "testns")
 
+				// add private key to logical cloud
+				lkey := dcm.LogicalCloudKey{
+					Project:          "project",
+					LogicalCloudName: "testlogicalCloudL1",
+				}
+				pk, _ := rsa.GenerateKey(rand.Reader, 4096)
+				pkData := base64.StdEncoding.EncodeToString(pem.EncodeToMemory(
+					&pem.Block{
+						Type:  "RSA PRIVATE KEY",
+						Bytes: x509.MarshalPKCS1PrivateKey(pk),
+					},
+				))
+				mdb.Insert("resources", lkey, nil, "privatekey", string(pkData))
+
 				// Expect status to be Created
 				stateInfo, err = client.GetState("project", "testlogicalCloudL1")
+				Expect(err).ShouldNot(HaveOccurred())
 				Expect(len(stateInfo.Actions)).To(Equal(1))
 				Expect(stateInfo.Actions[0].State).To(Equal("Created"))
 
@@ -589,6 +609,7 @@ func _createExistingLogicalCloud(mdb *db.NewMockDB, level string, standard bool,
 		UserData2:   "",
 	}
 	mdb.Insert("resources", okey, nil, "data", p)
+
 	// create logical cloud in mocked db
 	lkey := dcm.LogicalCloudKey{
 		Project:          "project",
@@ -596,6 +617,17 @@ func _createExistingLogicalCloud(mdb *db.NewMockDB, level string, standard bool,
 	}
 	lc := _createTestLogicalCloud("testlc", level)
 	mdb.Insert("resources", lkey, nil, "data", lc)
+
+	// add private key to logical cloud
+	pk, _ := rsa.GenerateKey(rand.Reader, 4096)
+	pkData := base64.StdEncoding.EncodeToString(pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(pk),
+		},
+	))
+	mdb.Insert("resources", lkey, nil, "privatekey", string(pkData))
+
 	// create cluster reference in mocked db
 	ckey := dcm.ClusterKey{
 		Project:          "project",
@@ -604,6 +636,7 @@ func _createExistingLogicalCloud(mdb *db.NewMockDB, level string, standard bool,
 	}
 	cl := _createTestClusterReference("testcp", "testcl")
 	mdb.Insert("resources", ckey, nil, "data", cl)
+
 	// create quota in mocked db
 	qkey := dcm.QuotaKey{
 		Project:          "project",

@@ -5,7 +5,6 @@ package module
 
 import (
 	"crypto/rand"
-	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/base64"
@@ -264,22 +263,29 @@ func createQuotas(quotaList []Quota, namespace string) ([]string, []string, erro
 	return datas, names, nil
 }
 
-func createUserCSR(logicalcloud LogicalCloud) (string, string, string, error) {
+func createUserCSR(logicalcloud LogicalCloud, pkData string) (string, string, error) {
+	pa, err := base64.StdEncoding.DecodeString(strings.Trim(pkData, "\""))
+	if err != nil {
+		return "", "", err
+	}
+	pb, _ := pem.Decode([]byte(pa))
+	if pb == nil {
+		return "", "", pkgerrors.New("Couldn't decode private key")
+	}
 
-	KEYSIZE := 4096
+	pk, err := x509.ParsePKCS1PrivateKey(pb.Bytes)
+	if err != nil {
+		return "", "", err
+	}
+
 	userName := logicalcloud.Specification.User.UserName
 	name := strings.Join([]string{logicalcloud.MetaData.LogicalCloudName, "-user-csr"}, "")
 
-	key, err := rsa.GenerateKey(rand.Reader, KEYSIZE)
-	if err != nil {
-		return "", "", "", err
-	}
-
 	csrTemplate := x509.CertificateRequest{Subject: pkix.Name{CommonName: userName}}
 
-	csrCert, err := x509.CreateCertificateRequest(rand.Reader, &csrTemplate, key)
+	csrCert, err := x509.CreateCertificateRequest(rand.Reader, &csrTemplate, pk)
 	if err != nil {
-		return "", "", "", err
+		return "", "", err
 	}
 
 	//Encode csr
@@ -303,20 +309,10 @@ func createUserCSR(logicalcloud LogicalCloud) (string, string, string, error) {
 
 	csrData, err := yaml.Marshal(&csrObj)
 	if err != nil {
-		return "", "", "", err
+		return "", "", err
 	}
 
-	keyData := base64.StdEncoding.EncodeToString(pem.EncodeToMemory(
-		&pem.Block{
-			Type:  "RSA PRIVATE KEY",
-			Bytes: x509.MarshalPKCS1PrivateKey(key),
-		},
-	))
-	if err != nil {
-		return "", "", "", err
-	}
-
-	return string(csrData), string(keyData), strings.Join([]string{name, "+CertificateSigningRequest"}, ""), nil
+	return string(csrData), strings.Join([]string{name, "+CertificateSigningRequest"}, ""), nil
 }
 
 func createApprovalSubresource(logicalcloud LogicalCloud) (string, error) {
@@ -424,7 +420,7 @@ func callRsyncUpdate(FromContextid, ToContextid interface{}) error {
 }
 
 // TODO: use context.ctxid instead of passing cid
-func prepL1ClusterAppContext(oldCid string, logicalcloud LogicalCloud, cluster Cluster, quotaList []Quota, userPermissionList []UserPermission, lcclient *LogicalCloudClient, lckey LogicalCloudKey, context appcontext.AppContext, cid string) error {
+func prepL1ClusterAppContext(oldCid string, logicalcloud LogicalCloud, cluster Cluster, quotaList []Quota, userPermissionList []UserPermission, lcclient *LogicalCloudClient, lckey LogicalCloudKey, pkData string, context appcontext.AppContext, cid string) error {
 	logicalCloudName := logicalcloud.MetaData.LogicalCloudName
 	clusterName := strings.Join([]string{cluster.Specification.ClusterProvider, "+", cluster.Specification.ClusterName}, "")
 	appHandle, err := context.GetAppHandle(lcAppName)                // caution: ignoring error
@@ -457,7 +453,8 @@ func prepL1ClusterAppContext(oldCid string, logicalcloud LogicalCloud, cluster C
 		return pkgerrors.Wrap(err, "Error Creating Quota YAMLs for logical cloud")
 	}
 
-	csr, key, csrName, err := createUserCSR(logicalcloud)
+	// then use it to generate a CSR for the cluster being processed
+	csr, csrName, err := createUserCSR(logicalcloud, pkData)
 	if err != nil {
 		return pkgerrors.Wrap(err, "Error Creating User CSR and Key for logical cloud")
 	}
@@ -489,14 +486,6 @@ func prepL1ClusterAppContext(oldCid string, logicalcloud LogicalCloud, cluster C
 	_, err = context.AddLevelValue(csrHandle, "subresource/approval", approval)
 	if err != nil {
 		return cleanupCompositeApp(context, err, "Error approving CSR via AppContext", details)
-	}
-
-	// Add private key to MongoDB
-	if !gotCsr {
-		err = db.DBconn.Insert(lcclient.storeName, lckey, nil, "privatekey", key)
-		if err != nil {
-			return cleanupCompositeApp(context, err, "Error adding private key to DB", details)
-		}
 	}
 
 	// Add [Cluster]Role resources to each cluster
@@ -774,9 +763,16 @@ func blindInstantiateL1(oldCid string, project string, logicalcloud LogicalCloud
 		return context, "", cleanupCompositeApp(context, err, "Error adding app-level dependency to AppContext", []string{logicalCloudName})
 	}
 
+	// get pkData from the database, which was created during logical cloud Create()
+	pkDataArray, err := db.DBconn.Find(lcclient.storeName, lckey, "privatekey")
+	if err != nil {
+		return context, "", cleanupCompositeApp(context, err, "Error getting private key from logical cloud", []string{logicalCloudName})
+	}
+	pkData := string(pkDataArray[0])
+
 	// Iterate through cluster list and add all the clusters
 	for _, cluster := range clusterList {
-		err = prepL1ClusterAppContext(oldCid, logicalcloud, cluster, quotaList, userPermissionList, lcclient, lckey, context, cid)
+		err = prepL1ClusterAppContext(oldCid, logicalcloud, cluster, quotaList, userPermissionList, lcclient, lckey, pkData, context, cid)
 		if err != nil {
 			return context, "", err
 		}
