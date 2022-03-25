@@ -35,7 +35,9 @@ This folder contains the following test cases to run with EMCO. These tests assu
 
     Creates artifacts needed to test EMCO on one cluster. The script will read from the ``config`` file to decide what EMCO resources to create.
 
-    `$ ./setup.sh create`
+    ```
+    $ ./setup.sh create
+    ```
 
     Output files of this command are:
     * ``values.yaml``: specifies useful variables for the creation of EMCO resources
@@ -43,7 +45,9 @@ This folder contains the following test cases to run with EMCO. These tests assu
     * ``prerequisites.yaml``: defines all non usecase-specific EMCO resources to create
     * Helm charts and profile tarballs for all the usecases.
 
-    `$ ./setup.sh cleanup`
+    ```
+    $ ./setup.sh cleanup
+    ```
 
     Cleans up all artifacts previously generated.
 
@@ -53,27 +57,36 @@ This folder contains the following test cases to run with EMCO. These tests assu
 ## Applying prerequisites to run tests
 Apply prerequisites.yaml. This is required for all the tests. This creates controllers, one project, one cluster, a logical cloud. This step is required to be done only once for all usecases:
 
-``$ $bin/emcoctl --config emco-cfg.yaml apply -f prerequisites.yaml -v values.yaml``
+```
+$ emcoctl --config emco-cfg.yaml apply -f prerequisites.yaml -v values.yaml
+```
 
-*NOTE: ``$bin`` refers to the path where the emcoctl binary is installed. This variable is not defined by default, so you need to adapt the command to your environment.*
 
 ## Instantiating Logical Cloud over the cluster
 
-``$ $bin/emcoctl --config emco-cfg.yaml apply -f instantiate-lc.yaml -v values.yaml``
+```
+$ emcoctl --config emco-cfg.yaml apply -f instantiate-lc.yaml -v values.yaml
+```
 
 ## Running test cases
 
 1. Prometheus and collectd usecase
 
-    `$ $bin/emcoctl --config emco-cfg.yaml apply -f test-prometheus-collectd.yaml -v values.yaml`
+    ```
+    $ emcoctl --config emco-cfg.yaml apply -f test-prometheus-collectd.yaml -v values.yaml
+    ```
 
 2. Generic action controller usecase
 
-    `$ $bin/emcoctl --config emco-cfg.yaml apply -f test-gac.yaml -v values.yaml`
+    ```
+    $ emcoctl --config emco-cfg.yaml apply -f test-gac.yaml -v values.yaml
+    ```
 
 3. vFirewall usecase
 
-    `$ $bin/emcoctl --config emco-cfg.yaml apply -f test-vfw.yaml -v values.yaml`
+    ```
+    $ emcoctl --config emco-cfg.yaml apply -f test-vfw.yaml -v values.yaml
+    ```
     #### NOTE: This usecase is only tested using kubernetes installation: https://github.com/onap/multicloud-k8s/tree/master/kud, which comes with the requisite packages installed.
     #### For running vFw use case, the Kubernetes cluster needs to have following packages installed:
      multus - https://github.com/k8snetworkplumbingwg/multus-cni
@@ -84,40 +97,90 @@ Apply prerequisites.yaml. This is required for all the tests. This creates contr
 
 4. DTC testcase
 
-    `$ $bin/emcoctl --config emco-cfg.yaml apply -f test-dtc.yaml -v values.yaml`
+    ```
+    $ emcoctl --config emco-cfg.yaml apply -f test-dtc.yaml -v values.yaml
+    ```
 
 5. Installing Monitor on edge cluster
 
-    `$ $bin/emcoctl --config emco-cfg.yaml apply -f monitor.yaml -v values.yaml`
+    ```
+    $ emcoctl --config emco-cfg.yaml apply -f monitor.yaml -v values.yaml
+    ```
 
 ## Cleanup
 
 1. Delete Prometheus and Collectd usecase
 
-    `$ $bin/emcoctl --config emco-cfg.yaml delete -f test-prometheus-collectd.yaml -v values.yaml`
+    ```
+    $ emcoctl --config emco-cfg.yaml delete -f test-prometheus-collectd.yaml -v values.yaml
+    ```
 
 2. Delete Generic action controller testcase
 
-    `$ $bin/emcoctl --config emco-cfg.yaml delete -f test-gac.yaml -v values.yaml`
+    ```
+    $ emcoctl --config emco-cfg.yaml delete -f test-gac.yaml -v values.yaml
+    ```
 
 3. Firewall testcase
 
-    `$ $bin/emcoctl --config emco-cfg.yaml delete -f test-vfw.yaml -v values.yaml`
+    ```
+    $ emcoctl --config emco-cfg.yaml delete -f test-vfw.yaml -v values.yaml
+    ```
 
 4. DTC testcase
 
-    `$ $bin/emcoctl --config emco-cfg.yaml delete -f test-dtc.yaml -v values.yaml`
+    ```
+    $ emcoctl --config emco-cfg.yaml delete -f test-dtc.yaml -v values.yaml
+    ```
 
 5. Terminate Logical Cloud
 
-    `$ $bin/emcoctl --config emco-cfg.yaml delete -f instantiate-lc.yaml -v values.yaml`
+    ```
+    $ emcoctl --config emco-cfg.yaml delete -f instantiate-lc.yaml -v values.yaml
+    ```
 
 6. Cleanup prerequisites
 
-    `$ $bin/emcoctl --config emco-cfg.yaml delete -f prerequisites.yaml -v values.yaml`
+    ```
+    $ emcoctl --config emco-cfg.yaml delete -f prerequisites.yaml -v values.yaml
+    ```
 
 7. Cleanup generated files
 
-    `$ ./setup.sh cleanup`
+    ```
+    $ ./setup.sh cleanup
+    ```
 
 *NOTE: Known issue with the test cases: deletion of the resources fails sometimes as some resources can't be deleted before others are deleted. This can happen due to timing issue. In that case try deleting again and the deletion should succeed.*
+
+## Running EMCO testcases using test-aio.sh script
+
+The test-aio.sh script can be used to simplify the process of running a test case. It makes use of the status query APIs to ensure that the logical cloud and deployment intent group are instantiated (During creation) or terminated (During deletion) before moving to the next step.
+
+To run the test cases run the following commands after setting up the environment variables. There is no need to run the setup.sh script as it's taken care of by the test-aio.sh script.
+
+1. For running the test case
+
+    ```
+    $ ./test-aio.sh <test case file name> apply
+    ```
+
+2. For deleting the test case and cleaning up resources
+
+    ```
+    $ ./test-aio.sh <test case file name> delete
+    ```
+
+For example to run the dtc test case
+
+1. For running the dtc test case
+
+    ```
+    $ ./test-aio.sh test-dtc.yaml apply
+    ```
+
+2. For deleting the dtc test case and cleaning up resources
+
+    ```
+    $ ./test-aio.sh test-dtc.yaml delete
+    ```
