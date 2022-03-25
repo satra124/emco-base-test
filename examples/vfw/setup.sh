@@ -23,6 +23,7 @@ prometheus_operator_folder=../helm_charts/prometheus-operator
 operator_latest_folder=../helm_charts/operators-latest
 m3db_folder=../helm_charts/m3db
 monitor_folder=../../deployments/helm
+kube_prometheus_stack_folder=../helm_charts/kube-prometheus-stack
 profiles_folder=../profiles
 
 function create {
@@ -31,6 +32,8 @@ function create {
     tar -czf output/collectd_profile.tar.gz -C $collectd_folder/profile .
     tar -czf output/prometheus-operator.tar.gz -C $prometheus_operator_folder/helm .
     tar -czf output/prometheus-operator_profile.tar.gz -C $prometheus_operator_folder/profile .
+    tar -czf output/kube-prometheus-stack.tar.gz -C $kube_prometheus_stack_folder/helm .
+    tar -czf output/kube-prometheus-stack_profile.tar.gz -C $prometheus_operator_folder/profile .
     tar -czf output/operator.tar.gz -C $operator_latest_folder/helm .
     tar -czf output/operator_profile.tar.gz -C $operator_latest_folder/profile .
     tar -czf output/m3db.tar.gz -C $m3db_folder/helm .
@@ -60,14 +63,14 @@ function create {
     StandardPermission: standard-permission
     PrivilegedPermission: privileged-permission
     CompositeApp: prometheus-collectd-composite-app
-    App1: prometheus-operator
+    App1: kube-prometheus-stack
     App2: collectd
     App3: operator
     App4: http-client
     App5: http-server
     AppMonitor: monitor
     KubeConfig: $KUBE_PATH
-    HelmApp1: output/prometheus-operator.tar.gz
+    HelmApp1: output/kube-prometheus-stack.tar.gz
     HelmApp2: output/collectd.tar.gz
     HelmApp3: output/operator.tar.gz
     HelmApp4: output/http-client.tar.gz
@@ -77,7 +80,7 @@ function create {
     HelmAppPacketgen: output/packetgen.tar.gz
     HelmAppSink: output/sink.tar.gz
     ProfileFw: output/profile.tar.gz
-    ProfileApp1: output/prometheus-operator_profile.tar.gz
+    ProfileApp1: output/kube-prometheus-stack_profile.tar.gz
     ProfileApp2: output/collectd_profile.tar.gz
     ProfileApp3: output/operator_profile.tar.gz
     ProfileApp4: output/http-client-profile.tar.gz

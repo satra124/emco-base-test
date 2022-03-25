@@ -45,6 +45,7 @@ operator_latest_folder=../helm_charts/operators-latest
 m3db_folder=../helm_charts/m3db
 monitor_folder=../../deployments/helm
 profiles_folder=../profiles
+kube_prometheus_stack_folder=../helm_charts/kube-prometheus-stack
 
 function create {
     echo "Generating tarballs from Helm charts"
@@ -53,6 +54,8 @@ function create {
     tar -czf output/collectd_profile.tar.gz -C $collectd_folder/profile .
     tar -czf output/prometheus-operator.tar.gz -C $prometheus_operator_folder/helm .
     tar -czf output/prometheus-operator_profile.tar.gz -C $prometheus_operator_folder/profile .
+    tar -czf output/kube-prometheus-stack.tar.gz -C $kube_prometheus_stack_folder/helm .
+    tar -czf output/kube-prometheus-stack_profile.tar.gz -C $prometheus_operator_folder/profile .
     tar -czf output/operator.tar.gz -C $operator_latest_folder/helm .
     tar -czf output/operator_profile.tar.gz -C $operator_latest_folder/profile .
     tar -czf output/m3db.tar.gz -C $m3db_folder/helm .

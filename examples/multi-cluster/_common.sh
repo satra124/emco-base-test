@@ -28,6 +28,8 @@ function create_apps {
     tar -czf $output_dir/collectd_profile.tar.gz -C $collectd_folder/profile .
     tar -czf $output_dir/prometheus-operator.tar.gz -C $prometheus_operator_folder/helm .
     tar -czf $output_dir/prometheus-operator_profile.tar.gz -C $prometheus_operator_folder/profile .
+    tar -czf $output_dir/kube-prometheus-stack.tar.gz -C $kube_prometheus_stack_folder/helm .
+    tar -czf $output_dir/kube-prometheus-stack_profile.tar.gz -C $prometheus_operator_folder/profile .
     tar -czf $output_dir/operator.tar.gz -C $operator_latest_folder/helm .
     tar -czf $output_dir/operator_profile.tar.gz -C $operator_latest_folder/profile .
     tar -czf $output_dir/m3db.tar.gz -C $m3db_folder/helm .
@@ -65,14 +67,14 @@ function create_values_yaml_one_cluster {
     StandardPermission: standard-permission
     PrivilegedPermission: privileged-permission
     CompositeApp: prometheus-collectd-composite-app
-    App1: prometheus-operator
+    App1: kube-prometheus-stack
     App2: collectd
     App3: operator
     App4: http-client
     App5: http-server
     AppMonitor: monitor
     KubeConfig: $kube_path
-    HelmApp1: $output_dir/prometheus-operator.tar.gz
+    HelmApp1: $output_dir/kube-prometheus-stack.tar.gz
     HelmApp2: $output_dir/collectd.tar.gz
     HelmApp3: $output_dir/operator.tar.gz
     HelmApp4: $output_dir/http-client.tar.gz
@@ -82,7 +84,7 @@ function create_values_yaml_one_cluster {
     HelmAppPacketgen: $output_dir/packetgen.tar.gz
     HelmAppSink: $output_dir/sink.tar.gz
     ProfileFw: $output_dir/profile.tar.gz
-    ProfileApp1: $output_dir/prometheus-operator_profile.tar.gz
+    ProfileApp1: $output_dir/kube-prometheus-stack_profile.tar.gz
     ProfileApp2: $output_dir/collectd_profile.tar.gz
     ProfileApp3: $output_dir/operator_profile.tar.gz
     ProfileApp4: $output_dir/http-client_profile.tar.gz
