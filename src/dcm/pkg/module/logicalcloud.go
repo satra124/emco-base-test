@@ -303,6 +303,27 @@ func (v *LogicalCloudClient) Delete(project, logicalCloudName string) error {
 			return pkgerrors.Wrap(err, "Error deleting AppContext CompositeApp Logical Cloud")
 		}
 
+		stateVal, err := state.GetCurrentStateFromStateInfo(s)
+		if err != nil {
+			return pkgerrors.Wrap(err, "Error getting current state from Logical Cloud StateInfo")
+		}
+		if stateVal == state.StateEnum.Terminated || stateVal == state.StateEnum.TerminateStopped {
+			// remove all associated app contexts
+			for _, id := range state.GetContextIdsFromStateInfo(s) {
+				log.Debug("Delete(): attempting to get appcontext", log.Fields{"id": id})
+				context, err := state.GetAppContextFromId(id)
+				if err == nil {
+					err = context.DeleteCompositeApp()
+					if err != nil {
+						return pkgerrors.Wrap(err, "Error deleting appcontext for Logical Cloud")
+					}
+					log.Debug("Delete(): deleted composite app", log.Fields{"id": id})
+				} else {
+					log.Debug("Delete(): failed getting appcontext, silently skipping", log.Fields{"id": id})
+				}
+			}
+		}
+
 		err = db.DBconn.Remove(v.storeName, key)
 		if err != nil {
 			log.Error("Error when deleting Logical Cloud (scenario with Terminated status)", log.Fields{"logicalcloud": logicalCloudName})
