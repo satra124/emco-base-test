@@ -31,7 +31,7 @@ function create_common_values {
         cat << NET > values.yaml
     PackagesPath: $output_dir
     ProjectName: proj-flux-1
-    ClusterProvider: provider-flux
+    ClusterProvider: provider1flux
     ClusterLabel: edge-cluster
     AdminCloud: default
     CompositeApp: test-composite-app
