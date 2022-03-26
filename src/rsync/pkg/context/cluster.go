@@ -266,10 +266,10 @@ func (r *resProvd) readResource(name string) error {
 	return nil
 }
 
-func (r *resProvd) addStatusTracker(extraLabel string) error {
+func (r *resProvd) addStatusTracker(extraLabel string, namespace string) error {
 	// Get label and create CR
 	label := r.context.statusAcID + "-" + r.app
-	b, err := status.GetStatusCR(label, extraLabel)
+	b, err := status.GetStatusCR(label, extraLabel, namespace)
 	if err != nil {
 		log.Error("Failed to get status CR for installing", log.Fields{"error": err, "label": label,})
 		return err
@@ -281,10 +281,10 @@ func (r *resProvd) addStatusTracker(extraLabel string) error {
 	return nil
 }
 
-func (r *resProvd) deleteStatusTracker(extraLabel string) error {
+func (r *resProvd) deleteStatusTracker(extraLabel, namespace string) error {
 	// Get label and create CR
 	label := r.context.statusAcID + "-" + r.app
-	b, err := status.GetStatusCR(label, extraLabel)
+	b, err := status.GetStatusCR(label, extraLabel, namespace)
 	if err != nil {
 		log.Error("Failed to get status CR for deleting", log.Fields{"error": err, "label": label,})
 		return err

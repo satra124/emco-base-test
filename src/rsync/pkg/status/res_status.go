@@ -200,13 +200,14 @@ func UpdateAppReadyStatus(acID, app string, cluster string, rbData *rb.ResourceB
 }
 
 // GetStatusCR returns a status monitoring customer resource
-func GetStatusCR(label string, extraLabel string) ([]byte, error) {
+func GetStatusCR(label string, extraLabel string, namespace string) ([]byte, error) {
 
 	var statusCr rb.ResourceBundleState
 
 	statusCr.TypeMeta.APIVersion = "k8splugin.io/v1alpha1"
 	statusCr.TypeMeta.Kind = "ResourceBundleState"
 	statusCr.SetName(label)
+	statusCr.SetNamespace(namespace)
 
 	labels := make(map[string]string)
 	labels["emco/deployment-id"] = label

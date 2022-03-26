@@ -556,17 +556,17 @@ func (c *Context) runCluster(ctx context.Context, op RsyncOperation, e RsyncEven
 		if len(c.ca.Apps[app].Clusters[cluster].Dependency["pre-install"]) > 0 {
 			log.Info("Installing preinstall hooks", log.Fields{"App": app, "cluster": cluster, "hooks": c.ca.Apps[app].Clusters[cluster].Dependency["pre-install"]})
 			// Add Status tracking
-			if err := r.addStatusTracker(status.PreInstallHookLabel); err != nil {
+			if err := r.addStatusTracker(status.PreInstallHookLabel, namespace); err != nil {
 				return err
 			}
 			// Install Preinstall hooks with wait
 			_, err := r.handleResourcesWithWait(ctx, op, c.ca.Apps[app].Clusters[cluster].Dependency["pre-install"])
 			if err != nil {
-				r.deleteStatusTracker(status.PreInstallHookLabel)
+				r.deleteStatusTracker(status.PreInstallHookLabel, namespace)
 				return err
 			}
 			// Delete Status tracking, will be added after the main resources are added
-			r.deleteStatusTracker(status.PreInstallHookLabel)
+			r.deleteStatusTracker(status.PreInstallHookLabel, namespace)
 			log.Info("Done Installing preinstall hooks", log.Fields{"App": app, "cluster": cluster, "hooks": c.ca.Apps[app].Clusters[cluster].Dependency["pre-install"]})
 		}
 		// Install main resources without wait
@@ -575,7 +575,7 @@ func (c *Context) runCluster(ctx context.Context, op RsyncOperation, e RsyncEven
 		// handle status tracking before exiting if at least one resource got handled
 		if i > 0 {
 			// Add Status tracking
-			r.addStatusTracker("")
+			r.addStatusTracker("", namespace)
 		}
 		if err != nil {
 			log.Error("Error installing resources for app", log.Fields{"App": app, "cluster": cluster, "resources": c.ca.Apps[app].Clusters[cluster].ResOrder})
@@ -655,7 +655,7 @@ func (c *Context) runCluster(ctx context.Context, op RsyncOperation, e RsyncEven
 		}
 		// Add Status tracking if not already applied for the cluster
 		if op == OpApply {
-			r.addStatusTracker("")
+			r.addStatusTracker("", namespace)
 		}
 	}
 	return nil
@@ -667,7 +667,7 @@ func ScheduleDeleteStatusTracker(acID, app, cluster, level, namespace string, co
 
 	DurationOfTime := time.Duration(120) * time.Second
 	label := acID + "-" + app
-	b, err := status.GetStatusCR(label, "")
+	b, err := status.GetStatusCR(label, "", namespace)
 	if err != nil {
 		log.Error("Failed to get status CR for deleting", log.Fields{"error": err, "label": label})
 		return &time.Timer{}
