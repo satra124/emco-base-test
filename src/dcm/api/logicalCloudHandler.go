@@ -163,7 +163,7 @@ func (h logicalCloudHandler) updateHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusAccepted)
 	err = json.NewEncoder(w).Encode(ret)
 	if err != nil {
 		http.Error(w, err.Error(),

@@ -4066,6 +4066,7 @@ paths:
           description: Conflict
         '500':
           description: Internal Server Error
+
 ############################ Logical Cloud API's #################################################
   /projects/{project}/logical-clouds:
     parameters:
@@ -4165,6 +4166,35 @@ paths:
           description: Conflict
         '500':
           description: Internal Server Error
+    put:
+      tags:
+        - Logical Clouds
+      summary: Update Logical Cloud
+      description: Update a Logical Cloud's details
+      operationId: updateLogicalCloud
+      responses:
+        '200':
+          content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/LogicalCloud'
+          description: Success
+        '204':
+          description: Delete
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '500':
+          description: Internal Server Error
+      # request body documentation
+      requestBody:
+        content:
+         application/json: # Media type
+            schema:            # Request payload
+              $ref: '#/components/schemas/LogicalCloud'
+        required: true
+
   /projects/{project}/logical-clouds/{logicalCloud}/instantiate:
     parameters:
     - $ref: '#/components/parameters/projectName'
@@ -4193,6 +4223,7 @@ paths:
           content: {}
       requestBody:
         content: {}
+
   /projects/{project}/logical-clouds/{logicalCloud}/terminate:
     parameters:
     - $ref: '#/components/parameters/projectName'
@@ -4221,17 +4252,11 @@ paths:
           content: {}
       requestBody:
         content: {}
+
   /projects/{project}/logical-clouds/{logicalCloud}/status:
     parameters:
       - $ref: '#/components/parameters/projectName'
       - $ref: '#/components/parameters/logicalCloudName'
-      - in: query
-        name: type
-        description: (DEPRECATED - see status parameter) source of status information
-        schema:
-          type: string
-          enum: [rsync, cluster]
-          default: rsync
       - in: query
         name: status
         description:  source of status information (default value will be ready after type query is removed)
@@ -4287,6 +4312,54 @@ paths:
           description: Bad Request
         '500':
           description: Internal Server Error
+
+  /projects/{project}/logical-clouds/{logicalCloud}/stop:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/logicalCloudName'
+    post:
+      tags:
+        - Logical Cloud Lifecycle
+      summary: Stop Logical Cloud
+      description: Stop a Logical Cloud instantiation or termination
+      operationId: stopLogicalCloud
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+      requestBody:
+        content: {}
+
+  /projects/{project}/logical-clouds/{logicalCloud}/update:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/logicalCloudName'
+    post:
+      tags:
+        - Logical Cloud Lifecycle
+      summary: Update Logical Cloud instantiation
+      description: Trigger an update to the Logical Cloud instantiation.
+      operationId: updateLogicalCloudInstantiation
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content: {}
 
 ############################ Logical Cloud Cluster Reference API's ###############################
   /projects/{project}/logical-clouds/{logicalCloud}/cluster-references:
@@ -6739,13 +6812,13 @@ components:
               description: Application name
               maxLength: 128
               pattern: '^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$'
-              example: "sdewan" 
+              example: "sdewan"
             workloadResource:
               type: string
               description: Name of the workload resource
               maxLength: 254
               pattern: '(^$|^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$)'
-              example: "sdewan" 
+              example: "sdewan"
             resourceType:
               type: string
               description: Type of the workload resource
