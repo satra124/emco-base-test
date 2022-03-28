@@ -268,7 +268,7 @@ func (s *StatusNotifyServer) StatusRegister(reg *pb.StatusRegistration, stream p
 			queryFilters:      make(map[string]filters),
 		}
 		needReadyNotifyStream = true
-		log.Info("[StatusNotify gRPC] (TODO DEBUG) Adding appContextInfo, need Ready Notify Stream",
+		log.Trace("[StatusNotify gRPC] Adding appContextInfo, need Ready Notify Stream",
 			log.Fields{"appContextID": appContextID, "client": clientId})
 	}
 	s.appContexts[appContextID].statusClientIDs[clientId] = struct{}{}
@@ -290,16 +290,12 @@ func (s *StatusNotifyServer) StatusRegister(reg *pb.StatusRegistration, stream p
 	var wg sync.WaitGroup
 
 	if needReadyNotifyStream {
+		s.readyNotifyClient = newReadyNotifyClient() // always call this - rsync controller could have been deleted/re-added
 		if s.readyNotifyClient == nil {
-			s.readyNotifyClient = newReadyNotifyClient()
-			if s.readyNotifyClient == nil {
-				s.mutex.Unlock()
-				log.Error("[StatusNotify gRPC] Could not get ReadyNotify Client",
-					log.Fields{"appContextID": appContextID, "client": clientId})
-				return pkgerrors.Errorf("Unable to get ReadyNotifyClient for StatusNotifyServer: %v, %v", appContextID, clientId)
-			}
-			log.Info("[StatusNotify gRPC] (TODO DEBUG) Made a new ReadyNotify Client",
+			s.mutex.Unlock()
+			log.Error("[StatusNotify gRPC] Could not get ReadyNotify Client",
 				log.Fields{"appContextID": appContextID, "client": clientId})
+			return pkgerrors.Errorf("Unable to get ReadyNotifyClient for StatusNotifyServer: %v, %v", appContextID, clientId)
 		}
 		readyNotifyStream, err := s.readyNotifyClient.Alert(context.Background(),
 			&readynotifypb.Topic{ClientName: s.name, AppContext: appContextID})
@@ -468,6 +464,8 @@ func sendStatusNotifications(stream readynotifypb.ReadyNotify_AlertClient, wg *s
 				if err != nil {
 					log.Error("[StatusNotify gRPC] Status notification failed to be sent", log.Fields{"clientId": clientId, "appContextID": appContextID, "err": err})
 				}
+				log.Trace("[StatusNotify gRPC] Status notification sent",
+					log.Fields{"clientId": clientId, "appContextID": appContextID})
 			}
 		}
 		notifServer.mutex.Unlock()
