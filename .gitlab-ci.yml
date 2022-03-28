@@ -12,14 +12,6 @@ before_script:
 stages:
   - all
 
-test:
-  stage: all
-  only:
-    - merge_requests
-  image: golang:1.17
-  script:
-    - make test
-
 build:
   stage: all
   only:
@@ -32,3 +24,21 @@ build:
     - apk update && apk --no-cache --update add build-base bash git
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - make deploy
+
+openapi:
+  stage: all
+  only:
+    - merge_requests
+  image:
+    name: p1c2u/openapi-spec-validator:latest
+    entrypoint: [""]
+  script:
+    - python -m openapi_spec_validator docs/swagger-specs-for-APIs/emco_apis.yaml
+
+test:
+  stage: all
+  only:
+    - merge_requests
+  image: golang:1.17
+  script:
+    - make test
