@@ -75,8 +75,8 @@ func GetContextIdForStatusContextId(s StateInfo, ctxid string) (string, error) {
 	}
 
 	for i := pos + 1; i < len(s.Actions); i++ {
+		pos = i
 		if s.Actions[i].State == StateEnum.Terminated {
-			pos = i
 			break
 		}
 	}
