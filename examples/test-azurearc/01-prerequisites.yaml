@@ -59,7 +59,7 @@ spec:
   - subscriptionID: {{ $.SubscriptionID }}
   - arcCluster: {{ $.ArcCluster }}
   - arcResourceGroup: {{ $.ArcResourceGroup }}
-  - configDeleteDelay: "2"
+  - configDeleteDelay: "{{ $.ConfigDeleteDelay }}"
 
 {{- range $index, $cluster := .FluxClusters }}
 
