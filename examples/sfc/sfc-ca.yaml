@@ -116,6 +116,7 @@ metadata :
 spec:
   intent:
     genericPlacementIntent: {{.SfcGenericPlacementIntent}}
+    ovnaction: {{.OvnSfcFnIntent}}
     sfc: {{.OvnactionSfcChain}}
 
 ---
@@ -139,6 +140,7 @@ spec:
     allOf:
     - clusterProvider: {{.ClusterProvider}}
       cluster: {{.Cluster1}}
+
 ---
 #add the sdewan app placement intent to the generic placement intent
 version: emco/v2
@@ -168,6 +170,44 @@ spec:
       cluster: {{.Cluster1}}
 
 ---
+#creating ovnaction network intents
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcCompositeApp}}/v1/deployment-intent-groups/{{.SfcDeploymentIntentGroup}}/network-controller-intent
+metadata :
+  name: {{.OvnSfcFnIntent}}
+
+{{- range $index, $app := .Applist }}
+
+---
+#creating ovnaction workload intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $.SfcCompositeApp }}/v1/deployment-intent-groups/{{ $.SfcDeploymentIntentGroup }}/network-controller-intent/{{ $.OvnSfcFnIntent }}/workload-intents
+metadata :
+  name: {{ $app.Name }}_workload_intent
+spec:
+  app: {{ $app.Name }}
+  workloadResource: {{ $app.Name }}
+  type: Deployment
+
+{{- range $index1, $if := $app.Ifs }}
+
+---
+#creating ovnaction workload interface intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $.SfcCompositeApp }}/v1/deployment-intent-groups/{{ $.SfcDeploymentIntentGroup }}/network-controller-intent/{{ $.OvnSfcFnIntent }}/workload-intents/{{ $app.Name }}_workload_intent/interfaces
+metadata :
+  name: {{ $app.Name }}_{{ $if.Network }}_{{ $if.If }}
+spec:
+  interface: {{ $if.If }}
+  name: {{ $if.Network }}
+  defaultGateway: "false"
+{{- end }}
+{{- end }}
+---
+
 version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcCompositeApp}}/v1/deployment-intent-groups/{{.SfcDeploymentIntentGroup}}/network-chains
@@ -224,6 +264,21 @@ version: emco/v2
 resourceContext:
   anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcCompositeApp}}/v1/deployment-intent-groups/{{.SfcDeploymentIntentGroup}}/network-chains/{{.SfcIntent}}/client-selectors
 metadata :
+  name: leftclient2
+spec:
+  chainEnd: left
+  podSelector:
+    matchLabels:
+      sfc: head2
+  namespaceSelector:
+    matchLabels:
+      sfc: head2
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcCompositeApp}}/v1/deployment-intent-groups/{{.SfcDeploymentIntentGroup}}/network-chains/{{.SfcIntent}}/client-selectors
+metadata :
   name: {{.SfcLeftClientSelectorIntent}}
 spec:
   chainEnd: left
@@ -248,6 +303,21 @@ spec:
   namespaceSelector:
     matchLabels:
       sfc: tail
+
+---
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.SfcCompositeApp}}/v1/deployment-intent-groups/{{.SfcDeploymentIntentGroup}}/network-chains/{{.SfcIntent}}/client-selectors
+metadata :
+  name: rightclient2
+spec:
+  chainEnd: right
+  podSelector:
+    matchLabels:
+      sfc: tail2
+  namespaceSelector:
+    matchLabels:
+      sfc: tail2
 
 ---
 version: emco/v2
