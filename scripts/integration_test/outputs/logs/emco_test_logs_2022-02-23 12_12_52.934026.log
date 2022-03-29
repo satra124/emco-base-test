@@ -49,7 +49,7 @@
 [2022-02-23 12:12:56,846] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:12:56,847] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: test_getControllerRegistrations passed.
 [2022-02-23 12:12:56,847] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('controller_registration', 'test_getControllersByName.py', 'test_getControllerRegistrationByName.json  ')
-[2022-02-23 12:12:56,847] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/controller_registration/test_getControllersByName.py --input-path-api inputs/data/full_api_test/controller_registration/test_getControllerRegistrationByName.json  
+[2022-02-23 12:12:56,847] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/controller_registration/test_getControllersByName.py --input-path-api inputs/data/full_api_test/controller_registration/test_getControllerRegistrationByName.json
 [2022-02-23 12:12:57,183] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:12:57,183] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: test_getControllerRegistrationByName passed.
 [2022-02-23 12:12:57,183] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('controller_registration', 'test_getControllersByName.py', 'test_getTrafficControllerRegistrationByName.json')
@@ -176,9 +176,9 @@
 [2022-02-23 12:13:07,405] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/clusters/test_getClustersForLabel.py --input-path-api inputs/data/full_api_test/clusters/negative_error_codes/test_getClustersForLabelNeg404.json
 [2022-02-23 12:13:07,764] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:07,764] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getClustersForLabelNeg404 failed.
-[2022-02-23 12:13:07,764] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:07,764] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/clusters/test_getClustersForLabel.py  ,line 33 self.get_clusters_for_label_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:13:07,765] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('clusters', 'test_postClusterKVPair.py', 'test_postClusterKVPair.json')
 [2022-02-23 12:13:07,765] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/clusters/test_postClusterKVPair.py --input-path-api inputs/data/full_api_test/clusters/test_postClusterKVPair.json
@@ -217,7 +217,7 @@
 [2022-02-23 12:13:10,756] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:10,757] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: negative_error_codes/test_getClusterKVPairByNameNeg404 passed.
 [2022-02-23 12:13:10,758] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('clusters', 'test_queryKVPairsForCluster.py', 'test_queryKVPairsForCluster.json ')
-[2022-02-23 12:13:10,758] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/clusters/test_queryKVPairsForCluster.py --input-path-api inputs/data/full_api_test/clusters/test_queryKVPairsForCluster.json 
+[2022-02-23 12:13:10,758] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/clusters/test_queryKVPairsForCluster.py --input-path-api inputs/data/full_api_test/clusters/test_queryKVPairsForCluster.json
 [2022-02-23 12:13:11,070] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:11,071] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: test_queryKVPairsForCluster passed.
 [2022-02-23 12:13:11,071] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('clusters', 'test_queryKVPairsForCluster.py', 'negative_error_codes/test_queryKVPairsForClusterNeg404.json')
@@ -284,9 +284,9 @@
 [2022-02-23 12:13:24,654] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_application/test_postCompositeApps.py --input-path-api inputs/data/full_api_test/composite_application/negative_error_codes/test_postCompositeAppsNeg404NoProject.json
 [2022-02-23 12:13:25,051] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:25,051] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postCompositeAppsNeg404NoProject failed.
-[2022-02-23 12:13:25,051] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:25,051] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/composite_application/test_postCompositeApps.py  ,line 35 self.post_composite_apps_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:13:25,052] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('composite_application', 'test_postCompositeApps.py', 'negative_error_codes/test_postCompositeAppsNeg409.json')
 [2022-02-23 12:13:25,052] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_application/test_postCompositeApps.py --input-path-api inputs/data/full_api_test/composite_application/negative_error_codes/test_postCompositeAppsNeg409.json
@@ -328,17 +328,17 @@
 [2022-02-23 12:13:28,085] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_application/test_postAppCompositeApps.py --input-path-api inputs/data/full_api_test/composite_application/negative_error_codes/test_postAppCompositeAppsNeg404NoCompApp.json
 [2022-02-23 12:13:28,450] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:28,450] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postAppCompositeAppsNeg404NoCompApp failed.
-[2022-02-23 12:13:28,450] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: /home/vagrant/multicloud-k8s/automation/emco_test_automation/tgz_files/monitor.tar.gz 
- Received Response Text: Cannot perform requested operation. Parent resource not found 
-  
+[2022-02-23 12:13:28,450] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: /home/vagrant/multicloud-k8s/automation/emco_test_automation/tgz_files/monitor.tar.gz
+ Received Response Text: Cannot perform requested operation. Parent resource not found
+
  Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:13:28,450] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('composite_application', 'test_postAppCompositeApps.py', 'negative_error_codes/test_postAppCompositeAppsNeg404NoProject.json')
 [2022-02-23 12:13:28,450] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_application/test_postAppCompositeApps.py --input-path-api inputs/data/full_api_test/composite_application/negative_error_codes/test_postAppCompositeAppsNeg404NoProject.json
 [2022-02-23 12:13:28,795] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:28,796] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postAppCompositeAppsNeg404NoProject failed.
-[2022-02-23 12:13:28,796] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: /home/vagrant/multicloud-k8s/automation/emco_test_automation/tgz_files/monitor.tar.gz 
- Received Response Text: Cannot perform requested operation. Parent resource not found 
-  
+[2022-02-23 12:13:28,796] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: /home/vagrant/multicloud-k8s/automation/emco_test_automation/tgz_files/monitor.tar.gz
+ Received Response Text: Cannot perform requested operation. Parent resource not found
+
  Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:13:28,796] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('composite_application', 'test_postAppCompositeApps.py', 'negative_error_codes/test_postAppCompositeAppsNeg409.json')
 [2022-02-23 12:13:28,797] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_application/test_postAppCompositeApps.py --input-path-api inputs/data/full_api_test/composite_application/negative_error_codes/test_postAppCompositeAppsNeg409.json
@@ -356,17 +356,17 @@
 [2022-02-23 12:13:29,872] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_application/test_getAppCompositeApps.py --input-path-api inputs/data/full_api_test/composite_application/negative_error_codes/test_getAppCompositeAppsNeg404NoCompApp.json
 [2022-02-23 12:13:30,209] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:30,209] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getAppCompositeAppsNeg404NoCompApp failed.
-[2022-02-23 12:13:30,210] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:30,210] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/composite_application/test_getAppCompositeApps.py  ,line 38 self.get_app_composite_apps_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:13:30,210] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('composite_application', 'test_getAppCompositeApps.py', 'negative_error_codes/test_getAppCompositeAppsNeg404NoProject.json ')
-[2022-02-23 12:13:30,210] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_application/test_getAppCompositeApps.py --input-path-api inputs/data/full_api_test/composite_application/negative_error_codes/test_getAppCompositeAppsNeg404NoProject.json 
+[2022-02-23 12:13:30,210] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_application/test_getAppCompositeApps.py --input-path-api inputs/data/full_api_test/composite_application/negative_error_codes/test_getAppCompositeAppsNeg404NoProject.json
 [2022-02-23 12:13:30,549] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:30,549] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getAppCompositeAppsNeg404NoProject failed.
-[2022-02-23 12:13:30,550] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:30,550] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/composite_application/test_getAppCompositeApps.py  ,line 38 self.get_app_composite_apps_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:13:30,550] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('composite_application', 'test_getAppCompositeAppsByName.py', 'test_getAppCompositeAppsByName.json')
 [2022-02-23 12:13:30,550] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_application/test_getAppCompositeAppsByName.py --input-path-api inputs/data/full_api_test/composite_application/test_getAppCompositeAppsByName.json
@@ -396,17 +396,17 @@
 [2022-02-23 12:13:32,543] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_profile/test_postCompositeProfile.py --input-path-api inputs/data/full_api_test/composite_profile/negative_error_codes/test_postCompositeProfileNeg404NoCompApp.json
 [2022-02-23 12:13:32,938] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:32,939] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postCompositeProfileNeg404NoCompApp failed.
-[2022-02-23 12:13:32,939] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:32,939] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/composite_profile/test_postCompositeProfile.py  ,line 37 self.post_composite_profile_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:13:32,940] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('composite_profile', 'test_postCompositeProfile.py', 'negative_error_codes/test_postCompositeProfileNeg404NoProject.json')
 [2022-02-23 12:13:32,940] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_profile/test_postCompositeProfile.py --input-path-api inputs/data/full_api_test/composite_profile/negative_error_codes/test_postCompositeProfileNeg404NoProject.json
 [2022-02-23 12:13:33,317] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:33,317] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postCompositeProfileNeg404NoProject failed.
-[2022-02-23 12:13:33,317] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:33,317] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/composite_profile/test_postCompositeProfile.py  ,line 37 self.post_composite_profile_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:13:33,318] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('composite_profile', 'test_postCompositeProfile.py', 'negative_error_codes/test_postCompositeProfileNeg409.json')
 [2022-02-23 12:13:33,318] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_profile/test_postCompositeProfile.py --input-path-api inputs/data/full_api_test/composite_profile/negative_error_codes/test_postCompositeProfileNeg409.json
@@ -424,17 +424,17 @@
 [2022-02-23 12:13:34,329] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_profile/test_getCompositeProfile.py --input-path-api inputs/data/full_api_test/composite_profile/negative_error_codes/test_getCompositeProfileNeg404NoCompApp.json
 [2022-02-23 12:13:34,697] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:34,697] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getCompositeProfileNeg404NoCompApp failed.
-[2022-02-23 12:13:34,698] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:34,698] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/composite_profile/test_getCompositeProfile.py  ,line 35 self.get_composite_profile_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:13:34,698] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('composite_profile', 'test_getCompositeProfile.py', 'negative_error_codes/test_getCompositeProfileNeg404NoProject.json')
 [2022-02-23 12:13:34,698] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_profile/test_getCompositeProfile.py --input-path-api inputs/data/full_api_test/composite_profile/negative_error_codes/test_getCompositeProfileNeg404NoProject.json
 [2022-02-23 12:13:35,038] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:35,039] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getCompositeProfileNeg404NoProject failed.
-[2022-02-23 12:13:35,039] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:35,039] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/composite_profile/test_getCompositeProfile.py  ,line 35 self.get_composite_profile_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:13:35,039] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('composite_profile', 'test_getCompositeProfileByName.py', 'test_getCompositeProfileByName.json')
 [2022-02-23 12:13:35,040] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_profile/test_getCompositeProfileByName.py --input-path-api inputs/data/full_api_test/composite_profile/test_getCompositeProfileByName.json
@@ -488,25 +488,25 @@
 [2022-02-23 12:13:39,097] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_profile/test_getAppProfileCompositeProfiles.py --input-path-api inputs/data/full_api_test/composite_profile/negative_error_codes/test_getAppProfileCompositeProfileNeg404NoCompApp.json
 [2022-02-23 12:13:39,459] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:39,459] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getAppProfileCompositeProfileNeg404NoCompApp failed.
-[2022-02-23 12:13:39,460] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:39,460] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/composite_profile/test_getAppProfileCompositeProfiles.py  ,line 38 self.get_app_profile_composite_profile_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:13:39,460] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('composite_profile', 'test_getAppProfileCompositeProfiles.py', 'negative_error_codes/test_getAppProfileCompositeProfileNeg404NoCompProfile.json')
 [2022-02-23 12:13:39,460] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_profile/test_getAppProfileCompositeProfiles.py --input-path-api inputs/data/full_api_test/composite_profile/negative_error_codes/test_getAppProfileCompositeProfileNeg404NoCompProfile.json
 [2022-02-23 12:13:39,800] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:39,801] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getAppProfileCompositeProfileNeg404NoCompProfile failed.
-[2022-02-23 12:13:39,801] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:39,801] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/composite_profile/test_getAppProfileCompositeProfiles.py  ,line 38 self.get_app_profile_composite_profile_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:13:39,801] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('composite_profile', 'test_getAppProfileCompositeProfiles.py', 'negative_error_codes/test_getAppProfileCompositeProfileNeg404NoProject.json')
 [2022-02-23 12:13:39,801] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_profile/test_getAppProfileCompositeProfiles.py --input-path-api inputs/data/full_api_test/composite_profile/negative_error_codes/test_getAppProfileCompositeProfileNeg404NoProject.json
 [2022-02-23 12:13:40,146] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:40,147] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getAppProfileCompositeProfileNeg404NoProject failed.
-[2022-02-23 12:13:40,147] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:40,147] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/composite_profile/test_getAppProfileCompositeProfiles.py  ,line 38 self.get_app_profile_composite_profile_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:13:40,147] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('composite_profile', 'test_getAppProfileCompositeProfileByName.py', 'test_getAppProfileCompositeProfileByName.json')
 [2022-02-23 12:13:40,148] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_profile/test_getAppProfileCompositeProfileByName.py --input-path-api inputs/data/full_api_test/composite_profile/test_getAppProfileCompositeProfileByName.json
@@ -532,9 +532,9 @@
 [2022-02-23 12:13:41,739] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/composite_profile/test_queryProfileForApp.py --input-path-api inputs/data/full_api_test/composite_profile/test_queryProfileForApp.json
 [2022-02-23 12:13:42,082] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:42,083] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: test_queryProfileForApp failed.
-[2022-02-23 12:13:42,083] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 404 
-  
- Response Code does not match, expected: 200, actual: 404 
+[2022-02-23 12:13:42,083] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 404
+
+ Response Code does not match, expected: 200, actual: 404
  None
 [2022-02-23 12:13:42,083] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('deployment_intent_group', 'test_postDeploymentIntentGroup.py', 'test_postDeploymentIntentGroup.json')
 [2022-02-23 12:13:42,083] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_intent_group/test_postDeploymentIntentGroup.py --input-path-api inputs/data/full_api_test/deployment_intent_group/test_postDeploymentIntentGroup.json
@@ -584,25 +584,25 @@
 [2022-02-23 12:13:45,771] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_postGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_postGenericPlacementIntentNeg404NoCompApp.json
 [2022-02-23 12:13:46,124] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:46,125] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postGenericPlacementIntentNeg404NoCompApp failed.
-[2022-02-23 12:13:46,125] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:46,125] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/generic_placement_intent/test_postGenericPlacementIntent.py  ,line 37 self.post_generic_placement_intent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:13:46,125] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('generic_placement_intent', 'test_postGenericPlacementIntent.py', 'negative_error_codes/test_postGenericPlacementIntentNeg404NoDeployIntentGroup.json')
 [2022-02-23 12:13:46,126] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_postGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_postGenericPlacementIntentNeg404NoDeployIntentGroup.json
 [2022-02-23 12:13:46,505] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:46,505] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postGenericPlacementIntentNeg404NoDeployIntentGroup failed.
-[2022-02-23 12:13:46,505] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:46,505] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/generic_placement_intent/test_postGenericPlacementIntent.py  ,line 37 self.post_generic_placement_intent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:13:46,506] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('generic_placement_intent', 'test_postGenericPlacementIntent.py', 'negative_error_codes/test_postGenericPlacementIntentNeg404NoProj.json')
 [2022-02-23 12:13:46,506] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_postGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_postGenericPlacementIntentNeg404NoProj.json
 [2022-02-23 12:13:46,918] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:46,919] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postGenericPlacementIntentNeg404NoProj failed.
-[2022-02-23 12:13:46,919] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:46,919] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/generic_placement_intent/test_postGenericPlacementIntent.py  ,line 37 self.post_generic_placement_intent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:13:46,919] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('generic_placement_intent', 'test_postGenericPlacementIntent.py', 'negative_error_codes/test_postGenericPlacementIntentNeg409.json')
 [2022-02-23 12:13:46,920] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_postGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_postGenericPlacementIntentNeg409.json
@@ -624,9 +624,9 @@
 [2022-02-23 12:13:48,388] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_getGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_getGenericPlacementIntentNeg404NoDeploIntentGroup.json
 [2022-02-23 12:13:48,785] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:48,786] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getGenericPlacementIntentNeg404NoDeploIntentGroup failed.
-[2022-02-23 12:13:48,786] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:48,786] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/generic_placement_intent/test_getGenericPlacementIntent.py  ,line 35 self.get_generic_placement_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:13:48,786] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('generic_placement_intent', 'test_getGenericPlacementIntent.py', 'negative_error_codes/test_getGenericPlacementIntentNeg404NoProj.json')
 [2022-02-23 12:13:48,787] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_getGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_getGenericPlacementIntentNeg404NoProj.json
@@ -672,17 +672,17 @@
 [2022-02-23 12:13:52,255] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_postIntentGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_postIntentGenericPlacementIntentNeg404NoCompApp.json
 [2022-02-23 12:13:52,651] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:52,652] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postIntentGenericPlacementIntentNeg404NoCompApp failed.
-[2022-02-23 12:13:52,652] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:52,652] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/generic_placement_intent/test_postIntentGenericPlacementIntent.py  ,line 37 self.post_intent_generic_placement_intent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:13:52,652] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('generic_placement_intent', 'test_postIntentGenericPlacementIntent.py', 'negative_error_codes/test_postIntentGenericPlacementIntentNeg404NoDeploIntentGroup.json')
 [2022-02-23 12:13:52,652] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_postIntentGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_postIntentGenericPlacementIntentNeg404NoDeploIntentGroup.json
 [2022-02-23 12:13:53,026] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:53,026] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postIntentGenericPlacementIntentNeg404NoDeploIntentGroup failed.
-[2022-02-23 12:13:53,027] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:53,027] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/generic_placement_intent/test_postIntentGenericPlacementIntent.py  ,line 37 self.post_intent_generic_placement_intent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:13:53,027] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('generic_placement_intent', 'test_postIntentGenericPlacementIntent.py', 'negative_error_codes/test_postIntentGenericPlacementIntentNeg404NoGenericPlaceIntent.json')
 [2022-02-23 12:13:53,027] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_postIntentGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_postIntentGenericPlacementIntentNeg404NoGenericPlaceIntent.json
@@ -692,9 +692,9 @@
 [2022-02-23 12:13:53,379] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_postIntentGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_postIntentGenericPlacementIntentNeg404NoProj.json
 [2022-02-23 12:13:53,724] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:53,725] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postIntentGenericPlacementIntentNeg404NoProj failed.
-[2022-02-23 12:13:53,725] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:53,725] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/generic_placement_intent/test_postIntentGenericPlacementIntent.py  ,line 37 self.post_intent_generic_placement_intent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:13:53,725] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('generic_placement_intent', 'test_postIntentGenericPlacementIntent.py', 'negative_error_codes/test_postIntentGenericPlacementIntentNeg409.json')
 [2022-02-23 12:13:53,725] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_postIntentGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_postIntentGenericPlacementIntentNeg409.json
@@ -712,25 +712,25 @@
 [2022-02-23 12:13:54,787] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_getIntentGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_getIntentGenericPlacementIntentNeg404NoCompApp.json
 [2022-02-23 12:13:55,149] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:55,149] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getIntentGenericPlacementIntentNeg404NoCompApp failed.
-[2022-02-23 12:13:55,150] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:55,150] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/generic_placement_intent/test_getIntentGenericPlacementIntent.py  ,line 35 self.get_intent_generic_placement_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:13:55,150] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('generic_placement_intent', 'test_getIntentGenericPlacementIntent.py', 'negative_error_codes/test_getIntentGenericPlacementIntentNeg404NoDeployIntentGroup.json')
 [2022-02-23 12:13:55,150] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_getIntentGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_getIntentGenericPlacementIntentNeg404NoDeployIntentGroup.json
 [2022-02-23 12:13:55,501] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:55,502] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getIntentGenericPlacementIntentNeg404NoDeployIntentGroup failed.
-[2022-02-23 12:13:55,502] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:55,502] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/generic_placement_intent/test_getIntentGenericPlacementIntent.py  ,line 35 self.get_intent_generic_placement_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:13:55,503] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('generic_placement_intent', 'test_getIntentGenericPlacementIntent.py', 'negative_error_codes/test_getIntentGenericPlacementIntentNeg404NoProj.json')
 [2022-02-23 12:13:55,503] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_getIntentGenericPlacementIntent.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_getIntentGenericPlacementIntentNeg404NoProj.json
 [2022-02-23 12:13:55,854] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:55,854] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getIntentGenericPlacementIntentNeg404NoProj failed.
-[2022-02-23 12:13:55,855] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:13:55,855] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/generic_placement_intent/test_getIntentGenericPlacementIntent.py  ,line 35 self.get_intent_generic_placement_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:13:55,855] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('generic_placement_intent', 'test_getIntentGenericPlacementIntentByName.py', 'test_getIntentGenericPlacementIntentByName.json')
 [2022-02-23 12:13:55,855] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_getIntentGenericPlacementIntentByName.py --input-path-api inputs/data/full_api_test/generic_placement_intent/test_getIntentGenericPlacementIntentByName.json
@@ -760,9 +760,9 @@
 [2022-02-23 12:13:57,845] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_queryIntentForApp.py --input-path-api inputs/data/full_api_test/generic_placement_intent/test_queryIntentForApp.json
 [2022-02-23 12:13:58,225] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:13:58,226] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: test_queryIntentForApp failed.
-[2022-02-23 12:13:58,226] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 400 
-  
- Response Code does not match, expected: 200, actual: 400 
+[2022-02-23 12:13:58,226] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 400
+
+ Response Code does not match, expected: 200, actual: 400
  None
 [2022-02-23 12:13:58,226] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('generic_placement_intent', 'test_queryIntentForApp.py', 'negative_error_codes/test_queryIntentForAppNeg400.json')
 [2022-02-23 12:13:58,226] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/generic_placement_intent/test_queryIntentForApp.py --input-path-api inputs/data/full_api_test/generic_placement_intent/negative_error_codes/test_queryIntentForAppNeg400.json
@@ -804,10 +804,10 @@
 [2022-02-23 12:14:01,369] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_lifecycle/test_approveDeployment.py --input-path-api inputs/data/full_api_test/deployment_lifecycle/negative_error_codes/test_approveDeploymentNeg409.json
 [2022-02-23 12:14:01,714] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:01,714] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_approveDeploymentNeg409 failed.
-[2022-02-23 12:14:01,715] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 202 
- Response Code does not match, expected: 409, actual: 202 
- Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/deployment_lifecycle/test_approveDeployment.py  ,line 33 self.post_approve_deployment_assertion_check(: Response Code does not match, expected: 409, actual: 202 
- Error - other error occurred during api call item '0': 'Response Code does not match, expected: 409, actual: 202' 
+[2022-02-23 12:14:01,715] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 202
+ Response Code does not match, expected: 409, actual: 202
+ Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/deployment_lifecycle/test_approveDeployment.py  ,line 33 self.post_approve_deployment_assertion_check(: Response Code does not match, expected: 409, actual: 202
+ Error - other error occurred during api call item '0': 'Response Code does not match, expected: 409, actual: 202'
 [2022-02-23 12:14:01,715] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('deployment_lifecycle', 'test_terminateDeployment.py', 'test_terminateDeploymentBeforeInstantiate.json')
 [2022-02-23 12:14:01,715] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_lifecycle/test_terminateDeployment.py --input-path-api inputs/data/full_api_test/deployment_lifecycle/test_terminateDeploymentBeforeInstantiate.json
 [2022-02-23 12:14:02,053] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
@@ -820,9 +820,9 @@
 [2022-02-23 12:14:02,671] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_lifecycle/test_instantiateDeployment.py --input-path-api inputs/data/full_api_test/deployment_lifecycle/negative_error_codes/test_instantiateDeploymentNeg409.json
 [2022-02-23 12:14:03,018] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:03,019] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_instantiateDeploymentNeg409 failed.
-[2022-02-23 12:14:03,019] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Response Code does not match, expected: 409, actual: 500 
+[2022-02-23 12:14:03,019] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Response Code does not match, expected: 409, actual: 500
  None
 [2022-02-23 12:14:03,019] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postTrafficControllerIntent.py', 'test_postTrafficControllerIntent.json')
 [2022-02-23 12:14:03,019] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/test_postTrafficControllerIntent.json
@@ -844,33 +844,33 @@
 [2022-02-23 12:14:04,505] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postTrafficControllerIntentNeg404NoCompApp.json
 [2022-02-23 12:14:04,896] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:04,897] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postTrafficControllerIntentNeg404NoCompApp failed.
-[2022-02-23 12:14:04,897] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:04,897] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postTrafficControllerIntent.py  ,line 37 self.post_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 500
 [2022-02-23 12:14:04,897] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postTrafficControllerIntent.py', 'negative_error_codes/test_postTrafficControllerIntentNeg404NoCompAppVer.json')
 [2022-02-23 12:14:04,898] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postTrafficControllerIntentNeg404NoCompAppVer.json
 [2022-02-23 12:14:05,255] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:05,256] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postTrafficControllerIntentNeg404NoCompAppVer failed.
-[2022-02-23 12:14:05,256] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:05,256] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postTrafficControllerIntent.py  ,line 37 self.post_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 500
 [2022-02-23 12:14:05,256] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postTrafficControllerIntent.py', 'negative_error_codes/test_postTrafficControllerIntentNeg404NoDeploymentIntentGrp.json')
 [2022-02-23 12:14:05,256] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postTrafficControllerIntentNeg404NoDeploymentIntentGrp.json
 [2022-02-23 12:14:05,640] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:05,640] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postTrafficControllerIntentNeg404NoDeploymentIntentGrp failed.
-[2022-02-23 12:14:05,641] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:05,641] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postTrafficControllerIntent.py  ,line 37 self.post_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 500
 [2022-02-23 12:14:05,641] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postTrafficControllerIntent.py', 'negative_error_codes/test_postTrafficControllerIntentNeg404NoProject.json')
 [2022-02-23 12:14:05,641] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postTrafficControllerIntentNeg404NoProject.json
 [2022-02-23 12:14:05,988] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:05,989] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postTrafficControllerIntentNeg404NoProject failed.
-[2022-02-23 12:14:05,989] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:05,989] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postTrafficControllerIntent.py  ,line 37 self.post_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 500
 [2022-02-23 12:14:05,989] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postTrafficControllerIntent.py', 'negative_error_codes/test_postTrafficControllerIntentNeg409.json')
 [2022-02-23 12:14:05,990] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postTrafficControllerIntentNeg409.json
@@ -885,36 +885,36 @@
 [2022-02-23 12:14:07,020] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:07,021] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: test_getTrafficControllerIntent passed.
 [2022-02-23 12:14:07,021] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getTrafficControllerIntents.py', 'negative_error_codes/test_getTrafficControllerIntentNeg404NoCompApp.json ')
-[2022-02-23 12:14:07,022] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getTrafficControllerIntents.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getTrafficControllerIntentNeg404NoCompApp.json 
+[2022-02-23 12:14:07,022] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getTrafficControllerIntents.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getTrafficControllerIntentNeg404NoCompApp.json
 [2022-02-23 12:14:07,379] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:07,380] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getTrafficControllerIntentNeg404NoCompApp failed.
-[2022-02-23 12:14:07,380] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:07,380] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getTrafficControllerIntents.py  ,line 35 self.get_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:07,380] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getTrafficControllerIntents.py', 'negative_error_codes/test_getTrafficControllerIntentNeg404NoCompAppVer.json')
 [2022-02-23 12:14:07,380] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getTrafficControllerIntents.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getTrafficControllerIntentNeg404NoCompAppVer.json
 [2022-02-23 12:14:07,764] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:07,765] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getTrafficControllerIntentNeg404NoCompAppVer failed.
-[2022-02-23 12:14:07,765] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:07,765] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getTrafficControllerIntents.py  ,line 35 self.get_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:07,766] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getTrafficControllerIntents.py', 'negative_error_codes/test_getTrafficControllerIntentNeg404NoDeploymentIntent.json')
 [2022-02-23 12:14:07,766] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getTrafficControllerIntents.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getTrafficControllerIntentNeg404NoDeploymentIntent.json
 [2022-02-23 12:14:08,115] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:08,115] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getTrafficControllerIntentNeg404NoDeploymentIntent failed.
-[2022-02-23 12:14:08,115] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:08,115] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getTrafficControllerIntents.py  ,line 35 self.get_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:08,116] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getTrafficControllerIntents.py', 'negative_error_codes/test_getTrafficControllerIntentNeg404NoProject.json')
 [2022-02-23 12:14:08,116] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getTrafficControllerIntents.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getTrafficControllerIntentNeg404NoProject.json
 [2022-02-23 12:14:08,462] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:08,462] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getTrafficControllerIntentNeg404NoProject failed.
-[2022-02-23 12:14:08,463] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:08,463] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getTrafficControllerIntents.py  ,line 35 self.get_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:08,463] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getTrafficControllerIntentByName.py', 'test_getTrafficControllerIntentByName.json')
 [2022-02-23 12:14:08,463] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getTrafficControllerIntentByName.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/test_getTrafficControllerIntentByName.json
@@ -1004,41 +1004,41 @@
 [2022-02-23 12:14:15,726] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundServerIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoCompApp.json
 [2022-02-23 12:14:16,095] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:16,095] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoCompApp failed.
-[2022-02-23 12:14:16,095] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:16,095] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postInboundServerIntentTrafficControllerIntent.py  ,line 37 self.post_server_inbound_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 500
 [2022-02-23 12:14:16,096] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postInboundServerIntentTrafficControllerIntent.py', 'negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoCompAppVer.json')
 [2022-02-23 12:14:16,096] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundServerIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoCompAppVer.json
 [2022-02-23 12:14:16,426] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:16,427] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoCompAppVer failed.
-[2022-02-23 12:14:16,427] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:16,427] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postInboundServerIntentTrafficControllerIntent.py  ,line 37 self.post_server_inbound_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 500
 [2022-02-23 12:14:16,428] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postInboundServerIntentTrafficControllerIntent.py', 'negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoDeploymentIntent.json')
 [2022-02-23 12:14:16,428] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundServerIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoDeploymentIntent.json
 [2022-02-23 12:14:16,780] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:16,780] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoDeploymentIntent failed.
-[2022-02-23 12:14:16,781] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:16,781] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postInboundServerIntentTrafficControllerIntent.py  ,line 37 self.post_server_inbound_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 500
 [2022-02-23 12:14:16,781] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postInboundServerIntentTrafficControllerIntent.py', 'negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoProject.json')
 [2022-02-23 12:14:16,782] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundServerIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoProject.json
 [2022-02-23 12:14:17,166] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:17,166] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoProject failed.
-[2022-02-23 12:14:17,166] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:17,166] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postInboundServerIntentTrafficControllerIntent.py  ,line 37 self.post_server_inbound_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 500
 [2022-02-23 12:14:17,167] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postInboundServerIntentTrafficControllerIntent.py', 'negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoTrafficIntent.json')
 [2022-02-23 12:14:17,167] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundServerIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoTrafficIntent.json
 [2022-02-23 12:14:17,527] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:17,528] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg404NoTrafficIntent failed.
-[2022-02-23 12:14:17,528] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:17,528] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postInboundServerIntentTrafficControllerIntent.py  ,line 37 self.post_server_inbound_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:14:17,528] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postInboundServerIntentTrafficControllerIntent.py', 'negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg409.json')
 [2022-02-23 12:14:17,528] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundServerIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundServerIntentTrafficControllerIntentNeg409.json
@@ -1056,41 +1056,41 @@
 [2022-02-23 12:14:18,575] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundServerIntentsTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoCompApp.json
 [2022-02-23 12:14:18,912] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:18,912] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoCompApp failed.
-[2022-02-23 12:14:18,912] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:18,912] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getInboundServerIntentsTrafficControllerIntent.py  ,line 35 self.get_server_inbound_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:18,913] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getInboundServerIntentsTrafficControllerIntent.py', 'negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoCompAppVer.json')
 [2022-02-23 12:14:18,913] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundServerIntentsTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoCompAppVer.json
 [2022-02-23 12:14:19,288] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:19,288] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoCompAppVer failed.
-[2022-02-23 12:14:19,289] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:19,289] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getInboundServerIntentsTrafficControllerIntent.py  ,line 35 self.get_server_inbound_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:19,289] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getInboundServerIntentsTrafficControllerIntent.py', 'negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoDeploymentIntent.json')
 [2022-02-23 12:14:19,289] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundServerIntentsTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoDeploymentIntent.json
 [2022-02-23 12:14:19,672] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:19,673] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoDeploymentIntent failed.
-[2022-02-23 12:14:19,673] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:19,673] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getInboundServerIntentsTrafficControllerIntent.py  ,line 35 self.get_server_inbound_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:19,674] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getInboundServerIntentsTrafficControllerIntent.py', 'negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoProject.json')
 [2022-02-23 12:14:19,674] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundServerIntentsTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoProject.json
 [2022-02-23 12:14:20,034] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:20,035] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoProject failed.
-[2022-02-23 12:14:20,035] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:20,035] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getInboundServerIntentsTrafficControllerIntent.py  ,line 35 self.get_server_inbound_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:20,035] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getInboundServerIntentsTrafficControllerIntent.py', 'negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoTrafficIntent.json')
 [2022-02-23 12:14:20,036] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundServerIntentsTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoTrafficIntent.json
 [2022-02-23 12:14:20,381] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:20,382] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getInboundServerIntentTrafficControllerIntentNeg404NoTrafficIntent failed.
-[2022-02-23 12:14:20,382] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:20,382] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getInboundServerIntentsTrafficControllerIntent.py  ,line 35 self.get_server_inbound_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:20,382] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getInboundServerIntentTrafficControllerIntentByName.py', 'test_getInboundServerIntentTrafficControllerIntentByName.json')
 [2022-02-23 12:14:20,383] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundServerIntentTrafficControllerIntentByName.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/test_getInboundServerIntentTrafficControllerIntentByName.json
@@ -1164,49 +1164,49 @@
 [2022-02-23 12:14:26,276] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoCompApp.json
 [2022-02-23 12:14:26,620] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:26,621] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoCompApp failed.
-[2022-02-23 12:14:26,621] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:26,621] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py  ,line 37 self.post_inbound_client_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 500
 [2022-02-23 12:14:26,622] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postInboundClientIntentTrafficControllerIntent.py', 'negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoCompAppVer.json')
 [2022-02-23 12:14:26,622] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoCompAppVer.json
 [2022-02-23 12:14:26,979] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:26,980] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoCompAppVer failed.
-[2022-02-23 12:14:26,980] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:26,980] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py  ,line 37 self.post_inbound_client_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 500
 [2022-02-23 12:14:26,980] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postInboundClientIntentTrafficControllerIntent.py', 'negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoDeloymentIntent.json')
 [2022-02-23 12:14:26,981] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoDeloymentIntent.json
 [2022-02-23 12:14:27,336] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:27,337] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoDeloymentIntent failed.
-[2022-02-23 12:14:27,337] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:27,337] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py  ,line 37 self.post_inbound_client_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 500
 [2022-02-23 12:14:27,337] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postInboundClientIntentTrafficControllerIntent.py', 'negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoProject.json')
 [2022-02-23 12:14:27,337] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoProject.json
 [2022-02-23 12:14:27,682] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:27,683] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoProject failed.
-[2022-02-23 12:14:27,683] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:27,683] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py  ,line 37 self.post_inbound_client_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 500
 [2022-02-23 12:14:27,683] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postInboundClientIntentTrafficControllerIntent.py', 'negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoServerIntent.json')
 [2022-02-23 12:14:27,683] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoServerIntent.json
 [2022-02-23 12:14:28,036] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:28,036] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoServerIntent failed.
-[2022-02-23 12:14:28,036] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:28,036] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py  ,line 37 self.post_inbound_client_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:14:28,037] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postInboundClientIntentTrafficControllerIntent.py', 'negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoTrafficIntent.json')
 [2022-02-23 12:14:28,037] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoTrafficIntent.json
 [2022-02-23 12:14:28,378] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:28,378] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg404NoTrafficIntent failed.
-[2022-02-23 12:14:28,379] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:28,379] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py  ,line 37 self.post_inbound_client_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:14:28,380] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_postInboundClientIntentTrafficControllerIntent.py', 'negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg409.json')
 [2022-02-23 12:14:28,380] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_postInboundClientIntentTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_postInboundClientIntentTrafficControllerIntentNeg409.json
@@ -1224,49 +1224,49 @@
 [2022-02-23 12:14:29,399] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundClientIntentsTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoCompApp.json
 [2022-02-23 12:14:29,791] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:29,791] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoCompApp failed.
-[2022-02-23 12:14:29,792] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:29,792] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getInboundClientIntentsTrafficControllerIntent.py  ,line 35 self.get_inbound_client_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:29,792] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getInboundClientIntentsTrafficControllerIntent.py', 'negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoCompAppVer.json')
 [2022-02-23 12:14:29,792] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundClientIntentsTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoCompAppVer.json
 [2022-02-23 12:14:30,118] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:30,118] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoCompAppVer failed.
-[2022-02-23 12:14:30,118] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:30,118] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getInboundClientIntentsTrafficControllerIntent.py  ,line 35 self.get_inbound_client_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:30,119] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getInboundClientIntentsTrafficControllerIntent.py', 'negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoDeploymentIntent.json')
 [2022-02-23 12:14:30,119] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundClientIntentsTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoDeploymentIntent.json
 [2022-02-23 12:14:30,468] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:30,468] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoDeploymentIntent failed.
-[2022-02-23 12:14:30,468] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:30,468] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getInboundClientIntentsTrafficControllerIntent.py  ,line 35 self.get_inbound_client_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:30,469] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getInboundClientIntentsTrafficControllerIntent.py', 'negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoProject.json')
 [2022-02-23 12:14:30,469] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundClientIntentsTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoProject.json
 [2022-02-23 12:14:30,802] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:30,803] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoProject failed.
-[2022-02-23 12:14:30,803] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:30,803] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getInboundClientIntentsTrafficControllerIntent.py  ,line 35 self.get_inbound_client_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:30,803] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getInboundClientIntentsTrafficControllerIntent.py', 'negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoServerIntent.json')
 [2022-02-23 12:14:30,803] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundClientIntentsTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoServerIntent.json
 [2022-02-23 12:14:31,151] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:31,151] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoServerIntent failed.
-[2022-02-23 12:14:31,152] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:31,152] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getInboundClientIntentsTrafficControllerIntent.py  ,line 35 self.get_inbound_client_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:31,152] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getInboundClientIntentsTrafficControllerIntent.py', 'negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoTrafficIntent.json')
 [2022-02-23 12:14:31,152] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundClientIntentsTrafficControllerIntent.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoTrafficIntent.json
 [2022-02-23 12:14:31,493] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:31,493] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getInboundClientIntentTrafficControllerIntentNeg404NoTrafficIntent failed.
-[2022-02-23 12:14:31,493] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:31,493] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/traffic_controller_intent/test_getInboundClientIntentsTrafficControllerIntent.py  ,line 35 self.get_inbound_client_intent_traffic_controller_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:31,494] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('traffic_controller_intent', 'test_getInboundClientIntentTrafficControllerIntentByName.py', 'test_getInboundClientIntentTrafficControllerIntentByName.json')
 [2022-02-23 12:14:31,494] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/traffic_controller_intent/test_getInboundClientIntentTrafficControllerIntentByName.py --input-path-api inputs/data/full_api_test/traffic_controller_intent/test_getInboundClientIntentTrafficControllerIntentByName.json
@@ -1332,25 +1332,25 @@
 [2022-02-23 12:14:36,523] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_postHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_postHPAIntentNeg404NoCompositeApp.json
 [2022-02-23 12:14:36,888] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:36,888] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postHPAIntentNeg404NoCompositeApp failed.
-[2022-02-23 12:14:36,888] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:36,888] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_postHPAIntent.py  ,line 35 self.post_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:14:36,889] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_postHPAIntent.py', 'negative_error_codes/test_postHPAIntentNeg404NoDeploymentIntentGroup.json')
 [2022-02-23 12:14:36,889] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_postHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_postHPAIntentNeg404NoDeploymentIntentGroup.json
 [2022-02-23 12:14:37,235] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:37,235] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postHPAIntentNeg404NoDeploymentIntentGroup failed.
-[2022-02-23 12:14:37,235] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:37,235] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_postHPAIntent.py  ,line 35 self.post_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:14:37,236] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_postHPAIntent.py', 'negative_error_codes/test_postHPAIntentNeg404NoProject.json')
 [2022-02-23 12:14:37,236] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_postHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_postHPAIntentNeg404NoProject.json
 [2022-02-23 12:14:37,631] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:37,631] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postHPAIntentNeg404NoProject failed.
-[2022-02-23 12:14:37,631] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:37,631] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_postHPAIntent.py  ,line 35 self.post_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:14:37,632] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_postHPAIntent.py', 'negative_error_codes/test_postHPAIntentNeg409.json')
 [2022-02-23 12:14:37,632] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_postHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_postHPAIntentNeg409.json
@@ -1368,25 +1368,25 @@
 [2022-02-23 12:14:38,643] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getHPAIntents.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_getHPAIntentsNeg404NoCompositeApp.json
 [2022-02-23 12:14:38,997] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:38,998] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getHPAIntentsNeg404NoCompositeApp failed.
-[2022-02-23 12:14:38,998] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:38,998] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_getHPAIntents.py  ,line 33 self.get_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:38,998] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_getHPAIntents.py', 'negative_error_codes/test_getHPAIntentsNeg404NoDeploymentIntentGroup.json')
 [2022-02-23 12:14:38,998] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getHPAIntents.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_getHPAIntentsNeg404NoDeploymentIntentGroup.json
 [2022-02-23 12:14:39,354] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:39,355] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getHPAIntentsNeg404NoDeploymentIntentGroup failed.
-[2022-02-23 12:14:39,355] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:39,355] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_getHPAIntents.py  ,line 33 self.get_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:39,355] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_getHPAIntents.py', 'negative_error_codes/test_getHPAIntentsNeg404NoProject.json')
 [2022-02-23 12:14:39,356] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getHPAIntents.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_getHPAIntentsNeg404NoProject.json
 [2022-02-23 12:14:39,712] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:39,712] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getHPAIntentsNeg404NoProject failed.
-[2022-02-23 12:14:39,712] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:39,712] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_getHPAIntents.py  ,line 33 self.get_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:39,713] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_getHPAIntentByName.py', 'test_getHPAIntentByName.json')
 [2022-02-23 12:14:39,713] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getHPAIntentByName.py --input-path-api inputs/data/full_api_test/hpa_intent/test_getHPAIntentByName.json
@@ -1397,36 +1397,36 @@
 [2022-02-23 12:14:40,388] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:40,389] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: test_queryHPAIntent passed.
 [2022-02-23 12:14:40,389] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryHPAIntent.py', 'negative_error_codes/test_queryHPAIntentNeg404NoCompApp.json ')
-[2022-02-23 12:14:40,389] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryHPAIntentNeg404NoCompApp.json 
+[2022-02-23 12:14:40,389] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryHPAIntentNeg404NoCompApp.json
 [2022-02-23 12:14:40,789] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:40,789] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryHPAIntentNeg404NoCompApp failed.
-[2022-02-23 12:14:40,790] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Response Code does not match, expected: 404, actual: 200 
+[2022-02-23 12:14:40,790] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Response Code does not match, expected: 404, actual: 200
  None
 [2022-02-23 12:14:40,790] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryHPAIntent.py', 'negative_error_codes/test_queryHPAIntentNeg404NoDeploymentIntent.json')
 [2022-02-23 12:14:40,790] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryHPAIntentNeg404NoDeploymentIntent.json
 [2022-02-23 12:14:41,172] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:41,173] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryHPAIntentNeg404NoDeploymentIntent failed.
-[2022-02-23 12:14:41,173] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:41,173] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryHPAIntent.py  ,line 33 self.query_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:41,173] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryHPAIntent.py', 'negative_error_codes/test_queryHPAIntentNeg404NoHPAIntent.json')
 [2022-02-23 12:14:41,174] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryHPAIntentNeg404NoHPAIntent.json
 [2022-02-23 12:14:41,521] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:41,522] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryHPAIntentNeg404NoHPAIntent failed.
-[2022-02-23 12:14:41,522] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:41,522] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryHPAIntent.py  ,line 33 self.query_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:41,523] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryHPAIntent.py', 'negative_error_codes/test_queryHPAIntentNeg404NoProject.json')
 [2022-02-23 12:14:41,523] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryHPAIntentNeg404NoProject.json
 [2022-02-23 12:14:41,941] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:41,942] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryHPAIntentNeg404NoProject failed.
-[2022-02-23 12:14:41,942] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:41,942] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryHPAIntent.py  ,line 33 self.query_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:41,942] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_postHPAResourceConsumerHPAIntent.py', 'test_postHPAResourceConsumerHPAIntent.json')
 [2022-02-23 12:14:41,942] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_postHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/test_postHPAResourceConsumerHPAIntent.json
@@ -1456,33 +1456,33 @@
 [2022-02-23 12:14:43,935] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_postHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg404NoCompositeApp.json
 [2022-02-23 12:14:44,330] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:44,331] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg404NoCompositeApp failed.
-[2022-02-23 12:14:44,331] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:44,331] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_postHPAResourceConsumerHPAIntent.py  ,line 37 self.post_hpa_resource_consumer_HPAIntent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:14:44,331] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_postHPAResourceConsumerHPAIntent.py', 'negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg404NoDeploymentIntentGroup.json')
 [2022-02-23 12:14:44,332] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_postHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg404NoDeploymentIntentGroup.json
 [2022-02-23 12:14:44,721] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:44,722] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg404NoDeploymentIntentGroup failed.
-[2022-02-23 12:14:44,722] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:44,722] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_postHPAResourceConsumerHPAIntent.py  ,line 37 self.post_hpa_resource_consumer_HPAIntent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:14:44,722] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_postHPAResourceConsumerHPAIntent.py', 'negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg404NoHPAIntent.json')
 [2022-02-23 12:14:44,722] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_postHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg404NoHPAIntent.json
 [2022-02-23 12:14:45,088] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:45,089] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg404NoHPAIntent failed.
-[2022-02-23 12:14:45,089] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:45,089] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_postHPAResourceConsumerHPAIntent.py  ,line 37 self.post_hpa_resource_consumer_HPAIntent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:14:45,089] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_postHPAResourceConsumerHPAIntent.py', 'negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg404NoProject.json')
 [2022-02-23 12:14:45,090] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_postHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg404NoProject.json
 [2022-02-23 12:14:45,494] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:45,495] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg404NoProject failed.
-[2022-02-23 12:14:45,495] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:45,495] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 409
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_postHPAResourceConsumerHPAIntent.py  ,line 37 self.post_hpa_resource_consumer_HPAIntent_assertion_check(: Response Code does not match, expected: 404, actual: 409
 [2022-02-23 12:14:45,496] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_postHPAResourceConsumerHPAIntent.py', 'negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg409.json')
 [2022-02-23 12:14:45,496] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_postHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_postHPAResourceConsumerHPAIntentNeg409.json
@@ -1500,33 +1500,33 @@
 [2022-02-23 12:14:46,538] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_getHPAResourceConsumerHPAIntentNeg404NoCompositeApp.json
 [2022-02-23 12:14:46,917] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:46,918] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getHPAResourceConsumerHPAIntentNeg404NoCompositeApp failed.
-[2022-02-23 12:14:46,918] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:46,918] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_getHPAResourceConsumerHPAIntent.py  ,line 35 self.get_hpa_resource_consumer_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:46,918] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_getHPAResourceConsumerHPAIntent.py', 'negative_error_codes/test_getHPAResourceConsumerHPAIntentNeg404NoDeploymentIntentGroup.json')
 [2022-02-23 12:14:46,919] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_getHPAResourceConsumerHPAIntentNeg404NoDeploymentIntentGroup.json
 [2022-02-23 12:14:47,260] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:47,261] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getHPAResourceConsumerHPAIntentNeg404NoDeploymentIntentGroup failed.
-[2022-02-23 12:14:47,261] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:47,261] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_getHPAResourceConsumerHPAIntent.py  ,line 35 self.get_hpa_resource_consumer_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:47,261] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_getHPAResourceConsumerHPAIntent.py', 'negative_error_codes/test_getHPAResourceConsumerHPAIntentNeg404NoHPAIntent.json')
 [2022-02-23 12:14:47,262] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_getHPAResourceConsumerHPAIntentNeg404NoHPAIntent.json
 [2022-02-23 12:14:47,613] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:47,614] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getHPAResourceConsumerHPAIntentNeg404NoHPAIntent failed.
-[2022-02-23 12:14:47,614] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:47,614] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_getHPAResourceConsumerHPAIntent.py  ,line 35 self.get_hpa_resource_consumer_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:47,614] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_getHPAResourceConsumerHPAIntent.py', 'negative_error_codes/test_getHPAResourceConsumerHPAIntentNeg404NoProject.json')
 [2022-02-23 12:14:47,615] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_getHPAResourceConsumerHPAIntentNeg404NoProject.json
 [2022-02-23 12:14:47,959] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:47,959] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getHPAResourceConsumerHPAIntentNeg404NoProject failed.
-[2022-02-23 12:14:47,960] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:47,960] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_getHPAResourceConsumerHPAIntent.py  ,line 35 self.get_hpa_resource_consumer_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:47,960] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_getHPAResourceConsumerHPAIntentByName.py', 'test_getHPAResourceConsumerHPAIntentByName.json')
 [2022-02-23 12:14:47,960] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getHPAResourceConsumerHPAIntentByName.py --input-path-api inputs/data/full_api_test/hpa_intent/test_getHPAResourceConsumerHPAIntentByName.json
@@ -1540,41 +1540,41 @@
 [2022-02-23 12:14:48,607] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoCompApp.json
 [2022-02-23 12:14:48,972] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:48,972] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoCompApp failed.
-[2022-02-23 12:14:48,972] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:48,972] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryHPAResourceConsumerHPAIntent.py  ,line 35 self.query_hpa_resource_consumer_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:48,973] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryHPAResourceConsumerHPAIntent.py', 'negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoDeploymentIntent.json')
 [2022-02-23 12:14:48,973] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoDeploymentIntent.json
 [2022-02-23 12:14:49,323] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:49,324] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoDeploymentIntent failed.
-[2022-02-23 12:14:49,324] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:49,324] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryHPAResourceConsumerHPAIntent.py  ,line 35 self.query_hpa_resource_consumer_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:49,325] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryHPAResourceConsumerHPAIntent.py', 'negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoHPAConsumerIntent.json')
 [2022-02-23 12:14:49,325] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoHPAConsumerIntent.json
 [2022-02-23 12:14:49,674] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:49,674] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoHPAConsumerIntent failed.
-[2022-02-23 12:14:49,674] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:49,674] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryHPAResourceConsumerHPAIntent.py  ,line 35 self.query_hpa_resource_consumer_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:49,675] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryHPAResourceConsumerHPAIntent.py', 'negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoHPAIntent.json')
 [2022-02-23 12:14:49,675] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoHPAIntent.json
 [2022-02-23 12:14:50,039] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:50,040] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoHPAIntent failed.
-[2022-02-23 12:14:50,040] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:50,040] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryHPAResourceConsumerHPAIntent.py  ,line 35 self.query_hpa_resource_consumer_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:50,040] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryHPAResourceConsumerHPAIntent.py', 'negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoProject.json')
 [2022-02-23 12:14:50,040] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryHPAResourceConsumerHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoProject.json
 [2022-02-23 12:14:50,375] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:50,375] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryHPAResourceConsumerHPAIntentNeg404NoProject failed.
-[2022-02-23 12:14:50,376] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:50,376] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryHPAResourceConsumerHPAIntent.py  ,line 35 self.query_hpa_resource_consumer_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:50,376] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_postResourceHPAIntent.py', 'test_postResourceHPAIntent.json')
 [2022-02-23 12:14:50,376] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_postResourceHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/test_postResourceHPAIntent.json
@@ -1660,41 +1660,41 @@
 [2022-02-23 12:14:57,070] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getResourceHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_getResourceHPAIntentNeg404NoCompositeApp.json
 [2022-02-23 12:14:57,460] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:57,461] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getResourceHPAIntentNeg404NoCompositeApp failed.
-[2022-02-23 12:14:57,461] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:57,461] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_getResourceHPAIntent.py  ,line 33 self.get_resource_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:57,461] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_getResourceHPAIntent.py', 'negative_error_codes/test_getResourceHPAIntentNeg404NoDeploymentIntentGroup.json')
 [2022-02-23 12:14:57,462] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getResourceHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_getResourceHPAIntentNeg404NoDeploymentIntentGroup.json
 [2022-02-23 12:14:57,846] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:57,846] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getResourceHPAIntentNeg404NoDeploymentIntentGroup failed.
-[2022-02-23 12:14:57,846] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:57,846] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_getResourceHPAIntent.py  ,line 33 self.get_resource_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:57,847] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_getResourceHPAIntent.py', 'negative_error_codes/test_getResourceHPAIntentNeg404NoHPAConsumerIntent.json')
 [2022-02-23 12:14:57,847] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getResourceHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_getResourceHPAIntentNeg404NoHPAConsumerIntent.json
 [2022-02-23 12:14:58,222] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:58,222] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getResourceHPAIntentNeg404NoHPAConsumerIntent failed.
-[2022-02-23 12:14:58,222] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:58,222] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_getResourceHPAIntent.py  ,line 33 self.get_resource_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:58,223] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_getResourceHPAIntent.py', 'negative_error_codes/test_getResourceHPAIntentNeg404NoHPAIntent.json')
 [2022-02-23 12:14:58,223] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getResourceHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_getResourceHPAIntentNeg404NoHPAIntent.json
 [2022-02-23 12:14:58,621] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:58,621] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getResourceHPAIntentNeg404NoHPAIntent failed.
-[2022-02-23 12:14:58,622] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:58,622] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_getResourceHPAIntent.py  ,line 33 self.get_resource_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:58,622] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_getResourceHPAIntent.py', 'negative_error_codes/test_getResourceHPAIntentNeg404NoProject.json')
 [2022-02-23 12:14:58,622] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getResourceHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_getResourceHPAIntentNeg404NoProject.json
 [2022-02-23 12:14:59,005] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:14:59,006] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getResourceHPAIntentNeg404NoProject failed.
-[2022-02-23 12:14:59,006] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:14:59,006] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_getResourceHPAIntent.py  ,line 33 self.get_resource_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:14:59,006] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_getResourceHPAIntentByName.py', 'test_getResourceHPAIntentByName.json')
 [2022-02-23 12:14:59,006] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_getResourceHPAIntentByName.py --input-path-api inputs/data/full_api_test/hpa_intent/test_getResourceHPAIntentByName.json
@@ -1708,88 +1708,88 @@
 [2022-02-23 12:14:59,677] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryResourceHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryResourceHPAIntentNeg404NoCompApp.json
 [2022-02-23 12:15:00,071] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:00,071] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryResourceHPAIntentNeg404NoCompApp failed.
-[2022-02-23 12:15:00,072] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:00,072] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryResourceHPAIntent.py  ,line 33 self.query_resource_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:15:00,072] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryResourceHPAIntent.py', 'negative_error_codes/test_queryResourceHPAIntentNeg404NoDeploymentIntent.json')
 [2022-02-23 12:15:00,072] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryResourceHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryResourceHPAIntentNeg404NoDeploymentIntent.json
 [2022-02-23 12:15:00,415] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:00,416] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryResourceHPAIntentNeg404NoDeploymentIntent failed.
-[2022-02-23 12:15:00,416] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:00,416] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryResourceHPAIntent.py  ,line 33 self.query_resource_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:15:00,416] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryResourceHPAIntent.py', 'negative_error_codes/test_queryResourceHPAIntentNeg404NoHPAConsumerIntent.json')
 [2022-02-23 12:15:00,417] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryResourceHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryResourceHPAIntentNeg404NoHPAConsumerIntent.json
 [2022-02-23 12:15:00,783] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:00,783] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryResourceHPAIntentNeg404NoHPAConsumerIntent failed.
-[2022-02-23 12:15:00,784] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:00,784] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryResourceHPAIntent.py  ,line 33 self.query_resource_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:15:00,784] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryResourceHPAIntent.py', 'negative_error_codes/test_queryResourceHPAIntentNeg404NoHPAIntent.json')
 [2022-02-23 12:15:00,784] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryResourceHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryResourceHPAIntentNeg404NoHPAIntent.json
 [2022-02-23 12:15:01,137] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:01,137] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryResourceHPAIntentNeg404NoHPAIntent failed.
-[2022-02-23 12:15:01,137] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:01,137] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryResourceHPAIntent.py  ,line 33 self.query_resource_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:15:01,138] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryResourceHPAIntent.py', 'negative_error_codes/test_queryResourceHPAIntentNeg404NoProject.json')
 [2022-02-23 12:15:01,138] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryResourceHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryResourceHPAIntentNeg404NoProject.json
 [2022-02-23 12:15:01,480] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:01,480] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryResourceHPAIntentNeg404NoProject failed.
-[2022-02-23 12:15:01,480] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:01,480] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryResourceHPAIntent.py  ,line 33 self.query_resource_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:15:01,481] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('hpa_intent', 'test_queryResourceHPAIntent.py', 'negative_error_codes/test_queryResourceHPAIntentNeg404NoResource.json')
 [2022-02-23 12:15:01,481] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/hpa_intent/test_queryResourceHPAIntent.py --input-path-api inputs/data/full_api_test/hpa_intent/negative_error_codes/test_queryResourceHPAIntentNeg404NoResource.json
 [2022-02-23 12:15:01,909] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:01,910] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_queryResourceHPAIntentNeg404NoResource failed.
-[2022-02-23 12:15:01,910] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:01,910] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/hpa_intent/test_queryResourceHPAIntent.py  ,line 33 self.query_resource_hpa_intent_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:15:01,911] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_user_permissions', 'test_postUserPermissions.py', 'test_postUserPermissions.json')
 [2022-02-23 12:15:01,911] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_postUserPermissions.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/test_postUserPermissions.json
 [2022-02-23 12:15:02,249] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:02,249] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: test_postUserPermissions passed.
 [2022-02-23 12:15:02,250] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_user_permissions', 'test_postUserPermissions.py', 'negative_error_codes/test_postUserPermissionsNeg400.json ')
-[2022-02-23 12:15:02,250] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_postUserPermissions.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/negative_error_codes/test_postUserPermissionsNeg400.json 
+[2022-02-23 12:15:02,250] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_postUserPermissions.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/negative_error_codes/test_postUserPermissionsNeg400.json
 [2022-02-23 12:15:02,573] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:02,573] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: negative_error_codes/test_postUserPermissionsNeg400 passed.
 [2022-02-23 12:15:02,574] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_user_permissions', 'test_getUserPermissions.py', 'test_getUserPermissions.json ')
-[2022-02-23 12:15:02,574] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_getUserPermissions.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/test_getUserPermissions.json 
+[2022-02-23 12:15:02,574] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_getUserPermissions.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/test_getUserPermissions.json
 [2022-02-23 12:15:02,941] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:02,942] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: test_getUserPermissions passed.
 [2022-02-23 12:15:02,942] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_user_permissions', 'test_getUserPermissions.py', 'negative_error_codes/test_getUserPermissionsNeg404NoProject.json ')
-[2022-02-23 12:15:02,942] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_getUserPermissions.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/negative_error_codes/test_getUserPermissionsNeg404NoProject.json 
+[2022-02-23 12:15:02,942] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_getUserPermissions.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/negative_error_codes/test_getUserPermissionsNeg404NoProject.json
 [2022-02-23 12:15:03,290] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:03,291] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getUserPermissionsNeg404NoProject failed.
-[2022-02-23 12:15:03,291] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:03,291] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/logical_cloud_user_permissions/test_getUserPermissions.py  ,line 33 self.get_user_permissions_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:15:03,292] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_user_permissions', 'test_getUserPermissions.py', 'negative_error_codes/test_getUserPermissionsNeg404NoLogicalCloud.json ')
-[2022-02-23 12:15:03,292] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_getUserPermissions.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/negative_error_codes/test_getUserPermissionsNeg404NoLogicalCloud.json 
+[2022-02-23 12:15:03,292] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_getUserPermissions.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/negative_error_codes/test_getUserPermissionsNeg404NoLogicalCloud.json
 [2022-02-23 12:15:03,646] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:03,647] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getUserPermissionsNeg404NoLogicalCloud failed.
-[2022-02-23 12:15:03,647] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:03,647] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/logical_cloud_user_permissions/test_getUserPermissions.py  ,line 33 self.get_user_permissions_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:15:03,647] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_user_permissions', 'test_getUserPermissionsByName.py', 'test_getUserPermissionsByName.json ')
-[2022-02-23 12:15:03,648] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_getUserPermissionsByName.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/test_getUserPermissionsByName.json 
+[2022-02-23 12:15:03,648] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_getUserPermissionsByName.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/test_getUserPermissionsByName.json
 [2022-02-23 12:15:03,965] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:03,965] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: test_getUserPermissionsByName passed.
 [2022-02-23 12:15:03,966] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_user_permissions', 'test_getUserPermissionsByName.py', 'negative_error_codes/test_getUserPermissionsByNameNeg404NoProject.json ')
-[2022-02-23 12:15:03,966] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_getUserPermissionsByName.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/negative_error_codes/test_getUserPermissionsByNameNeg404NoProject.json 
+[2022-02-23 12:15:03,966] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_getUserPermissionsByName.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/negative_error_codes/test_getUserPermissionsByNameNeg404NoProject.json
 [2022-02-23 12:15:04,277] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:04,278] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: negative_error_codes/test_getUserPermissionsByNameNeg404NoProject passed.
 [2022-02-23 12:15:04,278] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_user_permissions', 'test_getUserPermissionsByName.py', 'negative_error_codes/test_getUserPermissionsByNameNeg404NoLogicalCloud.json ')
-[2022-02-23 12:15:04,278] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_getUserPermissionsByName.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/negative_error_codes/test_getUserPermissionsByNameNeg404NoLogicalCloud.json 
+[2022-02-23 12:15:04,278] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_user_permissions/test_getUserPermissionsByName.py --input-path-api inputs/data/full_api_test/logical_cloud_user_permissions/negative_error_codes/test_getUserPermissionsByNameNeg404NoLogicalCloud.json
 [2022-02-23 12:15:04,575] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:04,576] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: negative_error_codes/test_getUserPermissionsByNameNeg404NoLogicalCloud passed.
 [2022-02-23 12:15:04,576] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_user_permissions', 'test_getUserPermissionsByName.py', 'negative_error_codes/test_getUserPermissionsByNameNeg404NoUserPermission.json')
@@ -1797,11 +1797,11 @@
 [2022-02-23 12:15:04,904] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:04,905] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: negative_error_codes/test_getUserPermissionsByNameNeg404NoUserPermission passed.
 [2022-02-23 12:15:04,905] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_cluster_quotas', 'test_postClusterQuotas.py', 'test_postClusterQuotas.json ')
-[2022-02-23 12:15:04,906] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_cluster_quotas/test_postClusterQuotas.py --input-path-api inputs/data/full_api_test/logical_cloud_cluster_quotas/test_postClusterQuotas.json 
+[2022-02-23 12:15:04,906] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_cluster_quotas/test_postClusterQuotas.py --input-path-api inputs/data/full_api_test/logical_cloud_cluster_quotas/test_postClusterQuotas.json
 [2022-02-23 12:15:05,231] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:05,231] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: test_postClusterQuotas passed.
 [2022-02-23 12:15:05,232] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_cluster_quotas', 'test_postClusterQuotas.py', 'negative_error_codes/test_postClusterQuotasNeg400.json ')
-[2022-02-23 12:15:05,232] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_cluster_quotas/test_postClusterQuotas.py --input-path-api inputs/data/full_api_test/logical_cloud_cluster_quotas/negative_error_codes/test_postClusterQuotasNeg400.json 
+[2022-02-23 12:15:05,232] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_cluster_quotas/test_postClusterQuotas.py --input-path-api inputs/data/full_api_test/logical_cloud_cluster_quotas/negative_error_codes/test_postClusterQuotasNeg400.json
 [2022-02-23 12:15:05,567] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:05,568] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: negative_error_codes/test_postClusterQuotasNeg400 passed.
 [2022-02-23 12:15:05,568] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_cluster_quotas', 'test_getClusterQuotas.py ', 'test_getClusterQuotas.json')
@@ -1809,20 +1809,20 @@
 [2022-02-23 12:15:05,893] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:05,894] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: test_getClusterQuotas passed.
 [2022-02-23 12:15:05,894] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_cluster_quotas', 'test_getClusterQuotas.py ', 'negative_error_codes/test_getClusterQuotasNeg404NoProject.json ')
-[2022-02-23 12:15:05,894] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_cluster_quotas/test_getClusterQuotas.py  --input-path-api inputs/data/full_api_test/logical_cloud_cluster_quotas/negative_error_codes/test_getClusterQuotasNeg404NoProject.json 
+[2022-02-23 12:15:05,894] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_cluster_quotas/test_getClusterQuotas.py  --input-path-api inputs/data/full_api_test/logical_cloud_cluster_quotas/negative_error_codes/test_getClusterQuotasNeg404NoProject.json
 [2022-02-23 12:15:06,269] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:06,269] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getClusterQuotasNeg404NoProject failed.
-[2022-02-23 12:15:06,269] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:06,269] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/logical_cloud_cluster_quotas/test_getClusterQuotas.py  ,line 33 self.get_cluster_quotas_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:15:06,269] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_cluster_quotas', 'test_getClusterQuotas.py ', 'negative_error_codes/test_getClusterQuotasNeg404NoLogicalCloud.json')
 [2022-02-23 12:15:06,269] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_cluster_quotas/test_getClusterQuotas.py  --input-path-api inputs/data/full_api_test/logical_cloud_cluster_quotas/negative_error_codes/test_getClusterQuotasNeg404NoLogicalCloud.json
 [2022-02-23 12:15:06,610] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:06,610] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_getClusterQuotasNeg404NoLogicalCloud failed.
-[2022-02-23 12:15:06,610] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:06,610] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/logical_cloud_cluster_quotas/test_getClusterQuotas.py  ,line 33 self.get_cluster_quotas_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:15:06,611] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_cloud_cluster_quotas', 'test_getClustersQuotasByName.py', 'test_getClustersQuotasByName.json')
 [2022-02-23 12:15:06,611] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_cloud_cluster_quotas/test_getClustersQuotasByName.py --input-path-api inputs/data/full_api_test/logical_cloud_cluster_quotas/test_getClustersQuotasByName.json
@@ -1853,7 +1853,7 @@
 [2022-02-23 12:15:08,985] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:08,985] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: test_getClmControllerRegistrationByName passed.
 [2022-02-23 12:15:08,986] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('deployment_lifecycle', 'test_statusDeployment.py', 'test_statusDeploymentAfterInstantiation.json ')
-[2022-02-23 12:15:08,986] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_lifecycle/test_statusDeployment.py --input-path-api inputs/data/full_api_test/deployment_lifecycle/test_statusDeploymentAfterInstantiation.json 
+[2022-02-23 12:15:08,986] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_lifecycle/test_statusDeployment.py --input-path-api inputs/data/full_api_test/deployment_lifecycle/test_statusDeploymentAfterInstantiation.json
 [2022-02-23 12:15:09,489] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:09,489] - {emco_automation_logger.execute_test_case:66} - INFO - Test case: test_statusDeploymentAfterInstantiation passed.
 [2022-02-23 12:15:09,489] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('deployment_lifecycle', 'test_statusDeployment.py', 'test_statusDeploymentAfterInstantiationApps.json')
@@ -1864,9 +1864,9 @@
 [2022-02-23 12:15:09,815] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_lifecycle/test_statusDeployment.py --input-path-api inputs/data/full_api_test/deployment_lifecycle/negative_error_codes/test_statusDeploymentAfterInstantiationNeg404NoApp.json
 [2022-02-23 12:15:10,165] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:10,165] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_statusDeploymentAfterInstantiationNeg404NoApp failed.
-[2022-02-23 12:15:10,166] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 400 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:10,166] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 400
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/deployment_lifecycle/test_statusDeployment.py  ,line 33 self.get_status_deployment_assertion_check(: Response Code does not match, expected: 404, actual: 400
 [2022-02-23 12:15:10,166] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('deployment_lifecycle', 'test_statusDeployment.py', 'test_statusDeploymentAfterInstantiationClusters.json')
 [2022-02-23 12:15:10,166] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_lifecycle/test_statusDeployment.py --input-path-api inputs/data/full_api_test/deployment_lifecycle/test_statusDeploymentAfterInstantiationClusters.json
@@ -1876,9 +1876,9 @@
 [2022-02-23 12:15:10,536] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_lifecycle/test_statusDeployment.py --input-path-api inputs/data/full_api_test/deployment_lifecycle/negative_error_codes/test_statusDeploymentAfterInstantiationNeg404NoCluster.json
 [2022-02-23 12:15:10,909] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:10,910] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_statusDeploymentAfterInstantiationNeg404NoCluster failed.
-[2022-02-23 12:15:10,910] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 400 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:10,910] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 400
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/deployment_lifecycle/test_statusDeployment.py  ,line 33 self.get_status_deployment_assertion_check(: Response Code does not match, expected: 404, actual: 400
 [2022-02-23 12:15:10,910] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('deployment_lifecycle', 'test_statusDeployment.py', 'test_statusDeploymentAfterInstantiationResources.json')
 [2022-02-23 12:15:10,911] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_lifecycle/test_statusDeployment.py --input-path-api inputs/data/full_api_test/deployment_lifecycle/test_statusDeploymentAfterInstantiationResources.json
@@ -1888,9 +1888,9 @@
 [2022-02-23 12:15:11,374] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_lifecycle/test_statusDeployment.py --input-path-api inputs/data/full_api_test/deployment_lifecycle/negative_error_codes/test_statusDeploymentAfterInstantiationNeg404NoResource.json
 [2022-02-23 12:15:11,896] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:11,897] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_statusDeploymentAfterInstantiationNeg404NoResource failed.
-[2022-02-23 12:15:11,897] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200 
-  
- Info:Could not find key ResponseText 
+[2022-02-23 12:15:11,897] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 200
+
+ Info:Could not find key ResponseText
  Exception in /home/vagrant/multicloud-k8s/automation/emco_test_automation/test_suite/deployment_lifecycle/test_statusDeployment.py  ,line 33 self.get_status_deployment_assertion_check(: Response Code does not match, expected: 404, actual: 200
 [2022-02-23 12:15:11,897] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('deployment_lifecycle', 'test_terminateDeployment.py', 'test_terminateDeployment.json')
 [2022-02-23 12:15:11,897] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_lifecycle/test_terminateDeployment.py --input-path-api inputs/data/full_api_test/deployment_lifecycle/test_terminateDeployment.json
@@ -1900,9 +1900,9 @@
 [2022-02-23 12:15:12,308] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/deployment_lifecycle/test_terminateDeployment.py --input-path-api inputs/data/full_api_test/deployment_lifecycle/negative_error_codes/test_terminateDeploymentNeg409.json
 [2022-02-23 12:15:12,700] - {emco_automation_logger.execute_test_case:54} - INFO - Command Executed
 [2022-02-23 12:15:12,701] - {emco_automation_logger.execute_test_case:76} - INFO - Test case: negative_error_codes/test_terminateDeploymentNeg409 failed.
-[2022-02-23 12:15:12,701] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500 
-  
- Response Code does not match, expected: 409, actual: 500 
+[2022-02-23 12:15:12,701] - {emco_automation_logger.execute_test_case:81} - INFO - Reason: Received Response Code: 500
+
+ Response Code does not match, expected: 409, actual: 500
  None
 [2022-02-23 12:15:12,701] - {emco_automation_logger.full_api_automation:70} - INFO - Tuple INFO: ('logical_clouds', 'test_terminateLogicalClouds.py', 'test_terminateLogicalClouds.json')
 [2022-02-23 12:15:12,702] - {emco_automation_logger.execute_test_case:50} - INFO - Command: python -m pytest --disable-pytest-warnings -s test_suite/logical_clouds/test_terminateLogicalClouds.py --input-path-api inputs/data/full_api_test/logical_clouds/test_terminateLogicalClouds.json

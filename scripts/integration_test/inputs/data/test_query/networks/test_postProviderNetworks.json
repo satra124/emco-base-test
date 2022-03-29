@@ -3,7 +3,7 @@
   "anchor": "cluster-providers/clusterPro1/clusters/cluster1/provider-networks",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                {
 		  "metadata": {
 		    "name": "provider-network-name",
@@ -34,7 +34,7 @@
 		  }
 		},
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
                {
                   "metadata": {
                     "name": "provider-network-name",

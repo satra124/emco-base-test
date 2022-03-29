@@ -3,7 +3,7 @@
   "anchor": "projects/proj1/composite-apps/comp-app1/v1/composite-profiles/profile1/profiles",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                     {
                       "metadata": {
                         "name": "http-client-profile",
@@ -17,7 +17,7 @@
                     },
       "RequestBodyFile": "http-client-profile.tar.gz",
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
                     {
                       "metadata": {
                         "name": "http-client-profile",

@@ -76,7 +76,7 @@ def polling_timeout(request):
 @pytest.fixture
 def sleep_before_get_app_status(request):
     return request.config.getoption("--sleep-before-get-app-status")
-    
+
 @pytest.fixture
 def sleep_before_get_app_status_for_stop(request):
     return request.config.getoption("--sleep-before-get-app-status-for-stop")
@@ -102,7 +102,7 @@ def get_auth_value(request):
 
 @pytest.fixture
 def token_to_be_generated(request):
-    
+
     if request.config.getoption("--is_token_to_be_generated"):
        print("Token is to be generated")
        return True

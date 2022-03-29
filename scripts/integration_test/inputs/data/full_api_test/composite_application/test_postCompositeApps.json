@@ -3,7 +3,7 @@
   "anchor": "projects/proj1/composite-apps",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                    {
                     "metadata": {
                       "name": "monitor-composite-app",
@@ -16,7 +16,7 @@
                       }
                     },
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
                   {
                    "metadata": {
                      "name": "monitor-composite-app",

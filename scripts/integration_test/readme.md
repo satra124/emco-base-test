@@ -1,9 +1,9 @@
-﻿# EMCO API Test Automation 
+﻿# EMCO API Test Automation
 
-1. FAQ : 
+1. FAQ :
 	1. What is EMCO API test automation framework ? [Point 1](#introduction )
 	2. What is Automation Framework's architecture? [Point 2](#architecture)
-	3. How to configure the framework ?  [Point 3](#configuration) 
+	3. How to configure the framework ?  [Point 3](#configuration)
 	4. How to run EMCO API test automation ? [Point 4](#run)
 	5. How to check logs ? [Point 5](#logs)
 	6. How to check test reports ? [Point 6](#reports)
@@ -43,13 +43,13 @@ The configuration folder contains two files.
 	HPA_PORT='30451'
 	KUBECONFIG_PATH='/home/vagrant/.kube'
 	```
-	
+
 
 	> Update HOST to EMCO Host IP.
 
  - env_config.py (*python syntax*):
 		 It contains all application level configuration. Example:
-		
+
 	    INPUT_BASE = os.path.join('inputs', 'data')
     	TEST_SUITE_BASE = os.path.join('test_suite')
     	LOG_PATH = os.path.join('outputs', 'logs')
@@ -65,20 +65,20 @@ To trigger full API automation tests:
 
  1. Install Python version 3.8 or above.
  2. Install all required python dependencies present in the `requirements.txt` file by running :
-		
+
 	    $ pip install -r requirements.txt
 
  3. Run the following command to set up and create binaries in *tgz_files/*, it also creates sample *.env* file in *configuration/*:
- 
+
 
 	    $ bash setup.sh create
-	**Optional**: 
+	**Optional**:
 		If you do not want to use shell script then follow these steps:
 			1. Copy binaries (*monitor.tar.gz,  operator_profile.tar.gz*) to *tgz_files* folder.
 			2. Create .env file in configuration folder.
  4. Update the environment variables in `configuration/.env` file as explained in  [Point 3](#configuration).
  5. Run:
-		 
+
 
 	    $ python test_client.py
 

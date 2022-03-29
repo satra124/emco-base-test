@@ -4,9 +4,9 @@
   "type-metadata": [
        {
       "ResponseCode": 200,
-      "ResponseText": 
+      "ResponseText":
                    ["cluster1"
-                   ] 
+                   ]
        }
     ]
   }

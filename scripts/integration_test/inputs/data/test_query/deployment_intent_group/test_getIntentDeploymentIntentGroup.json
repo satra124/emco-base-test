@@ -6,7 +6,7 @@
       "ResponseCode": 200,
       "ResponseText":
                    {
-                        "intent": [{ 
+                        "intent": [{
                           "genericPlacementIntent": "collection-placement-intent"
                  	}]
                    }

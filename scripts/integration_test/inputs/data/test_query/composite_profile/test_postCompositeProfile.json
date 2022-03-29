@@ -3,7 +3,7 @@
   "anchor": "projects/proj1/composite-apps/comp-app1/v1/composite-profiles",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                    {
                     "metadata": {
                       "name": "profile1",
@@ -13,7 +13,7 @@
                       }
                     },
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
                   {
                    "metadata": {
                      "name": "profile1",

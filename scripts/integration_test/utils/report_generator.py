@@ -47,7 +47,7 @@ class TestCaseResult(BaseModel):
 
 class ReportGenerator:
     """Report Generator class
-    """    
+    """
 
     def __init__(self) -> None:
         self.report_folder_path = os.path.join(os.getcwd(), "outputs", "reports")
@@ -102,9 +102,9 @@ class ReportGenerator:
         <h1>EMCO API Automation test results.</h1>
 
         <h2>API Test Results summary:</h2>
-        <p><strong>Test case type</strong>: {test_type} </p> 
-        <p><strong>Automation start date</strong>: {execution_start_date} </p> 
-        <p><strong>Total Duration</strong>: {total_execution_time} </p> 
+        <p><strong>Test case type</strong>: {test_type} </p>
+        <p><strong>Automation start date</strong>: {execution_start_date} </p>
+        <p><strong>Total Duration</strong>: {total_execution_time} </p>
 
         <table style='width:50%'>
         <tr>
@@ -112,7 +112,7 @@ class ReportGenerator:
             <th scope="col" style='background-color:#3DBBDB;width:85;color:white'>Test Case Executed</th>
             <th scope="col" style='background-color:#3DBBDB;width:85;color:white'>Passed</th>
             <th scope="col" style='background-color:#3DBBDB;width:85;color:white'>Failed</th>
-        </tr> 
+        </tr>
         <tr>
             <td>{total}</td>
             <td>{executed}</td>
@@ -178,8 +178,8 @@ class ReportGenerator:
 
 
 
-        
-        # closing tags 
+
+        # closing tags
         ending_content = """
         </body>
         </html>

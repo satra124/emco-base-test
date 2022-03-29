@@ -3,7 +3,7 @@
   "anchor": "projects/proj1/composite-apps/comp-app1/v1/apps",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                    {
                     "meta-data": {
                      "name": "http-client",

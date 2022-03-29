@@ -38,7 +38,7 @@
             }
           },
           "ResponseCode": 201,
-        "ResponseText": 
+        "ResponseText":
                      {
                         "metadata": {
                             "name": "quota-1",
@@ -76,4 +76,3 @@
       ]
     }
   ]
-  

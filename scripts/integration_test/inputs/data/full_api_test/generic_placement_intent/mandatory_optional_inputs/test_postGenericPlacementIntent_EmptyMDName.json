@@ -3,7 +3,7 @@
   "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/generic-placement-intents",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                    {
                     "metadata": {
                       "name": "",

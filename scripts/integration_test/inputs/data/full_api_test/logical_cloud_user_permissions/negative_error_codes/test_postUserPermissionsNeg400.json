@@ -3,7 +3,7 @@
     "anchor": "projects/proj1/logical-clouds/default/user-permissions",
     "type-metadata": [
          {
-         "RequestBody": 
+         "RequestBody":
                      {
                         "metadata": {
                             "description": "Resource description",
@@ -43,4 +43,3 @@
       ]
     }
   ]
-  

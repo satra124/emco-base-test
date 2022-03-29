@@ -3,7 +3,7 @@
   "anchor": "cluster-providers/provider1/clusters",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                    {
                     "metadata": {
                       "name": "cluster1",
@@ -21,7 +21,7 @@
                    },
       "RequestBodyFile": "config",
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
          {
           "metadata": {
             "description": "Resource description",

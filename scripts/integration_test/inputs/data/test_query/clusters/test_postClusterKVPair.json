@@ -3,9 +3,9 @@
   "anchor": "cluster-providers/provider1/clusters/cluster1/kv-pairs",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                 {
-                  "metadata": { 
+                  "metadata": {
                     "name": "KVPair",
                     "description": "Resource description",
                     "userData1": "Some data",
@@ -22,7 +22,7 @@
                   }
 		            },
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
                  {
                   "metadata": {
                     "name": "KVPair",

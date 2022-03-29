@@ -3,7 +3,7 @@
     "anchor": "projects/proj1/logical-clouds/default/user-permissions",
     "type-metadata": [
          {
-         "RequestBody": 
+         "RequestBody":
                      {
                         "metadata": {
                             "name": "lc1-permission",
@@ -40,7 +40,7 @@
                           }
                         },
         "ResponseCode": 201,
-        "ResponseText": 
+        "ResponseText":
                      {
                         "metadata": {
                             "name": "lc1-permission",
@@ -80,4 +80,3 @@
       ]
     }
   ]
-  

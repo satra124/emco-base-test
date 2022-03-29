@@ -21,7 +21,7 @@ helm_chart_folder_path = HELM_CHART_FOLDER_PATH
 def setup_framework_logging():
 
     logger = logging.getLogger('emco_test_automation')
-    logger.setLevel(logging.DEBUG)    
+    logger.setLevel(logging.DEBUG)
 
 
     # create console handler and set level to info
@@ -34,7 +34,7 @@ def setup_framework_logging():
     except Exception as exc:
         print(exc)
         print("File logs will not be generated")
-    
+
     file_handler = logging.FileHandler(filename=os.path.join(LOG_PATH, f'emco_test_logs_{datetime.datetime.now()}.log'))
     file_handler.setLevel(logging.DEBUG)
 
@@ -135,7 +135,7 @@ def run_command(command: str) -> CommandOutput:
     """
     return_code = ""
     output = ""
-    
+
     try:
         process = subprocess.run(command, shell= True, capture_output=True, timeout=COMMAND_EXEC_TIMEOUT)
         output = process.stdout.decode('utf-8')
@@ -144,10 +144,10 @@ def run_command(command: str) -> CommandOutput:
         logger.error(f"ERROR IN RUN COMMAND: {exc}")
         return_code = 1
         output = str(exc)
-    
+
 
     # except CalledProcessError as err:
     #     # message = err.output.decode("utf-8")
     #     raise KubectlUtilsException(err.output.decode("utf-8"))
-    return CommandOutput(return_code = return_code, 
+    return CommandOutput(return_code = return_code,
                             output = output)

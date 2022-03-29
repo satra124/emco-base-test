@@ -3,7 +3,7 @@
   "anchor": "controllers",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                    {
                     "metadata": {
                       "name": "dtc",
@@ -19,7 +19,7 @@
                       }
                    },
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
                    {
                     "metadata": {
                       "name": "dtc",

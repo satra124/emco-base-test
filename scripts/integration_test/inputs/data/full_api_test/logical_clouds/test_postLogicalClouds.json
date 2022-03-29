@@ -3,7 +3,7 @@
   "anchor": "projects/proj1/logical-clouds",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                    {
                     "metadata": {
                       "name": "default",
@@ -22,7 +22,7 @@
                       }
                     },
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
                    {
                     "metadata": {
                       "name": "default",

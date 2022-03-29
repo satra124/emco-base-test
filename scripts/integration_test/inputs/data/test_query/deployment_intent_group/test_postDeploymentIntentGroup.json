@@ -3,7 +3,7 @@
   "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                    {
                     "metadata": {
                       "name": "collection-deployment-intent-group",
@@ -19,7 +19,7 @@
                       }
                     },
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
                    {
                     "metadata": {
                       "name": "collection-deployment-intent-group",

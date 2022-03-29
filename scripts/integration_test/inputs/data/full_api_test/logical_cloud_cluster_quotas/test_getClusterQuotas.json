@@ -4,8 +4,8 @@
     "type-metadata": [
          {
         "ResponseCode": 200,
-        "ResponseText": 
-                    [ 
+        "ResponseText":
+                    [
                     {
                         "metadata": {
                             "name": "quota-1",
@@ -44,4 +44,3 @@
       ]
     }
   ]
-  

@@ -3,7 +3,7 @@
   "anchor": "projects/proj1/composite-apps/comp-app1/v1/composite-profiles/nosuchprofile1/profiles",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                     {
                       "metadata": {
                         "name": "http-client-profile",

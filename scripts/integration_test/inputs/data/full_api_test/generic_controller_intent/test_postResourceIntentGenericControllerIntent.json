@@ -3,7 +3,7 @@
     "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/generic-k8s-intents/collectd-gac-intent/resources",
     "type-metadata": [
          {
-         "RequestBody": 
+         "RequestBody":
                      {
                       "metadata": {
                         "name": "test-resources",
@@ -40,9 +40,8 @@
                               "name": "info-cm"
                             }
                           }
-                     } 
+                     }
          }
       ]
     }
   ]
-  

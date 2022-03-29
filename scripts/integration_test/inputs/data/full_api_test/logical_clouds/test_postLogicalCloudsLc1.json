@@ -3,7 +3,7 @@
     "anchor": "projects/proj1/logical-clouds",
     "type-metadata": [
          {
-         "RequestBody": 
+         "RequestBody":
                      {
                       "metadata": {
                         "name": "lc1",
@@ -20,7 +20,7 @@
                             "type": "certificate"
                             }
                           }
-                      
+
                         },
           "ResponseCode": 201,
           "ResponseText":
@@ -45,4 +45,3 @@
   ]
   }
   ]
-                     

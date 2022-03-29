@@ -5,7 +5,7 @@
        {
       "RequestBody":
                    {
-                    "metadata": { 
+                    "metadata": {
                       "name": "hpa-placement-allocatable-resource-1",
                       "description": "cpu resource",
                       "userData1": "user data 1",

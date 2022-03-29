@@ -3,7 +3,7 @@
   "anchor": "projects/proj1/logical-clouds/default/cluster-references",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                    {
                     "metadata": {
                       "name": "cluster1-ref",
@@ -19,7 +19,7 @@
                       }
                     },
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
                    {
                     "metadata": {
                       "name": "cluster1-ref",

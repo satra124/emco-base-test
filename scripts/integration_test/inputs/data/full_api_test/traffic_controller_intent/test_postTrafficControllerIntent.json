@@ -3,7 +3,7 @@
   "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/deployment-intent-groups/collection-deployment-intent-group/traffic-group-intents",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                    {
                     "metadata": {
                       "name": "collectd-dtc-intent",
@@ -21,7 +21,7 @@
                       "userData1": "Some data",
                       "userData2": "Some more data"
                       }
-                   } 
+                   }
        }
     ]
   }

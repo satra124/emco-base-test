@@ -53,6 +53,6 @@ class TestCase_getResourceIntentGenericControllerIntentByName:
                 msgText = "Response Text does not contain expected string, expected: {0}, actual: {1}".format(json.dumps(responseText), response.text)
                 #comparing dictionaries
                 utils.logAssert(json.loads(json.dumps(responseText)) == json.loads(response.text), msgText, logfile)
-            
-            
-            
+
+
+

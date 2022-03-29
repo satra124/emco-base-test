@@ -3,7 +3,7 @@
   "anchor": "projects/proj1/composite-apps/monitor-composite-app/v1/composite-profiles/collection-composite-profile/profiles",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                     {
                       "metadata": {
                         "name": "profile1",
@@ -17,7 +17,7 @@
                     },
       "RequestBodyFile": "operator_profile.tar.gz",
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
                     {
                       "metadata": {
                         "name": "profile1",

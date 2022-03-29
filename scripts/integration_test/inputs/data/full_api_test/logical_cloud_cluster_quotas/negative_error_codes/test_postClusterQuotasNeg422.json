@@ -3,7 +3,7 @@
     "anchor": "projects/proj1/logical-clouds/lc1/cluster-quotas",
     "type-metadata": [
          {
-         "RequestBody": 
+         "RequestBody":
                      {
                         "metadata": {
                             "name": "quota-1",
@@ -42,4 +42,3 @@
       ]
     }
   ]
-  

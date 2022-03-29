@@ -11,7 +11,7 @@ function create {
     rm -f configuration/.env
     touch configuration/.env
     cat << NET >> configuration/.env
-    
+
 HOST=''
 ORCHESTRATOR_PORT='30415'
 CLM_PORT='30461'
@@ -34,6 +34,6 @@ function cleanup {
 case $1 in
     create) create ;;
     cleanup) cleanup ;;
-    *) echo "Unknown command: $1" 
+    *) echo "Unknown command: $1"
        exit ;;
 esac

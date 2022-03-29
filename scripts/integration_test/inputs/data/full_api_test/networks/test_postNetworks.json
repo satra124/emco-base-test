@@ -3,7 +3,7 @@
   "anchor": "cluster-providers/clusterPro1/clusters/cluster1/networks",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
                {
 		  "metadata": {
 		    "name": "emco-private-net",
@@ -24,7 +24,7 @@
 		  }
 		},
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
                {
                   "metadata": {
                     "name": "emco-private-net",

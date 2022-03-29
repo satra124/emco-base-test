@@ -29,11 +29,11 @@ class AutomationFacadeException(Exception):
 
 class AutomationFacade:
     """Class to import and use the backend services like Test Executor and Report Generator
-    """    
+    """
 
     def full_api_automation(self):
         """Executes all the API test cases.
-        """        
+        """
         logger.info("Application started")
 
         execution_start_date = datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
@@ -91,7 +91,7 @@ class AutomationFacade:
 
         execution_start_date = datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
         complete_execution_start_time = time.time()
-        
+
         INPUT_PATH = os.path.join(INPUT_BASE, test_type)
 
         test_executor = TestExecutor(
@@ -116,9 +116,9 @@ class AutomationFacade:
         complete_execution_end_time = time.time()
 
         total_duration = f"{str(round(complete_execution_end_time-complete_execution_start_time, 2))} s"
-        
+
         # report_generator
-        
+
         logger.info(f"Report Generation started.")
         try:
             report_path = report_generator.generate_report(test_case_results=test_case_results, automation_type=cleanup_api_automation, total_duration = total_duration, execution_start_date = execution_start_date)

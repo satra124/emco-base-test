@@ -3,7 +3,7 @@
     "anchor": "dtc-controllers",
     "type-metadata": [
          {
-         "RequestBody": 
+         "RequestBody":
                      {
                       "metadata": {
                         "name": "nps",
@@ -19,7 +19,7 @@
                         }
                      },
         "ResponseCode": 201,
-        "ResponseText": 
+        "ResponseText":
                      {
                       "metadata": {
                         "name": "nps",
@@ -38,4 +38,3 @@
       ]
     }
   ]
-  

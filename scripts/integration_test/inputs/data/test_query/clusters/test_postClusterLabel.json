@@ -3,12 +3,12 @@
   "anchor": "cluster-providers/provider1/clusters/cluster1/labels",
   "type-metadata": [
        {
-       "RequestBody": 
+       "RequestBody":
          {
           "clusterLabel": "edge-cluster"
          },
       "ResponseCode": 201,
-      "ResponseText": 
+      "ResponseText":
          {
           "clusterLabel": "edge-cluster"
          }

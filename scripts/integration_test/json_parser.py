@@ -34,7 +34,7 @@ class InputParser(object):
         except KeyError:
             print("Info:Could not find key type-metadata")
             return None
-    
+
     def get_type_metadata_length(self, index):
         try:
             return len(self.data[index]['type-metadata'])
@@ -48,7 +48,7 @@ class InputParser(object):
         except KeyError:
             print("Info:Could not find key RequestBody")
             return None
-    
+
     def get_request_body_controller(self, index, sub_index):
         try:
             reqBody = self.data[index]['type-metadata'][sub_index]['RequestBody']
@@ -75,7 +75,7 @@ class InputParser(object):
         except KeyError:
             print("Info:Could not find key RequestBody metadata 'name'")
             return None
-    
+
     def get_request_body_labelname(self, index, sub_index):
         try:
             return self.data[index]['type-metadata'][sub_index]['RequestBody']['label-name']
@@ -96,7 +96,7 @@ class InputParser(object):
         except KeyError:
             print("Info:Could not find key file")
             return None
-    
+
     def get_response_code(self, index, sub_index):
         try:
             return self.data[index]['type-metadata'][sub_index]['ResponseCode']
@@ -110,7 +110,7 @@ class InputParser(object):
         except KeyError:
             print("Info:Could not find key ResponseText")
             return None
-    
+
     def get_response_text_controller(self, index, sub_index):
         try:
             resText = self.data[index]['type-metadata'][sub_index]['ResponseText']
@@ -152,7 +152,7 @@ class InputParser(object):
         except KeyError:
             print("Info:Could not find key ResponseText")
             return None
-    
+
     def get_response_text_for_GET(self, index, sub_index):
         try:
             return self.data[index]['type-metadata'][sub_index]['ResponseTextForGET']
@@ -173,14 +173,14 @@ class InputParser(object):
         except KeyError:
             print("Info:Could not find key ParamControllerName")
             return None
-    
+
     def get_param_clusterProviderName(self, index, sub_index):
         try:
             return self.data[index]['type-metadata'][sub_index]['ParamClusterProviderName']
         except KeyError:
             print("Info:Could not find key ParamClusterProviderName")
             return None
- 
+
     def get_param_clusterName(self, index, sub_index):
         try:
             return self.data[index]['type-metadata'][sub_index]['ParamClusterName']
@@ -257,21 +257,21 @@ class InputParser(object):
         except KeyError:
             print("Info:Could not find key ParamAppName")
             return None
-    
+
     def get_param_networkName(self, index, sub_index):
         try:
             return self.data[index]['type-metadata'][sub_index]['ParamNetworkName']
         except KeyError:
             print("Info:Could not find key ParamNetworkName")
             return None
-    
+
     def get_param_appProfileName(self, index, sub_index):
         try:
             return self.data[index]['type-metadata'][sub_index]['ParamAppProfileName']
         except KeyError:
             print("Info:Could not find key ParamAppProfileName")
             return None
-    
+
     def get_param_logicalCloudName(self, index, sub_index):
         try:
             return self.data[index]['type-metadata'][sub_index]['ParamLogicalCloudName']
@@ -285,7 +285,7 @@ class InputParser(object):
         except KeyError:
             print("Info:Could not find key ParamClusterReferenceName")
             return None
-    
+
     def get_param_getStatusOptionalParams(self, index, sub_index):
         try:
             return self.data[index]['type-metadata'][sub_index]['ParamOptionalGetStatus']
@@ -306,8 +306,8 @@ class InputParser(object):
                 if value == subapp_name:
                     return(response['subapps'].index(_subapps))
     '''
-    
-    
+
+
 
     def get_no_of_post_project_items(self):
         return len(self.data[0]['post-projects'])
