@@ -40,7 +40,7 @@ The basic flow of lifecycle operations to get a Logical Cloud up and running via
   - Level: For Standard/Privileged Logical Clouds, set to 1. For Admin Logical Clouds, set to 0.
   - (*for Standard/Privileged only*) Namespace name - the namespace to use in all of the Clusters of the Logical Cloud.
   - (*for Standard/Privileged only*) User name - the name of the user that will be authenticating to the Kubernetes* APIs to access the namespaces created.
-* (*for Standard/Privileged only*) User permissions - permissions that the user specified will have in the namespace specified, in all of the clusters.
+* (*for Standard/Privileged only*) User permissions - permissions that the user specified will have in the namespace specified, in all of the clusters. Please note that **at least 1 User Permission must be created** for this level of Logical Cloud, **with the namespace set to the namespace of the respective Logical Cloud** itself, otherwise the instantiation will fail.
 * (*for Standard/Privileged only*) Create resource quotas and assign them to the Logical Cloud created: this specifies what quotas/limits the user will face in the Logical Cloud, for each of the Clusters.
 * Assign the Clusters previously created with the project-less Cluster Registration API to the newly-created Logical Cloud.
 * Instantiate the Logical Cloud. All of the clusters assigned to the Logical Cloud are automatically set up to join the Logical Cloud. Once this operation is complete, the Distributed Application Scheduler's lifecycle operations can be followed to deploy applications on top of the Logical Cloud.
@@ -55,28 +55,22 @@ EMCO comes bundled with many `emcoctl` example files designed to make it easy to
 
 Logical Clouds have to exist before the instantiation of apps / Deployment Intent Groups can take place (as mentioned above).
 
-Let's take a look at the examples bundled with EMCO, which can be seen in `main/src/tools/emcoctl/examples/`. There are two Logical Cloud related folders there:
-* `l1`, containing `emcoctl` yaml files that deploy a sample 2-cluster Standard Logical Cloud.
-  * `l0`, containing `emcoctl` yaml files that deploy a sample 2-cluster Admin Logical Cloud.
+Please see the `examples/` folder for the examples and additional documentation.
 
-For consistency, both folders contain 3 identically-named files (but they are not the same):
-* `1-logical-cloud-prerequisites.yaml`, defines all Logical Cloud related resources that need to be created on a clean deployment
-* `2-logical-cloud-instantiate.yaml`, defines a single operation, **instantiate**, for the Logical Cloud
-* `values.yaml`, templates the variables to be used in the yaml files above.
-
-Additionally, it's important to be aware that `emcoctl` also requires an EMCO configuration file, such as the example `emco-cfg.yaml` in the same directory as the `l0` and `l1` folders. This file should be modified according to your environment.
-
-These instructions assume the `emcoctl` command has been loaded to the `$PATH`.
 
 ### Standard Logical Clouds
 
+Let's take a look at some example yaml files for Standard Logical Clouds. These examples are going to follow the examples in the `examples/single-cluster/` folder. Please check the instructions in that folder for how to generate Standard logical cloud yamls.
+
+These instructions assume the `emcoctl` command has been loaded to the `$PATH`.
+
 #### Create
 
-To deploy one Standard Logical Cloud with two clusters according to the example files above, execute the following (from within `src/tools/emcoctl/examples/l1`):
+To deploy one Standard Logical Cloud with two clusters according to the directory above, execute the following:
 
 ```
-emcoctl --config ../emco-cfg.yaml -v values.yaml -f 1-logical-cloud-prerequisites.yaml apply
-emcoctl --config ../emco-cfg.yaml -v values.yaml -f 2-logical-cloud-instantiate.yaml apply
+emcoctl --config ../emco-cfg.yaml -v values.yaml -f prerequisites.yaml apply
+emcoctl --config ../emco-cfg.yaml -v values.yaml -f instantiate-lc.yaml apply
 ```
 
 #### Delete
@@ -84,19 +78,19 @@ emcoctl --config ../emco-cfg.yaml -v values.yaml -f 2-logical-cloud-instantiate.
 To delete the Logical Cloud created, execute the following (from within `src/tools/emcoctl/examples/l1`):
 
 ```
-emcoctl --config ../emco-cfg.yaml -v values.yaml -f 2-logical-cloud-instantiate.yaml delete
-emcoctl --config ../emco-cfg.yaml -v values.yaml -f 1-logical-cloud-prerequisites.yaml delete
+emcoctl --config ../emco-cfg.yaml -v values.yaml -f instantiate-lc.yaml delete
+emcoctl --config ../emco-cfg.yaml -v values.yaml -f prerequisites.yaml delete
 ```
 
-(Notice the reversed order.)
+(notice the reversed order)
 
 #### Customize
 
 Using the examples is straightforward, but what about customizing the Standard Logical Cloud?
 
-Everything that can be customized is located in the first file, `1-logical-cloud-prerequisites.yaml`. Edit it to add your customizations.
+Everything that can be customized is located in the first file, `prerequisites.yaml`. Edit it to add your customizations.
 
-Different clusters can be created and assigned to the Logical Cloud. Here's one such cluster being assigned to the Logical Cloud, starting from the end of the example yaml file:
+Different clusters can be created and assigned to the Logical Cloud. Here's one such cluster being assigned to the Logical Cloud:
 
     ---
     #add cluster reference to logical cloud
@@ -130,7 +124,7 @@ What about customizing the Logical Cloud itself? I.e., modifying what the cloud 
         type: certificate
 
 The namespace can also be renamed. This will be the namespace name that EMCO will create in every cluster associated with this Logical Cloud.
-Logical Clouds that don't specify a `level` field will automatically default to Standard and consequently expect the namespace to be provided.
+Logical Clouds that don't specify a `level` field will automatically default to Standard/Privileged and consequently expect the namespace to be provided.
 
 **Second**, the creation of User Permissions (which get translated to Role/RoleBindings or Cluster/ClusterRoleBindings in Kubernetes):
 
@@ -162,6 +156,8 @@ Logical Clouds that don't specify a `level` field will automatically default to 
 
 It's important to define `apiGroups`, `resource` and `verbs` according to the intended goal. They are scoped to the namespace specified in the User Permission.
 If the namespace is empty, i.e. `""`, then the scope of the three variables above is the cluster, i.e. cluster-wide. **This is what determines that the Logical Cloud will be of Privileged type**.
+
+Please note that **at least 1 User Permission must be created** for this level of Logical Cloud, **with the namespace set to the namespace of the respective Logical Cloud** itself, otherwise the instantiation will fail.
 
 **Third**, the creation of Cluster Quotas (which get translated to resource quotas in Kubernetes):
 
