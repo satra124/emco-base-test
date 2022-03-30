@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2020 Intel Corporation
+# Copyright (c) 2020-2022 Intel Corporation
 
 #adding controller entry for vfw
 version: emco/v2
@@ -62,7 +62,7 @@ spec:
 ---
 version: emco/v2
 resourceContext:
-  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/apply 
+  anchor: cluster-providers/{{.ClusterProvider}}/clusters/{{.Cluster1}}/apply
 
 ---
 #creating vfw composite app entry
@@ -355,13 +355,3 @@ spec:
   name: emco-private-net
   defaultGateway: "false"
   ipAddress: 10.10.20.4
-
----
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/composite-apps/compositevfw/v1/deployment-intent-groups/vfw_deployment_intent_group/approve
-
----
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/composite-apps/compositevfw/v1/deployment-intent-groups/vfw_deployment_intent_group/instantiate

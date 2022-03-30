@@ -7,8 +7,7 @@ This folder contains the following test cases to run with EMCO. These tests assu
 
 1. Prometheus and collectd Helm charts
 2. vFirewall
-3. collectd Helm chart and adding configmap during instantiation (using Generic Action Controller)
-4. DTC (Create client/server images using examples/test-apps/README.md)
+3. DTC (Create client/server images using examples/test-apps/README.md)
 
 ## Setup Test Environment to run test cases
 
@@ -73,19 +72,17 @@ $ emcoctl --config emco-cfg.yaml apply -f instantiate-lc.yaml -v values.yaml
 1. Prometheus and collectd usecase
 
     ```
-    $ emcoctl --config emco-cfg.yaml apply -f test-prometheus-collectd.yaml -v values.yaml
+    $ emcoctl --config emco-cfg.yaml apply -f test-prometheus-collectd-deployment.yaml -v values.yaml
+
+    $ emcoctl --config emco-cfg.yaml apply -f test-prometheus-collectd-instantiate.yaml -v values.yaml
     ```
 
-2. Generic action controller usecase
+2. vFirewall usecase
 
     ```
-    $ emcoctl --config emco-cfg.yaml apply -f test-gac.yaml -v values.yaml
-    ```
+    $ emcoctl --config emco-cfg.yaml apply -f test-vfw-deployment.yaml -v values.yaml
 
-3. vFirewall usecase
-
-    ```
-    $ emcoctl --config emco-cfg.yaml apply -f test-vfw.yaml -v values.yaml
+    $ emcoctl --config emco-cfg.yaml apply -f test-vfw-instantiate.yaml -v values.yaml
     ```
     #### NOTE: This usecase is only tested using kubernetes installation: https://github.com/onap/multicloud-k8s/tree/master/kud, which comes with the requisite packages installed.
     #### For running vFw use case, the Kubernetes cluster needs to have following packages installed:
@@ -95,16 +92,20 @@ $ emcoctl --config emco-cfg.yaml apply -f instantiate-lc.yaml -v values.yaml
 
      virtlet - https://github.com/Mirantis/virtlet
 
-4. DTC testcase
+3. DTC testcase
 
     ```
-    $ emcoctl --config emco-cfg.yaml apply -f test-dtc.yaml -v values.yaml
+    $ emcoctl --config emco-cfg.yaml apply -f test-dtc-deployment.yaml -v values.yaml
+
+    $ emcoctl --config emco-cfg.yaml apply -f test-dtc-instantiate.yaml -v values.yaml
     ```
 
-5. Installing Monitor on edge cluster
+4. Installing Monitor on edge cluster
 
     ```
-    $ emcoctl --config emco-cfg.yaml apply -f monitor.yaml -v values.yaml
+    $ emcoctl --config emco-cfg.yaml apply -f monitor-deployment.yaml -v values.yaml
+
+    $ emcoctl --config emco-cfg.yaml apply -f monitor-instantiate.yaml -v values.yaml
     ```
 
 ## Cleanup
@@ -112,40 +113,40 @@ $ emcoctl --config emco-cfg.yaml apply -f instantiate-lc.yaml -v values.yaml
 1. Delete Prometheus and Collectd usecase
 
     ```
-    $ emcoctl --config emco-cfg.yaml delete -f test-prometheus-collectd.yaml -v values.yaml
+    $ emcoctl --config emco-cfg.yaml delete -f test-prometheus-collectd-instantiate.yaml -v values.yaml
+
+    $ emcoctl --config emco-cfg.yaml delete -f test-prometheus-collectd-deployment.yaml -v values.yaml
     ```
 
-2. Delete Generic action controller testcase
+2. Firewall testcase
 
     ```
-    $ emcoctl --config emco-cfg.yaml delete -f test-gac.yaml -v values.yaml
+    $ emcoctl --config emco-cfg.yaml delete -f test-vfw-instantiate.yaml -v values.yaml
+
+    $ emcoctl --config emco-cfg.yaml delete -f test-vfw-deployment.yaml -v values.yaml
     ```
 
-3. Firewall testcase
+3. DTC testcase
 
     ```
-    $ emcoctl --config emco-cfg.yaml delete -f test-vfw.yaml -v values.yaml
+    $ emcoctl --config emco-cfg.yaml delete -f test-dtc-instantiate.yaml -v values.yaml
+
+    $ emcoctl --config emco-cfg.yaml delete -f test-dtc-deployment.yaml -v values.yaml
     ```
 
-4. DTC testcase
-
-    ```
-    $ emcoctl --config emco-cfg.yaml delete -f test-dtc.yaml -v values.yaml
-    ```
-
-5. Terminate Logical Cloud
+4. Terminate Logical Cloud
 
     ```
     $ emcoctl --config emco-cfg.yaml delete -f instantiate-lc.yaml -v values.yaml
     ```
 
-6. Cleanup prerequisites
+5. Cleanup prerequisites
 
     ```
     $ emcoctl --config emco-cfg.yaml delete -f prerequisites.yaml -v values.yaml
     ```
 
-7. Cleanup generated files
+6. Cleanup generated files
 
     ```
     $ ./setup.sh cleanup
@@ -162,13 +163,13 @@ To run the test cases run the following commands after setting up the environmen
 1. For running the test case
 
     ```
-    $ ./test-aio.sh <test case file name> apply
+    $ ./test-aio.sh <test case name> apply
     ```
 
 2. For deleting the test case and cleaning up resources
 
     ```
-    $ ./test-aio.sh <test case file name> delete
+    $ ./test-aio.sh <test case name> delete
     ```
 
 For example to run the dtc test case
@@ -176,11 +177,11 @@ For example to run the dtc test case
 1. For running the dtc test case
 
     ```
-    $ ./test-aio.sh test-dtc.yaml apply
+    $ ./test-aio.sh test-dtc apply
     ```
 
 2. For deleting the dtc test case and cleaning up resources
 
     ```
-    $ ./test-aio.sh test-dtc.yaml delete
+    $ ./test-aio.sh test-dtc delete
     ```

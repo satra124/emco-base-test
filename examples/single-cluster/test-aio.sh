@@ -20,19 +20,19 @@ function get_variables {
     logical_cloud_name=$(cat values.yaml | grep LogicalCloud: | sed -z 's/.*LogicalCloud: //')
 
     case $test_case_name in
-        "test-prometheus-collectd.yaml")
+        "test-prometheus-collectd")
             composite_app="prometheus-collectd-composite-app"
             deployment_intent_group_name="collection-deployment-intent-group"
             ;;
-        "test-dtc.yaml")
+        "test-dtc")
             composite_app="dtc-composite-app"
             deployment_intent_group_name="collection-deployment-intent-group"
             ;;
-        "test-vfw.yaml")
+        "test-vfw")
             composite_app="compositevfw"
             deployment_intent_group_name="vfw_deployment_intent_group"
             ;;
-        "monitor.yaml")
+        "monitor")
             composite_app="monitor-composite-app"
             deployment_intent_group_name="collection-deployment-intent-group"
             ;;
@@ -51,8 +51,12 @@ function apply_logical_cloud {
     emcoctl --config emco-cfg.yaml apply -f instantiate-lc.yaml -v values.yaml -s
 }
 
-function apply_testcase {
-    emcoctl --config emco-cfg.yaml apply -f $test_case_name -v values.yaml -s
+function apply_deployment {
+    emcoctl --config emco-cfg.yaml apply -f "${test_case_name}-deployment.yaml" -v values.yaml -s
+}
+
+function apply_instantiate_testcase {
+    emcoctl --config emco-cfg.yaml apply -f "${test_case_name}-instantiate.yaml" -v values.yaml -s
 }
 
 function delete_prerequisites {
@@ -63,8 +67,12 @@ function delete_logical_cloud {
     emcoctl --config emco-cfg.yaml delete -f instantiate-lc.yaml -v values.yaml -s
 }
 
-function delete_testcase {
-    emcoctl --config emco-cfg.yaml delete -f $test_case_name -v values.yaml -s
+function delete_deployment {
+    emcoctl --config emco-cfg.yaml delete -f "${test_case_name}-deployment.yaml" -v values.yaml -s
+}
+
+function delete_instantiate_testcase {
+    emcoctl --config emco-cfg.yaml delete -f "${test_case_name}-instantiate.yaml" -v values.yaml -s
 }
 
 # Function to obtain logical cloud status and wait for it to get instantiated
@@ -222,14 +230,16 @@ function apply {
     apply_prerequisites
     apply_logical_cloud
     get_logical_cloud_apply_status # wait till Instantiated status is obtained
-    apply_testcase
+    apply_deployment
+    apply_instantiate_testcase
     get_deployment_intent_group_apply_status # wait till Instantiated status is obtained
 }
 
 function delete {
     get_variables
-    delete_testcase
+    delete_instantiate_testcase
     get_deployment_intent_group_delete_status # wait till Terminated status is obtained
+    delete_deployment
     delete_logical_cloud
     get_logical_cloud_delete_status # wait till Terminated status is obtained
     delete_prerequisites

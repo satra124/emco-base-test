@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2020 Intel Corporation
+# Copyright (c) 2020-2022 Intel Corporation
 
 ---
 #creating collection composite app entry
@@ -94,16 +94,3 @@ spec:
     allOf:
     - clusterProvider: {{.ClusterProvider}}
       clusterLabel: {{.ClusterLabel}}
-
----
-#Approve
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeAppMonitor}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/approve
-
----
-#Instantiate
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeAppMonitor}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/instantiate
-

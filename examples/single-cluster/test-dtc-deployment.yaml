@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2020 Intel Corporation
+# Copyright (c) 2020-2022 Intel Corporation
 
 ---
 #Add label "networkpolicy-supported" "
@@ -194,15 +194,3 @@ spec:
   serviceName: {{.App4}}
   namespaces: []
   cidrs: []
-
----
-#Approve
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeAppDtc}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/approve
-
----
-#Instantiate
-version: emco/v2
-resourceContext:
-  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeAppDtc}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/instantiate
