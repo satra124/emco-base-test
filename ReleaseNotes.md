@@ -7,6 +7,7 @@ This document provides high level features, fixes, and known issues and limitati
 
 # Release History
 
+1. EMCO - 22.03
 1. EMCO - 21.12
 1. EMCO - Seed Code
 1. EMCO - 21.03.05
@@ -14,6 +15,26 @@ This document provides high level features, fixes, and known issues and limitati
 1. EMCO - 20.12
 
 # Features for Release
+
+1. **EMCO-22.03**
+
+	- EMCO has been extended with Temporal workflow support, with the addition of the EMCO Workflow Manager, `workflowmgr`, with APIs to manage Temporal workflow intents. An example migrate workflow has been added to the [EMCO ecosystem temporal-migrate-workflow](https://gitlab.com/project-emco/ecosystem/temporal-migrate-workflow) repository.
+	- GitOps support has been enhanced with Flux v2 and Azure Arc plugins. Status handling support has been added for GitOps-based clusters. The `monitor` has been updated to support GitOps-based clusters.
+	- The EMCO Distributed Traffic Controller, `dtc`, now includes additional APIs for Client Access control to manage client authorizations.
+	- The EMCO Monitor, `monitor`, has been enhanced to be capable of supporting an extensible list of Kubernetes resources.
+	- The EMCO Generic Action Controller, `gac`, now has enhanced ConfigMap and Secret support to handle more use cases.
+	- The EMCO Distributed Cloud Manager, `dcm`, has a number of enhancements:
+		- Logical Clouds may be updated after instantiation via the `/update` operation, reflecting updated attributes and resources such as additional Cluster References
+		- Support for Logical Cloud status queries is enhanced to support all relevant status query parameters
+		- Support for Logical Cloud status notification is enhanced to support relevant status notification parameters
+	- Status querying has been enhanced:
+		- Query response attributes have been made consistent with status notification framework. As a result some query parameters and attributes are deprecated. See [Status changes](docs/design/Resource_Lifecycle_and_Status.md#summary-of-changes-due-to-deprecated-type-parameter)
+		- The status query shows accurate results after the Deployement Intent Group has had `update` and `rollback` operations performed.
+		- The status notification framework has had internal improvements made to minimize the number of status queries required and eliminate sending of duplicate notifications.
+	- EMCO has been updated to support deploying to Kubernetes v1.23 clusters. **Important Note**: Edge clusters must be running at least Kubernetes v1.21 in order to support EMCO capabilities, like standard/privileged Logical Clouds.
+	- A critical issue in the EMCO Distributed Cloud Manager has been resolved, where the wrong private key was used to generate a Logical Cloud. As such, existng EMCO users using standard/privileged Logical Clouds should migrate to 22.03 as soon as possible.
+	- Various bugfixes, technical debt, code quality, documentation and other improvements are included in this release.
+
 
 1. **EMCO - 21.12**
 	- EMCO's Multi Mesh Istio DTC Sub-Controller. Complex applications would have front-end microservice and backend microservices.  Backend microservices may be distributed across multiple clusters.  This feature enables connectivity among the microservices in different clusters by automating the ISTIO configuration. Also, it automates the configuration of the ingress proxy to expose the frontend microservice to external users and route the traffic from the external users to the frontend microservice. As a test case, we will use EMCO to deploy Google's Online Boutique which consists of a 10-tier microservices application. This application is a web-based e-commerce app where users can browse items, add them to the cart, and purchase them. Google uses this application to demonstrate the use of technologies like Kubernetes/GKE and Istio. The feature will ensure that EMCO can deploy these microservices properly and can set up a communication channel between these microservices seamlessly through integration with Istio.
@@ -111,6 +132,14 @@ This document provides high level features, fixes, and known issues and limitati
 
 # Known Issues and Limitations
 
+- **EMCO - 22.03**
+
+	- Open Issues confirmed as affecting EMCO 22.03 can be found at [EMCO Issues](https://gitlab.com/project-emco/core/emco-base/-/issues?sort=created_date&state=opened&label_name[]=Affects:22.03).
+	- Other Open Issues with the label "Bug" can also be found at [EMCO Issues](https://gitlab.com/project-emco/core/emco-base/-/issues?sort=created_date&state=opened&label_name[]=Bug) although those may not be accurate as not all of them will have been triaged.
+	- The status query with `status=ready` parameter (i.e. show status of resources in the edge clusters), will show resources that are not handled by `monitor` as `NotPresent`. See [#149](https://gitlab.com/project-emco/core/emco-base/-/issues/149).
+	- The EMCO Monitor isn't currently able to watch resources outside of its own namespace, as such status querying of a standard/privileged Logical Cloud will report certain resources as not ready even when they are ready. See [#159](https://gitlab.com/project-emco/core/emco-base/-/issues/159).
+	- EMCO now supports Referential Integrity, although in some cases it's still possible to execute operations that shouldn't be allowed after a prior failure. As such, if using `emcoctl`, we recommend using the `-s` flag in every command so that the client will stop executing after the first non-successful API call. See [#98](https://gitlab.com/project-emco/core/emco-base/-/issues/98).
+
 - **EMCO Seed Code**
 	- EMCO API's: Put API's are missing in some cases.
 
@@ -177,6 +206,8 @@ This document provides high level features, fixes, and known issues and limitati
 	- Emcoctl get with token doesn't work. That is because of a bug in the code. Solution to the issue is to remove line 25 from the EMCO/src/emcoctl/cmd/get.go and rebuild emcoctl code.
 
 # Software Compatibility
+
+- **EMCO 22.03**
 
 - **EMCO 21.03**
 	- EMCO has been tested with Kubernetes v1.16.8, v1.18.9, v1.19 and v1.20.0
