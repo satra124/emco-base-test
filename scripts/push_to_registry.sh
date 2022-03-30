@@ -38,7 +38,8 @@ fi
 
 if [ "${BUILD_CAUSE}" == "RELEASE" ]; then
   if [ ! -z ${EMCOSRV_RELEASE_TAG} ]; then
-    TAG=${EMCOSRV_RELEASE_TAG}
+    # remove first character of release tag, i.e. the "v"
+    TAG=${EMCOSRV_RELEASE_TAG:1}
   else
     TAG=${TAG}
   fi
