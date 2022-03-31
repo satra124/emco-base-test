@@ -5,6 +5,7 @@ Copyright (c) 2022 Intel Corporation
 
 # Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [EMCO Resource Lifecycle and Status](#emco-resource-lifecycle-and-status)
 - [EMCO Resources with a Lifecycle](#emco-resources-with-a-lifecycle)
   - [Terminology](#terminology)
@@ -13,13 +14,13 @@ Copyright (c) 2022 Intel Corporation
   - [Logical Cloud lifecycle](#logical-cloud-lifecycle)
   - [EMCO Resource State Diagram](#emco-resource-state-diagram)
 - [AppContext Status](#appcontext-status)
-- [Cluster Connectivity - formerly Ready Status](#cluster-connectivity-formerly-ready-status)
-- [_Rsync resource_  status values](#rsync-resource-status-values)
+- [Cluster Connectivity - formerly Ready Status](#cluster-connectivity---formerly-ready-status)
+- [_Rsync resource_  status values](#rsync-resource--status-values)
 - [_Cluster resource_ status](#cluster-resource-status)
 - [EMCO Status Queries](#emco-status-queries)
   - [Status Query Parameters](#status-query-parameters)
   - [Status Query Examples](#status-query-examples)
-  -  [Status Query Output Structure](#status-query-output-structure)
+  - [Status Query Output Structure](#status-query-output-structure)
     - [Summary of changes due to Deprecated `type` parameter](#summary-of-changes-due-to-deprecated-type-parameter)
   - [Status Query Output Examples](#status-query-output-examples)
     - [Example query for `apps`](#example-query-for-apps)
@@ -28,28 +29,28 @@ Copyright (c) 2022 Intel Corporation
     - [Example query for `resources` filtered by app `packetgen`, query `status`=`ready` to get resources from the clusters.](#example-query-for-resources-filtered-by-app-packetgen-query-statusready-to-get-resources-from-the-clusters)
     - [Example summary query `status=deployed`](#example-summary-query-statusdeployed)
     - [Example summary query `status=ready`](#example-summary-query-statusready)
-    - [Example query - `status=deployed`](#example-query-statusdeployed)
+    - [Example query - `status=deployed`](#example-query---statusdeployed)
     - [Example with a cluster filter parameter](#example-with-a-cluster-filter-parameter)
     - [Example of a status query for a Pod in a cluster](#example-of-a-status-query-for-a-pod-in-a-cluster)
-    - [Example of a cluster network intents status query - `status=deployed`](#example-of-a-cluster-network-intents-status-query-statusdeployed)
-    - [Example of a cluster network intents status query - `status=ready`](#example-of-a-cluster-network-intents-status-query-statusready)
-    - [Example of a logical cloud status query - `status=deployed`](#example-of-a-logical-cloud-status-query-statusdeployed)
+    - [Example of a cluster network intents status query - `status=deployed`](#example-of-a-cluster-network-intents-status-query---statusdeployed)
+    - [Example of a cluster network intents status query - `status=ready`](#example-of-a-cluster-network-intents-status-query---statusready)
+    - [Example of a logical cloud status query - `status=deployed`](#example-of-a-logical-cloud-status-query---statusdeployed)
   - [Status Query Examples Using the `emcoctl` Utility](#status-query-examples-using-the-emcoctl-utility)
     - [Example of a Basic Status Query with Default Query Parameters](#example-of-a-basic-status-query-with-default-query-parameters)
     - [Example Showing Multiple Status Query Parameters with `emcoctl`](#example-showing-multiple-status-query-parameters-with-emcoctl)
-  - [DEPRECATED - Status Query Examples](#deprecated-status-query-examples)
-  - [DEPRECATED - Output Examples](#deprecated-output-examples)
-    - [DEPRECATED - Example query for `resources` filtered by app `packetgen`, the default query `type`=`rsync` is used.](#deprecated-example-query-for-resources-filtered-by-app-packetgen-the-default-query-typersync-is-used)
-    - [DEPRECATED - Example query for `resources` filtered by app `packetgen`, query `type`=`cluster` to get resources from the clusters.](#deprecated-example-query-for-resources-filtered-by-app-packetgen-query-typecluster-to-get-resources-from-the-clusters)
-    - [DEPRECATED - Example query for `resources` filtered by app `sink`, query `type`=`cluster` to get resources from the clusters, filter by cluster `edge02`](#deprecated-example-query-for-resources-filtered-by-app-sink-query-typecluster-to-get-resources-from-the-clusters-filter-by-cluster-edge02)
-    - [DEPRECATED - Example summary query](#deprecated-example-summary-query)
-    - [DEPRECATED - Example query with default parameters](#deprecated-example-query-with-default-parameters)
-    - [DEPRECATED - Example with a cluster filter parameter](#deprecated-example-with-a-cluster-filter-parameter)
-    - [DEPRECATED - Example of a status query for a Pod in a cluster](#deprecated-example-of-a-status-query-for-a-pod-in-a-cluster)
-    - [DEPRECATED - Example of a cluster network intents status query](#deprecated-example-of-a-cluster-network-intents-status-query)
-  - [DEPRECATED - Status Query Examples Using the `emcoctl` Utility](#deprecated-status-query-examples-using-the-emcoctl-utility)
-    - [DEPRECATED - Example of a Basic Status Query with Default Query Parameters](#deprecated-example-of-a-basic-status-query-with-default-query-parameters)
-    - [DEPRECATED - Example Showing Multiple Status Query Parameters with `emcoctl`](#deprecated-example-showing-multiple-status-query-parameters-with-emcoctl)
+  - [DEPRECATED - Status Query Examples](#deprecated---status-query-examples)
+  - [DEPRECATED - Output Examples](#deprecated---output-examples)
+    - [DEPRECATED - Example query for `resources` filtered by app `packetgen`, the default query `type`=`rsync` is used.](#deprecated---example-query-for-resources-filtered-by-app-packetgen-the-default-query-typersync-is-used)
+    - [DEPRECATED - Example query for `resources` filtered by app `packetgen`, query `type`=`cluster` to get resources from the clusters.](#deprecated---example-query-for-resources-filtered-by-app-packetgen-query-typecluster-to-get-resources-from-the-clusters)
+    - [DEPRECATED - Example query for `resources` filtered by app `sink`, query `type`=`cluster` to get resources from the clusters, filter by cluster `edge02`](#deprecated---example-query-for-resources-filtered-by-app-sink-query-typecluster-to-get-resources-from-the-clusters-filter-by-cluster-edge02)
+    - [DEPRECATED - Example summary query](#deprecated---example-summary-query)
+    - [DEPRECATED - Example query with default parameters](#deprecated---example-query-with-default-parameters)
+    - [DEPRECATED - Example with a cluster filter parameter](#deprecated---example-with-a-cluster-filter-parameter)
+    - [DEPRECATED - Example of a status query for a Pod in a cluster](#deprecated---example-of-a-status-query-for-a-pod-in-a-cluster)
+    - [DEPRECATED - Example of a cluster network intents status query](#deprecated---example-of-a-cluster-network-intents-status-query)
+  - [DEPRECATED - Status Query Examples Using the `emcoctl` Utility](#deprecated---status-query-examples-using-the-emcoctl-utility)
+    - [DEPRECATED - Example of a Basic Status Query with Default Query Parameters](#deprecated---example-of-a-basic-status-query-with-default-query-parameters)
+    - [DEPRECATED - Example Showing Multiple Status Query Parameters with `emcoctl`](#deprecated---example-showing-multiple-status-query-parameters-with-emcoctl)
 
 # EMCO Resource Lifecycle and Status
 
@@ -62,7 +63,7 @@ EMCO keeps track of the state and status of resources on the EMCO side as well a
 - Deployment Intent Groups
 	- Lifecycle operations are issued via the Distributed Application Scheduler (`orchestrator`) API to approve and instantiate composite applications which have been associated, along with a set of various intents, to a Deployment Intent Group instance.
 - Logical Clouds
-	- Lifecycle operations are issued via the Distributed Cluster Manager (`dcm`) to instantiate logical clouds.
+	- Lifecycle operations are issued via the Distributed Cloud Manager (`dcm`) to instantiate logical clouds.
 
 ## Terminology
 This document will refer to _EMCO resources_, _AppContext_, _rsync resources_, and _cluster resources_.

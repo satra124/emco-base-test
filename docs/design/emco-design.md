@@ -12,25 +12,30 @@ Copyright (c) 2020-2021 Intel Corporation
     - [Cluster Registration](#cluster-registration)
     - [Distributed Application Scheduler](#distributed-application-scheduler)
       - [Lifecycle Operations](#lifecycle-operations)
+    - [Placement and Action Controllers in EMCO](#placement-and-action-controllers-in-emco)
     - [Network Configuration Management](#network-configuration-management)
       - [Lifecycle Operations](#lifecycle-operations-1)
     - [Distributed Cloud Manager](#distributed-cloud-manager)
-      - [Lifecycle Operations](#lifecycle-operations-2)
-      - [Standard Logical Clouds](#standard-logical-clouds)
-      - [Admin Logical Clouds](#admin-logical-clouds)
-      - [Privileged Logical Clouds](#privileged-logical-clouds)
+- [Lifecycle Operations](#lifecycle-operations-2)
+  - [Standard Logical Clouds](#standard-logical-clouds)
+  - [Admin Logical Clouds](#admin-logical-clouds)
+  - [Privileged Logical Clouds](#privileged-logical-clouds)
     - [OVN Action Controller](#ovn-action-controller)
     - [Traffic Controller](#traffic-controller)
     - [Generic Action Controller](#generic-action-controller)
-    - [Resource Synchronizer](#resource-synchronizer)
-    - [Placement and Action Controllers in EMCO](#placement-and-action-controllers-in-emco)
-    - [Status Monitoring and Queries in EMCO](#status-monitoring-and-queries-in-emco)
-  - [EMCO Terminology](#emco-terminology-1)
   - [EMCO API](#emco-api)
   - [EMCO Authentication and Authorization](#emco-authentication-and-authorization)
+  - [Resource  (Rsync)](#resource--rsync)
+    - [Instantiation](#instantiation)
+    - [Termination](#termination)
+    - [Use of Stop flag in Rsync](#use-of-stop-flag-in-rsync)
+    - [Update](#update)
+    - [Rsync restart logic](#rsync-restart-logic)
+    - [Rsync state machine](#rsync-state-machine)
+  - [Status Monitoring and Queries in EMCO](#status-monitoring-and-queries-in-emco)
 
 ## Background
-Edge Multi-Cluster Orchestration(EMCO), is a geo-distributed application orchestrator for Kubernetes\*. EMCO operates at a higher level than Kubernetes and interacts with multiple edge servers and clouds that are running Kubernetes. EMCO's main objective is to automate  the deployment of applications and services across multiple clusters. It acts as a central orchestrator that can manage edge services and network functions across geographically distributed edge clusters from different third parties.
+Edge Multi-Cluster Orchestrator (EMCO), is a geo-distributed application orchestrator for Kubernetes\*. EMCO operates at a higher level than Kubernetes and interacts with multiple edge servers and clouds that are running Kubernetes. EMCO's main objective is to automate  the deployment of applications and services across multiple clusters. It acts as a central orchestrator that can manage edge services and network functions across geographically distributed edge clusters from different third parties.
 
 Increasingly we see a requirement for deploying 'composite applications' in multiple geographical locations. Some of the catalysts for this change are:
 
