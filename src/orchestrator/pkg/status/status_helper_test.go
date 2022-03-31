@@ -413,7 +413,7 @@ var _ = Describe("StatusHelper", func() {
 	})
 
 	It("get cluster resources for packetgen of instantiated vfw", func() {
-		result, err := status.PrepareResourcesByAppStatusResult(stateInfoInstantiated, "", "cluster", []string{}, []string{})
+		result, err := status.PrepareResourcesByAppStatusResult(stateInfoInstantiated, "", "cluster", []string{"packetgen"}, []string{})
 		Expect(err).To(BeNil())
 		Expect(result).Should(Equal(expectedClusterResourcesByApp))
 	})
