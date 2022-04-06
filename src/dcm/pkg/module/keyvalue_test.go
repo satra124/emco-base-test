@@ -5,8 +5,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	dcm "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
+	common "gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	orch "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module"
+	types "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
 )
 
 var _ = Describe("Keyvalue", func() {
@@ -39,18 +41,18 @@ var _ = Describe("Keyvalue", func() {
 				}
 				mdb.Insert("resources", okey, nil, "data", p)
 				// create logical cloud in mocked db
-				lkey := dcm.LogicalCloudKey{
+				lkey := common.LogicalCloudKey{
 					Project:          "project",
 					LogicalCloudName: "logicalcloud",
 				}
-				lc := dcm.LogicalCloud{}
-				lc.MetaData = dcm.MetaDataList{
-					LogicalCloudName: "logicalcloud",
-					Description:      "",
-					UserData1:        "",
-					UserData2:        "",
+				lc := common.LogicalCloud{}
+				lc.MetaData = types.Metadata{
+					Name:        "logicalcloud",
+					Description: "",
+					UserData1:   "",
+					UserData2:   "",
 				}
-				lc.Specification = dcm.Spec{
+				lc.Specification = common.Spec{
 					NameSpace: "anything",
 					Level:     "1",
 				}

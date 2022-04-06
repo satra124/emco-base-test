@@ -12,6 +12,7 @@ import (
 
 	"github.com/gorilla/mux"
 	dcm "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/apierror"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
@@ -32,7 +33,7 @@ type logicalCloudHandler struct {
 func (h logicalCloudHandler) createHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	project := vars["project"]
-	var v dcm.LogicalCloud
+	var v common.LogicalCloud
 	var err error
 
 	err = json.NewDecoder(r.Body).Decode(&v)
@@ -55,7 +56,7 @@ func (h logicalCloudHandler) createHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Logical Cloud Name is required.
-	if v.MetaData.LogicalCloudName == "" {
+	if v.MetaData.Name == "" {
 		msg := "Missing name in POST request"
 		log.Error(msg, log.Fields{})
 		http.Error(w, msg, http.StatusBadRequest)
@@ -142,7 +143,7 @@ func (h logicalCloudHandler) getHandler(w http.ResponseWriter, r *http.Request) 
 
 // updateHandler handles Update operations on a particular logical cloud
 func (h logicalCloudHandler) updateHandler(w http.ResponseWriter, r *http.Request) {
-	var v dcm.LogicalCloud
+	var v common.LogicalCloud
 	vars := mux.Vars(r)
 	project := vars["project"]
 	name := vars["logicalCloud"]
@@ -174,7 +175,7 @@ func (h logicalCloudHandler) updateHandler(w http.ResponseWriter, r *http.Reques
 
 // putHandler handles PUT API update operations on a particular logical cloud
 func (h logicalCloudHandler) putHandler(w http.ResponseWriter, r *http.Request) {
-	var v dcm.LogicalCloud
+	var v common.LogicalCloud
 	vars := mux.Vars(r)
 	project := vars["project"]
 	name := vars["logicalCloud"]
@@ -207,7 +208,7 @@ func (h logicalCloudHandler) putHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if v.MetaData.LogicalCloudName == "" {
+	if v.MetaData.Name == "" {
 		log.Error("API: Missing name in PUT request", log.Fields{})
 		http.Error(w, "Missing name in PUT request", http.StatusBadRequest)
 		return

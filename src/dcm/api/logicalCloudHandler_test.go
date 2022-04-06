@@ -12,8 +12,9 @@ import (
 	. "github.com/onsi/gomega"
 	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/dcm/api/mocks"
-	"gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 	orch_mocks "gitlab.com/project-emco/core/emco-base/src/orchestrator/api/mocks"
+	module "gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 )
@@ -80,8 +81,8 @@ var _ = Describe("LogicalCloudHandler", func() {
 		// 	}
 		// }`)),
 		// 	inStruct: module.LogicalCloud{
-		// 		MetaData: module.MetaDataList{
-		// 			LogicalCloudName: "testlogicalcloud",
+		// 		MetaData: types.Metadata{
+		// 			Name: "testlogicalcloud",
 		// 			Description:      "description",
 		// 			UserData1:        "some user data 1",
 		// 			UserData2:        "some user data 2",
@@ -89,8 +90,8 @@ var _ = Describe("LogicalCloudHandler", func() {
 		// 	},
 		// 	mockError: nil,
 		// 	mockVal: module.LogicalCloud{
-		// 		MetaData: module.MetaDataList{
-		// 			LogicalCloudName: "testlogicalcloud",
+		// 		MetaData: types.Metadata{
+		// 			Name: "testlogicalcloud",
 		// 			Description:      "description",
 		// 			UserData1:        "some user data 1",
 		// 			UserData2:        "some user data 2",
@@ -166,8 +167,8 @@ var _ = Describe("LogicalCloudHandler", func() {
 		// 	}
 		// }`)),
 		// 	inStruct: module.LogicalCloud{
-		// 		MetaData: module.MetaDataList{
-		// 			LogicalCloudName:   "testlogicalcloud",
+		// 		MetaData: types.Metadata{
+		// 			Name:   "testlogicalcloud",
 		// 			Description: "description",
 		// 			UserData1:   "some user data 1",
 		// 			UserData2:   "some user data 2",
@@ -190,8 +191,8 @@ var _ = Describe("LogicalCloudHandler", func() {
 		// 	}
 		// }`)),
 		// 	inStruct: module.LogicalCloud{
-		// 		MetaData: module.MetaDataList{
-		// 			LogicalCloudName: "testlogicalcloud",
+		// 		MetaData: types.Metadata{
+		// 			Name: "testlogicalcloud",
 		// 			Description:      "description",
 		// 			UserData1:        "some user data 1",
 		// 			UserData2:        "some user data 2",
@@ -238,8 +239,8 @@ var _ = Describe("LogicalCloudHandler", func() {
 	// 		}
 	// 	}`)),
 	// 		inStruct: module.LogicalCloud{
-	// 			MetaData: module.MetaDataList{
-	// 				LogicalCloudName:   "logicalcloud",
+	// 			MetaData: types.Metadata{
+	// 				Name:   "logicalcloud",
 	// 				Description: "description",
 	// 				UserData1:   "some user data 1",
 	// 				UserData2:   "some user data 2",
@@ -251,8 +252,8 @@ var _ = Describe("LogicalCloudHandler", func() {
 	// 		},
 	// 		mockError: nil,
 	// 		mockVal: module.LogicalCloud{
-	// 			MetaData: module.MetaDataList{
-	// 				LogicalCloudName:   "logicalcloud",
+	// 			MetaData: types.Metadata{
+	// 				Name:   "logicalcloud",
 	// 				Description: "description",
 	// 				UserData1:   "some user data 1",
 	// 				UserData2:   "some user data 2",
@@ -337,8 +338,8 @@ var _ = Describe("LogicalCloudHandler", func() {
 	// 	// 	}
 	// 	// }`)),
 	// 	// 	inStruct: module.LogicalCloud{
-	// 	// 		MetaData: module.MetaDataList{
-	// 	// 			LogicalCloudName:   "logicalcloud",
+	// 	// 		MetaData: types.Metadata{
+	// 	// 			Name:   "logicalcloud",
 	// 	// 			Description: "description",
 	// 	// 			UserData1:   "some user data 1",
 	// 	// 			UserData2:   "some user data 2",
@@ -361,8 +362,8 @@ var _ = Describe("LogicalCloudHandler", func() {
 	// 		}
 	// 	}`)),
 	// 		inStruct: module.LogicalCloud{
-	// 			MetaData: module.MetaDataList{
-	// 				LogicalCloudName:   "logicalcloud",
+	// 			MetaData: types.Metadata{
+	// 				Name:   "logicalcloud",
 	// 				Description: "description",
 	// 				UserData1:   "some user data 1",
 	// 				UserData2:   "some user data 2",
@@ -397,19 +398,19 @@ var _ = Describe("LogicalCloudHandler", func() {
 			mockError:    nil,
 			mockVals: []module.LogicalCloud{
 				{
-					MetaData: module.MetaDataList{
-						LogicalCloudName: "testlogicalcloud1",
-						Description:      "description",
-						UserData1:        "some user data 1",
-						UserData2:        "some user data 2",
+					MetaData: types.Metadata{
+						Name:        "testlogicalcloud1",
+						Description: "description",
+						UserData1:   "some user data 1",
+						UserData2:   "some user data 2",
 					},
 				},
 				{
-					MetaData: module.MetaDataList{
-						LogicalCloudName: "testlogicalcloud2",
-						Description:      "description",
-						UserData1:        "some user data 1",
-						UserData2:        "some user data 2",
+					MetaData: types.Metadata{
+						Name:        "testlogicalcloud2",
+						Description: "description",
+						UserData1:   "some user data 1",
+						UserData2:   "some user data 2",
 					},
 				},
 			},
@@ -447,11 +448,11 @@ var _ = Describe("LogicalCloudHandler", func() {
 			expectedCode: http.StatusOK,
 			mockError:    nil,
 			mockVal: module.LogicalCloud{
-				MetaData: module.MetaDataList{
-					LogicalCloudName: "testlogicalcloud",
-					Description:      "description",
-					UserData1:        "some user data 1",
-					UserData2:        "some user data 2",
+				MetaData: types.Metadata{
+					Name:        "testlogicalcloud",
+					Description: "description",
+					UserData1:   "some user data 1",
+					UserData2:   "some user data 2",
 				},
 			},
 			lcClient: &mocks.LogicalCloudManager{},
@@ -570,8 +571,8 @@ var _ = Describe("LogicalCloudHandler", func() {
 	// 		mockError:    nil,
 	// 		lcClient:     &mocks.LogicalCloudManager{},
 	// 		mockVal: module.LogicalCloud{
-	// 			MetaData: module.MetaDataList{
-	// 				LogicalCloudName: "testlogicalcloud",
+	// 			MetaData: types.Metadata{
+	// 				Name: "testlogicalcloud",
 	// 				Description:      "description",
 	// 				UserData1:        "some user data 1",
 	// 				UserData2:        "some user data 2",

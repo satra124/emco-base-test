@@ -15,11 +15,12 @@ import (
 	. "github.com/onsi/gomega"
 
 	dcm "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
+	common "gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	orch "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
+	types "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 	rsync "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/installapp"
@@ -72,7 +73,7 @@ var _ = Describe("Logicalcloud", func() {
 				cl := _createTestClusterReference("testcp", "testcl")
 				quota := _createTestQuota("testquota")
 				up := _createTestUserPermission("testup", "testns")
-				err := dcm.Instantiate("project", lc, []dcm.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up})
+				err := dcm.Instantiate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up})
 
 				etcdKeys, _ := contextdb.Db.GetAllKeys("/")
 				appcontextId := strings.Split(etcdKeys[0], "/")[2]
@@ -164,7 +165,7 @@ var _ = Describe("Logicalcloud", func() {
 				quota := _createTestQuota("testquota")
 				up1 := _createTestUserPermission("testup", "testns")
 				up2 := _createTestUserPermission("testup", "")
-				err := dcm.Instantiate("project", lc, []dcm.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up1, up2})
+				err := dcm.Instantiate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up1, up2})
 
 				etcdKeys, _ := contextdb.Db.GetAllKeys("/")
 				appcontextId := strings.Split(etcdKeys[0], "/")[2]
@@ -253,7 +254,7 @@ var _ = Describe("Logicalcloud", func() {
 				lc := _createTestLogicalCloud("testlc", "1")
 				cl := _createTestClusterReference("testcp", "testcl")
 				quota := _createTestQuota("testquota")
-				err := dcm.Instantiate("project", lc, []dcm.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{})
+				err := dcm.Instantiate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{})
 
 				// check that the instantiation failed
 				Expect(err).Should(HaveOccurred())
@@ -288,7 +289,7 @@ var _ = Describe("Logicalcloud", func() {
 			// 		lc := _createTestLogicalCloud("testlc", "0")
 			// 		cl := _createTestClusterReference("testcp", "testcl")
 			// 		quota := _createTestQuota("testquota")
-			// 		err := dcm.Instantiate("project", lc, []dcm.Cluster{cl}, []dcm.Quota{quota})
+			// 		err := dcm.Instantiate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota})
 
 			// 		etcdKeys, _ := contextdb.Db.GetAllKeys("/")
 			// 		appcontextId := strings.Split(etcdKeys[0], "/")[2]
@@ -351,13 +352,13 @@ var _ = Describe("Logicalcloud", func() {
 			// 	quota := _createTestQuota("testquota")
 
 			// 	// set the Logical Cloud as instantiated
-			// 	lckey := dcm.LogicalCloudKey{
+			// 	lckey := common.LogicalCloudKey{
 			// 		LogicalCloudName: "testlc",
 			// 		Project:          "project",
 			// 	}
 			// 	mdb.Insert("orchestrator", lckey, nil, "lccontext", "4714860942153963991")
 
-			// 	err := dcm.Terminate("project", lc, []dcm.Cluster{cl}, []dcm.Quota{quota})
+			// 	err := dcm.Terminate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota})
 
 			// 	etcdKeys, _ := contextdb.Db.GetAllKeys("/")
 			// 	Expect(len(etcdKeys)).To(Equal(0))
@@ -400,7 +401,7 @@ var _ = Describe("Logicalcloud", func() {
 			It("get should fail and not return anything", func() {
 				logicalCloud, err := client.Get("project", "testlogicalCloud")
 				Expect(err).Should(HaveOccurred())
-				Expect(logicalCloud).To(Equal(dcm.LogicalCloud{}))
+				Expect(logicalCloud).To(Equal(common.LogicalCloud{}))
 			})
 			It("create followed by get should return what was created", func() {
 				logicalCloud := _createTestLogicalCloud("testlogicalCloud", "1")
@@ -454,7 +455,7 @@ var _ = Describe("Logicalcloud", func() {
 				logicalCloud.MetaData.UserData1 = "new user data"
 				logicalCloud, err := client.UpdateLogicalCloud("project", "testlogicalCloud", logicalCloud)
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(logicalCloud.MetaData.LogicalCloudName).To(Equal("testlogicalCloud"))
+				Expect(logicalCloud.MetaData.Name).To(Equal("testlogicalCloud"))
 				Expect(logicalCloud.MetaData.Description).To(Equal(""))
 				Expect(logicalCloud.MetaData.UserData1).To(Equal("new user data"))
 				Expect(logicalCloud.MetaData.UserData2).To(Equal(""))
@@ -462,10 +463,10 @@ var _ = Describe("Logicalcloud", func() {
 			It("create followed by updating the name is disallowed and should fail", func() {
 				logicalCloud := _createTestLogicalCloud("testlogicalCloud", "1")
 				_, _ = client.Create("project", logicalCloud)
-				logicalCloud.MetaData.LogicalCloudName = "updated"
+				logicalCloud.MetaData.Name = "updated"
 				logicalCloud, err := client.UpdateLogicalCloud("project", "testlogicalCloud", logicalCloud)
 				Expect(err).Should(HaveOccurred())
-				Expect(logicalCloud).To(Equal(dcm.LogicalCloud{}))
+				Expect(logicalCloud).To(Equal(common.LogicalCloud{}))
 			})
 
 			It("create followed by instantiation should succeed (level 1/standard) and status reflected", func() {
@@ -522,7 +523,7 @@ var _ = Describe("Logicalcloud", func() {
 				up := _createTestUserPermission("testup", "testns")
 
 				// add private key to logical cloud
-				lkey := dcm.LogicalCloudKey{
+				lkey := common.LogicalCloudKey{
 					Project:          "project",
 					LogicalCloudName: "testlogicalCloudL1",
 				}
@@ -544,7 +545,7 @@ var _ = Describe("Logicalcloud", func() {
 				// Next step is to verify that Instantiated state gets added after Instantiate() succeeds (mocking CSR auth success)
 
 				// Expect instantiation to succeed
-				err = dcm.Instantiate("project", lc, []dcm.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up})
+				err = dcm.Instantiate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up})
 				Expect(err).ShouldNot(HaveOccurred())
 
 				// INFO: Status doesn't get updated simply by doing this because the entire grpc and CSR issuing path isn't mocked here
@@ -555,16 +556,16 @@ var _ = Describe("Logicalcloud", func() {
 
 // helper functions below
 
-func _createTestLogicalCloud(name string, level string) dcm.LogicalCloud {
-	lc := dcm.LogicalCloud{}
-	lc.MetaData = dcm.MetaDataList{
-		LogicalCloudName: name,
-		Description:      "",
-		UserData1:        "",
-		UserData2:        "",
+func _createTestLogicalCloud(name string, level string) common.LogicalCloud {
+	lc := common.LogicalCloud{}
+	lc.MetaData = types.Metadata{
+		Name:        name,
+		Description: "",
+		UserData1:   "",
+		UserData2:   "",
 	}
 	lc.Specification.NameSpace = "testns"
-	lc.Specification.User = dcm.UserData{
+	lc.Specification.User = common.UserData{
 		UserName: "lcuser",
 		Type:     "certificate",
 	}
@@ -579,15 +580,15 @@ func _createTestLogicalCloud(name string, level string) dcm.LogicalCloud {
 }
 
 // TODO: merge with cluster_test.go _createTestCluster()
-func _createTestClusterReference(provider string, cluster string) dcm.Cluster {
-	cl := dcm.Cluster{}
-	cl.MetaData = dcm.ClusterMeta{
-		ClusterReference: cluster,
-		Description:      "",
-		UserData1:        "",
-		UserData2:        "",
+func _createTestClusterReference(provider string, cluster string) common.Cluster {
+	cl := common.Cluster{}
+	cl.MetaData = types.Metadata{
+		Name:        cluster,
+		Description: "",
+		UserData1:   "",
+		UserData2:   "",
 	}
-	cl.Specification = dcm.ClusterSpec{
+	cl.Specification = common.ClusterSpec{
 		ClusterProvider: provider,
 		ClusterName:     cluster,
 		LoadBalancerIP:  "10.10.10.10",
@@ -611,7 +612,7 @@ func _createExistingLogicalCloud(mdb *db.NewMockDB, level string, standard bool,
 	mdb.Insert("resources", okey, nil, "data", p)
 
 	// create logical cloud in mocked db
-	lkey := dcm.LogicalCloudKey{
+	lkey := common.LogicalCloudKey{
 		Project:          "project",
 		LogicalCloudName: "testlc",
 	}
@@ -629,7 +630,7 @@ func _createExistingLogicalCloud(mdb *db.NewMockDB, level string, standard bool,
 	mdb.Insert("resources", lkey, nil, "privatekey", string(pkData))
 
 	// create cluster reference in mocked db
-	ckey := dcm.ClusterKey{
+	ckey := common.ClusterKey{
 		Project:          "project",
 		LogicalCloudName: "testlc",
 		ClusterReference: "testcl",

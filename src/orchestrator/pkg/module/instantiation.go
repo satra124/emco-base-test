@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright (c) 2020 Intel Corporation
+// Copyright (c) 2020-2022 Intel Corporation
 
 package module
 
@@ -11,6 +11,7 @@ import (
 	"time"
 
 	pkgerrors "github.com/pkg/errors"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	gpic "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/gpic"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
@@ -295,14 +296,10 @@ func validateLogicalCloud(p string, lc string, dcmCloudClient *LogicalCloudClien
 		log.Error("The Logical Cloud has never been instantiated", log.Fields{"cid": cid})
 		return pkgerrors.New("The Logical Cloud has never been instantiated")
 	}
-	ac, err := state.GetAppContextFromId(cid)
-	if err != nil {
-		return err
-	}
 
 	// make sure rsync status for this logical cloud is Instantiated (instantiated),
 	// otherwise the cloud isn't ready to receive the application being instantiated
-	acStatus, err := GetAppContextStatus(ac)
+	acStatus, err := state.GetAppContextStatus(cid) // new from state
 	if err != nil {
 		return err
 	}
@@ -332,7 +329,7 @@ func validateLogicalCloud(p string, lc string, dcmCloudClient *LogicalCloudClien
 	return nil
 }
 
-func getLogicalCloudInfo(p string, lc string) ([]Cluster, string, string, error) {
+func getLogicalCloudInfo(p string, lc string) ([]common.Cluster, string, string, error) {
 	dcmCloudClient := NewLogicalCloudClient()
 	logicalCloud, _ := dcmCloudClient.Get(p, lc)
 	if err := validateLogicalCloud(p, lc, dcmCloudClient); err != nil {
@@ -353,7 +350,7 @@ func getLogicalCloudInfo(p string, lc string) ([]Cluster, string, string, error)
 	return dcmClusters, namespace, level, nil
 }
 
-func checkClusters(listOfClusters gpic.ClusterList, dcmClusters []Cluster) error {
+func checkClusters(listOfClusters gpic.ClusterList, dcmClusters []common.Cluster) error {
 	// make sure LC can support DIG by validating DIG clusters against LC clusters
 	var mandatoryClusters []gpic.ClusterWithName
 

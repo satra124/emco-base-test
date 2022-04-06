@@ -12,7 +12,8 @@ import (
 	. "github.com/onsi/gomega"
 	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/dcm/api/mocks"
-	"gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
+	module "gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
 )
 
 func init() {
@@ -65,20 +66,20 @@ var _ = Describe("ClusterHandler", func() {
 			}
 		}`)),
 			inStruct: module.Cluster{
-				MetaData: module.ClusterMeta{
-					ClusterReference: "testcluster",
-					Description:      "description",
-					UserData1:        "some user data 1",
-					UserData2:        "some user data 2",
+				MetaData: types.Metadata{
+					Name:        "testcluster",
+					Description: "description",
+					UserData1:   "some user data 1",
+					UserData2:   "some user data 2",
 				},
 			},
 			mockError: nil,
 			mockVal: module.Cluster{
-				MetaData: module.ClusterMeta{
-					ClusterReference: "testcluster",
-					Description:      "description",
-					UserData1:        "some user data 1",
-					UserData2:        "some user data 2",
+				MetaData: types.Metadata{
+					Name:        "testcluster",
+					Description: "description",
+					UserData1:   "some user data 1",
+					UserData2:   "some user data 2",
 				},
 			},
 			clClient: &mocks.ClusterManager{},
@@ -151,7 +152,7 @@ var _ = Describe("ClusterHandler", func() {
 		// 	}
 		// }`)),
 		// 	inStruct: module.Cluster{
-		// 		MetaData: module.ClusterMeta{
+		// 		MetaData: types.Metadata{
 		// 			ClusterReference:   "testcluster",
 		// 			Description: "description",
 		// 			UserData1:   "some user data 1",
@@ -174,11 +175,11 @@ var _ = Describe("ClusterHandler", func() {
 			}
 		}`)),
 			inStruct: module.Cluster{
-				MetaData: module.ClusterMeta{
-					ClusterReference: "testcluster",
-					Description:      "description",
-					UserData1:        "some user data 1",
-					UserData2:        "some user data 2",
+				MetaData: types.Metadata{
+					Name:        "testcluster",
+					Description: "description",
+					UserData1:   "some user data 1",
+					UserData2:   "some user data 2",
 				},
 			},
 			mockVal:   module.Cluster{},
@@ -222,7 +223,7 @@ var _ = Describe("ClusterHandler", func() {
 	// 		}
 	// 	}`)),
 	// 		inStruct: module.Cluster{
-	// 			MetaData: module.ClusterMeta{
+	// 			MetaData: types.Metadata{
 	// 				ClusterReference:   "cluster",
 	// 				Description: "description",
 	// 				UserData1:   "some user data 1",
@@ -235,7 +236,7 @@ var _ = Describe("ClusterHandler", func() {
 	// 		},
 	// 		mockError: nil,
 	// 		mockVal: module.Cluster{
-	// 			MetaData: module.ClusterMeta{
+	// 			MetaData: types.Metadata{
 	// 				ClusterReference:   "cluster",
 	// 				Description: "description",
 	// 				UserData1:   "some user data 1",
@@ -321,7 +322,7 @@ var _ = Describe("ClusterHandler", func() {
 	// 	// 	}
 	// 	// }`)),
 	// 	// 	inStruct: module.Cluster{
-	// 	// 		MetaData: module.ClusterMeta{
+	// 	// 		MetaData: types.Metadata{
 	// 	// 			ClusterReference:   "cluster",
 	// 	// 			Description: "description",
 	// 	// 			UserData1:   "some user data 1",
@@ -345,7 +346,7 @@ var _ = Describe("ClusterHandler", func() {
 	// 		}
 	// 	}`)),
 	// 		inStruct: module.Cluster{
-	// 			MetaData: module.ClusterMeta{
+	// 			MetaData: types.Metadata{
 	// 				ClusterReference:   "cluster",
 	// 				Description: "description",
 	// 				UserData1:   "some user data 1",
@@ -382,19 +383,19 @@ var _ = Describe("ClusterHandler", func() {
 			mockError:    nil,
 			mockVals: []module.Cluster{
 				{
-					MetaData: module.ClusterMeta{
-						ClusterReference: "testcluster1",
-						Description:      "description",
-						UserData1:        "some user data 1",
-						UserData2:        "some user data 2",
+					MetaData: types.Metadata{
+						Name:        "testcluster1",
+						Description: "description",
+						UserData1:   "some user data 1",
+						UserData2:   "some user data 2",
 					},
 				},
 				{
-					MetaData: module.ClusterMeta{
-						ClusterReference: "testcluster2",
-						Description:      "description",
-						UserData1:        "some user data 1",
-						UserData2:        "some user data 2",
+					MetaData: types.Metadata{
+						Name:        "testcluster2",
+						Description: "description",
+						UserData1:   "some user data 1",
+						UserData2:   "some user data 2",
 					},
 				},
 			},
@@ -433,11 +434,11 @@ var _ = Describe("ClusterHandler", func() {
 			expectedCode: http.StatusOK,
 			mockError:    nil,
 			mockVal: module.Cluster{
-				MetaData: module.ClusterMeta{
-					ClusterReference: "testcluster",
-					Description:      "description",
-					UserData1:        "some user data 1",
-					UserData2:        "some user data 2",
+				MetaData: types.Metadata{
+					Name:        "testcluster",
+					Description: "description",
+					UserData1:   "some user data 1",
+					UserData2:   "some user data 2",
 				},
 			},
 			clClient: &mocks.ClusterManager{},

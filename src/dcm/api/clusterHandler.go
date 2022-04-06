@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/apierror"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
@@ -27,7 +28,7 @@ func (h clusterHandler) createHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	project := vars["project"]
 	logicalCloud := vars["logicalCloud"]
-	var v module.Cluster
+	var v common.Cluster
 	var err error
 
 	// Check logical cloud exists and is valid
@@ -58,7 +59,7 @@ func (h clusterHandler) createHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Cluster Reference Name is required.
-	if v.MetaData.ClusterReference == "" {
+	if v.MetaData.Name == "" {
 		msg := "Missing name in POST request"
 		log.Error(msg, log.Fields{})
 		http.Error(w, msg, http.StatusBadRequest)
@@ -153,7 +154,7 @@ func (h clusterHandler) getHandler(w http.ResponseWriter, r *http.Request) {
 
 // UpdateHandler handles Update operations on a particular cluster reference
 func (h clusterHandler) updateHandler(w http.ResponseWriter, r *http.Request) {
-	var v module.Cluster
+	var v common.Cluster
 	vars := mux.Vars(r)
 	project := vars["project"]
 	logicalCloud := vars["logicalCloud"]
@@ -188,7 +189,7 @@ func (h clusterHandler) updateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Name is required.
-	if v.MetaData.ClusterReference == "" {
+	if v.MetaData.Name == "" {
 		log.Error("API: Missing name in PUT request", log.Fields{})
 		http.Error(w, "Missing name in PUT request", http.StatusBadRequest)
 		return

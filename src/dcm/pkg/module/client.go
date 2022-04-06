@@ -13,6 +13,7 @@ import (
 	pkgerrors "github.com/pkg/errors"
 	"google.golang.org/grpc"
 
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
@@ -150,13 +151,13 @@ func processAlert(client readynotifypb.ReadyNotifyClient, stream readynotifypb.R
 		return
 	}
 	for _, cluster := range clusterList {
-		_, err = dcc.GetClusterConfig(project, logicalCloud, cluster.MetaData.ClusterReference)
+		_, err = dcc.GetClusterConfig(project, logicalCloud, cluster.MetaData.Name)
 		// discard kubeconfig returned because it's not needed here
 		if err != nil {
-			log.Error("[ReadyNotify gRPC] Generating kubeconfig or storing CloudConfig failed", log.Fields{"logicalCloud": logicalCloud, "project": project, "cluster": cluster.MetaData.ClusterReference, "error": err.Error()})
+			log.Error("[ReadyNotify gRPC] Generating kubeconfig or storing CloudConfig failed", log.Fields{"logicalCloud": logicalCloud, "project": project, "cluster": cluster.MetaData.Name, "error": err.Error()})
 			return
 		}
-		log.Info("[ReadyNotify gRPC] Generated kubeconfig and created CloudConfig for cluster", log.Fields{"project": project, "logicalCloud": logicalCloud, "cluster": cluster.MetaData.ClusterReference})
+		log.Info("[ReadyNotify gRPC] Generated kubeconfig and created CloudConfig for cluster", log.Fields{"project": project, "logicalCloud": logicalCloud, "cluster": cluster.MetaData.Name})
 		// if this point is reached, the kubeconfig is already stored in CloudConfig
 	}
 	log.Info("[ReadyNotify gRPC] All CloudConfigs for Logical Cloud have been created", log.Fields{"project": project, "logicalCloud": logicalCloud})
@@ -174,7 +175,7 @@ func addState(lcc *LogicalCloudClient, project, logicalCloud, cid, newState stri
 	if err != nil {
 		return err
 	}
-	lckey := LogicalCloudKey{
+	lckey := common.LogicalCloudKey{
 		Project:          project,
 		LogicalCloudName: logicalCloud,
 	}

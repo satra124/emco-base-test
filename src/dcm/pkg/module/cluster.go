@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright (c) 2020 Intel Corporation
+// Copyright (c) 2020-2022 Intel Corporation
 
 package module
 
@@ -10,6 +10,7 @@ import (
 
 	pkgerrors "github.com/pkg/errors"
 	rb "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
@@ -18,82 +19,14 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Cluster contains the parameters needed for a Cluster
-type Cluster struct {
-	MetaData      ClusterMeta `json:"metadata"`
-	Specification ClusterSpec `json:"spec"`
-}
-
-type ClusterMeta struct {
-	ClusterReference string `json:"name"`
-	Description      string `json:"description"`
-	UserData1        string `json:"userData1"`
-	UserData2        string `json:"userData2"`
-}
-
-type ClusterSpec struct {
-	ClusterProvider string `json:"clusterProvider"`
-	ClusterName     string `json:"cluster"`
-	LoadBalancerIP  string `json:"loadBalancerIP"`
-	Certificate     string `json:"certificate"`
-}
-
-type ClusterKey struct {
-	Project          string `json:"project"`
-	LogicalCloudName string `json:"logicalCloud"`
-	ClusterReference string `json:"clusterReference"`
-}
-
-type KubeConfig struct {
-	ApiVersion     string            `yaml:"apiVersion"`
-	Kind           string            `yaml:"kind"`
-	Clusters       []KubeCluster     `yaml:"clusters"`
-	Contexts       []KubeContext     `yaml:"contexts"`
-	CurrentContext string            `yaml:"current-context"`
-	Preferences    map[string]string `yaml:"preferences"`
-	Users          []KubeUser        `yaml:"users"`
-}
-
-type KubeCluster struct {
-	ClusterDef  KubeClusterDef `yaml:"cluster"`
-	ClusterName string         `yaml:"name"`
-}
-
-type KubeClusterDef struct {
-	CertificateAuthorityData string `yaml:"certificate-authority-data"`
-	Server                   string `yaml:"server"`
-}
-
-type KubeContext struct {
-	ContextDef  KubeContextDef `yaml:"context"`
-	ContextName string         `yaml:"name"`
-}
-
-type KubeContextDef struct {
-	Cluster   string `yaml:"cluster"`
-	Namespace string `yaml:"namespace,omitempty"`
-	User      string `yaml:"user"`
-}
-
-type KubeUser struct {
-	UserName string      `yaml:"name"`
-	UserDef  KubeUserDef `yaml:"user"`
-}
-
-type KubeUserDef struct {
-	ClientCertificateData string `yaml:"client-certificate-data"`
-	ClientKeyData         string `yaml:"client-key-data"`
-	// client-certificate and client-key are NOT implemented
-}
-
 // ClusterManager is an interface that exposes the connection
 // functionality
 type ClusterManager interface {
-	CreateCluster(project, logicalCloud string, c Cluster) (Cluster, error)
-	GetCluster(project, logicalCloud, name string) (Cluster, error)
-	GetAllClusters(project, logicalCloud string) ([]Cluster, error)
+	CreateCluster(project, logicalCloud string, c common.Cluster) (common.Cluster, error)
+	GetCluster(project, logicalCloud, name string) (common.Cluster, error)
+	GetAllClusters(project, logicalCloud string) ([]common.Cluster, error)
 	DeleteCluster(project, logicalCloud, name string) error
-	UpdateCluster(project, logicalCloud, name string, c Cluster) (Cluster, error)
+	UpdateCluster(project, logicalCloud, name string, c common.Cluster) (common.Cluster, error)
 	GetClusterConfig(project, logicalcloud, name string) (string, error)
 }
 
@@ -114,56 +47,54 @@ func NewClusterClient() *ClusterClient {
 }
 
 // Create entry for the cluster reference resource in the database
-func (v *ClusterClient) CreateCluster(project, logicalCloud string, clusterReference Cluster) (Cluster, error) {
+func (v *ClusterClient) CreateCluster(project, logicalCloud string, clusterReference common.Cluster) (common.Cluster, error) {
 
 	//Construct key consisting of name
-	key := ClusterKey{
+	key := common.ClusterKey{
 		Project:          project,
 		LogicalCloudName: logicalCloud,
-		ClusterReference: clusterReference.MetaData.ClusterReference,
+		ClusterReference: clusterReference.MetaData.Name,
 	}
 	lcClient := NewLogicalCloudClient()
 
 	s, err := lcClient.GetState(project, logicalCloud)
 	if err != nil {
-		return Cluster{}, err
+		return common.Cluster{}, err
 	}
 	cid := state.GetLastContextIdFromStateInfo(s)
 
 	if cid != "" {
-		ac, err := state.GetAppContextFromId(cid)
-		if err != nil {
-			return Cluster{}, err
-		}
-
 		// Since there's a context associated, if the logical cloud isn't fully
 		// Terminated or fully Instantiated, then prevent clusters from being added
-		acStatus, err := GetAppContextStatus(ac)
+		acStatus, err := state.GetAppContextStatus(cid) // new from state
+		if err != nil {
+			return common.Cluster{}, err
+		}
 		if acStatus.Status != appcontext.AppContextStatusEnum.Terminated && acStatus.Status != appcontext.AppContextStatusEnum.Instantiated {
-			return Cluster{}, pkgerrors.New("Cluster References cannot be added/removed unless the Logical Cloud is fully Instantiated or Terminated")
+			return common.Cluster{}, pkgerrors.New("Cluster References cannot be added/removed unless the Logical Cloud is fully Instantiated or Terminated")
 		}
 	}
 
 	//Check if this Cluster Reference already exists
-	_, err = v.GetCluster(project, logicalCloud, clusterReference.MetaData.ClusterReference)
+	_, err = v.GetCluster(project, logicalCloud, clusterReference.MetaData.Name)
 	if err == nil {
-		return Cluster{}, pkgerrors.New("Cluster reference already exists")
+		return common.Cluster{}, pkgerrors.New("Cluster reference already exists")
 	}
 
 	log.Info("Adding cluster-reference. Changes won't take effect until the respective Logical Cloud is updated.", log.Fields{"clusterreference": clusterReference, "logicalcloud": logicalCloud})
 	err = db.DBconn.Insert(v.storeName, key, nil, v.tagMeta, clusterReference)
 	if err != nil {
-		return Cluster{}, pkgerrors.Wrap(err, "Creating DB Entry")
+		return common.Cluster{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
 
 	return clusterReference, nil
 }
 
-// Get returns  Cluster for corresponding cluster reference
-func (v *ClusterClient) GetCluster(project, logicalCloud, clusterReference string) (Cluster, error) {
+// Get returns Cluster for corresponding cluster reference
+func (v *ClusterClient) GetCluster(project, logicalCloud, clusterReference string) (common.Cluster, error) {
 
 	//Construct the composite key to select the entry
-	key := ClusterKey{
+	key := common.ClusterKey{
 		Project:          project,
 		LogicalCloudName: logicalCloud,
 		ClusterReference: clusterReference,
@@ -171,48 +102,48 @@ func (v *ClusterClient) GetCluster(project, logicalCloud, clusterReference strin
 
 	value, err := db.DBconn.Find(v.storeName, key, v.tagMeta)
 	if err != nil {
-		return Cluster{}, err
+		return common.Cluster{}, err
 	}
 
 	if len(value) == 0 {
-		return Cluster{}, pkgerrors.New("Cluster reference not found")
+		return common.Cluster{}, pkgerrors.New("Cluster reference not found")
 	}
 
 	//value is a byte array
 	if value != nil {
-		cl := Cluster{}
+		cl := common.Cluster{}
 		err = db.DBconn.Unmarshal(value[0], &cl)
 		if err != nil {
-			return Cluster{}, err
+			return common.Cluster{}, err
 		}
 		return cl, nil
 	}
 
-	return Cluster{}, pkgerrors.New("Unknown Error")
+	return common.Cluster{}, pkgerrors.New("Unknown Error")
 }
 
 // GetAll returns all cluster references in the logical cloud
-func (v *ClusterClient) GetAllClusters(project, logicalCloud string) ([]Cluster, error) {
+func (v *ClusterClient) GetAllClusters(project, logicalCloud string) ([]common.Cluster, error) {
 	//Construct the composite key to select clusters
-	key := ClusterKey{
+	key := common.ClusterKey{
 		Project:          project,
 		LogicalCloudName: logicalCloud,
 		ClusterReference: "",
 	}
-	var resp []Cluster
+	var resp []common.Cluster
 	values, err := db.DBconn.Find(v.storeName, key, v.tagMeta)
 	if err != nil {
-		return []Cluster{}, err
+		return []common.Cluster{}, err
 	}
 	if len(values) == 0 {
-		return []Cluster{}, pkgerrors.New("No Cluster References associated")
+		return []common.Cluster{}, pkgerrors.New("No Cluster References associated")
 	}
 
 	for _, value := range values {
-		cl := Cluster{}
+		cl := common.Cluster{}
 		err = db.DBconn.Unmarshal(value, &cl)
 		if err != nil {
-			return []Cluster{}, err
+			return []common.Cluster{}, err
 		}
 		resp = append(resp, cl)
 	}
@@ -223,7 +154,7 @@ func (v *ClusterClient) GetAllClusters(project, logicalCloud string) ([]Cluster,
 // Delete the Cluster reference entry from database
 func (v *ClusterClient) DeleteCluster(project, logicalCloud, clusterReference string) error {
 	//Construct the composite key to select the entry
-	key := ClusterKey{
+	key := common.ClusterKey{
 		Project:          project,
 		LogicalCloudName: logicalCloud,
 		ClusterReference: clusterReference,
@@ -246,14 +177,9 @@ func (v *ClusterClient) DeleteCluster(project, logicalCloud, clusterReference st
 		return nil
 	}
 
-	ac, err := state.GetAppContextFromId(cid)
-	if err != nil {
-		return err
-	}
-
 	// Since there's a context associated, if the logical cloud isn't fully
 	// Terminated or fully Instantiated, then prevent clusters from being added
-	acStatus, err := GetAppContextStatus(ac)
+	acStatus, err := state.GetAppContextStatus(cid) // new from state
 	if err != nil {
 		return pkgerrors.Wrap(err, "Error getting app context status")
 	}
@@ -289,26 +215,26 @@ func (v *ClusterClient) DeleteCluster(project, logicalCloud, clusterReference st
 }
 
 // Update an entry for the Cluster reference in the database
-func (v *ClusterClient) UpdateCluster(project, logicalCloud, clusterReference string, c Cluster) (Cluster, error) {
+func (v *ClusterClient) UpdateCluster(project, logicalCloud, clusterReference string, c common.Cluster) (common.Cluster, error) {
 
-	key := ClusterKey{
+	key := common.ClusterKey{
 		Project:          project,
 		LogicalCloudName: logicalCloud,
 		ClusterReference: clusterReference,
 	}
 
 	//Check for name mismatch in cluster reference
-	if c.MetaData.ClusterReference != clusterReference {
-		return Cluster{}, pkgerrors.New("Cluster Reference mismatch")
+	if c.MetaData.Name != clusterReference {
+		return common.Cluster{}, pkgerrors.New("Cluster Reference mismatch")
 	}
 	//Check if this Cluster reference exists
 	_, err := v.GetCluster(project, logicalCloud, clusterReference)
 	if err != nil {
-		return Cluster{}, err
+		return common.Cluster{}, err
 	}
 	err = db.DBconn.Insert(v.storeName, key, nil, v.tagMeta, c)
 	if err != nil {
-		return Cluster{}, pkgerrors.Wrap(err, "Updating DB Entry")
+		return common.Cluster{}, pkgerrors.Wrap(err, "Updating DB Entry")
 	}
 	return c, nil
 }
@@ -316,7 +242,7 @@ func (v *ClusterClient) UpdateCluster(project, logicalCloud, clusterReference st
 // Get returns Cluster's kubeconfig for corresponding cluster reference
 func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference string) (string, error) {
 	lcClient := NewLogicalCloudClient()
-	lckey := LogicalCloudKey{
+	lckey := common.LogicalCloudKey{
 		Project:          project,
 		LogicalCloudName: logicalCloud,
 	}
@@ -406,9 +332,6 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 			return "", pkgerrors.New("Certificate issued was invalid")
 		}
 
-		// copy key to MongoDB
-		// func (v *ClusterClient)
-		// UpdateCluster(project, logicalCloud, clusterReference string, c Cluster) (Cluster, error) {
 		_, err = v.UpdateCluster(project, logicalCloud, clusterReference, cluster)
 		if err != nil {
 			return "", pkgerrors.Wrap(err, "An error occurred while storing the certificate")
@@ -435,7 +358,7 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 	}
 
 	// unmarshall CloudConfig's kubeconfig into struct
-	adminKubeConfig := KubeConfig{}
+	adminKubeConfig := common.KubeConfig{}
 	err = yaml.Unmarshal(adminConfig, &adminKubeConfig)
 	if err != nil {
 		return "", pkgerrors.Wrap(err, "Failed parsing CloudConfig's kubeconfig yaml")
@@ -450,22 +373,22 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 	userName := lc.Specification.User.UserName
 	contextName := userName + "@" + clusterReference
 
-	kubeconfig := KubeConfig{
+	kubeconfig := common.KubeConfig{
 		ApiVersion: "v1",
 		Kind:       "Config",
-		Clusters: []KubeCluster{
-			KubeCluster{
+		Clusters: []common.KubeCluster{
+			common.KubeCluster{
 				ClusterName: clusterReference,
-				ClusterDef: KubeClusterDef{
+				ClusterDef: common.KubeClusterDef{
 					CertificateAuthorityData: clusterCert,
 					Server:                   clusterAddr,
 				},
 			},
 		},
-		Contexts: []KubeContext{
-			KubeContext{
+		Contexts: []common.KubeContext{
+			common.KubeContext{
 				ContextName: contextName,
-				ContextDef: KubeContextDef{
+				ContextDef: common.KubeContextDef{
 					Cluster:   clusterReference,
 					Namespace: namespace,
 					User:      userName,
@@ -474,10 +397,10 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 		},
 		CurrentContext: contextName,
 		Preferences:    map[string]string{},
-		Users: []KubeUser{
-			KubeUser{
+		Users: []common.KubeUser{
+			common.KubeUser{
 				UserName: userName,
-				UserDef: KubeUserDef{
+				UserDef: common.KubeUserDef{
 					ClientCertificateData: signedCert,
 					ClientKeyData:         privateKey,
 				},

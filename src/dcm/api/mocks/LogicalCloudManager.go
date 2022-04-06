@@ -3,7 +3,7 @@
 package mocks
 
 import mock "github.com/stretchr/testify/mock"
-import module "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
+import module "gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 import state "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 import status "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright (c) 2020 Intel Corporation
+// Copyright (c) 2020-2022 Intel Corporation
 
 package module
 
@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	pkgerrors "github.com/pkg/errors"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext/subresources"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/installappclient"
@@ -97,7 +98,7 @@ func cleanupCompositeApp(context appcontext.AppContext, err error, reason string
 	return newerr
 }
 
-func createNamespace(logicalcloud LogicalCloud) (string, string, error) {
+func createNamespace(logicalcloud common.LogicalCloud) (string, string, error) {
 
 	name := logicalcloud.Specification.NameSpace
 	labels := logicalcloud.Specification.Labels
@@ -119,7 +120,7 @@ func createNamespace(logicalcloud LogicalCloud) (string, string, error) {
 	return string(nsData), strings.Join([]string{name, "+Namespace"}, ""), nil
 }
 
-func createRoles(logicalcloud LogicalCloud, userpermissions []UserPermission) ([]string, []string, error) {
+func createRoles(logicalcloud common.LogicalCloud, userpermissions []UserPermission) ([]string, []string, error) {
 	var name string
 	var kind string
 	var datas []string
@@ -131,10 +132,10 @@ func createRoles(logicalcloud LogicalCloud, userpermissions []UserPermission) ([
 
 	for i, up := range userpermissions {
 		if up.Specification.Namespace == "" {
-			name = strings.Join([]string{logicalcloud.MetaData.LogicalCloudName, "-clusterRole", strconv.Itoa(i)}, "")
+			name = strings.Join([]string{logicalcloud.MetaData.Name, "-clusterRole", strconv.Itoa(i)}, "")
 			kind = "ClusterRole"
 		} else {
-			name = strings.Join([]string{logicalcloud.MetaData.LogicalCloudName, "-role", strconv.Itoa(i)}, "")
+			name = strings.Join([]string{logicalcloud.MetaData.Name, "-role", strconv.Itoa(i)}, "")
 			kind = "Role"
 		}
 
@@ -168,7 +169,7 @@ func createRoles(logicalcloud LogicalCloud, userpermissions []UserPermission) ([
 	return datas, names, nil
 }
 
-func createRoleBindings(logicalcloud LogicalCloud, userpermissions []UserPermission) ([]string, []string, error) {
+func createRoleBindings(logicalcloud common.LogicalCloud, userpermissions []UserPermission) ([]string, []string, error) {
 	var name string
 	var kind string
 	var kindbinding string
@@ -181,11 +182,11 @@ func createRoleBindings(logicalcloud LogicalCloud, userpermissions []UserPermiss
 
 	for i, up := range userpermissions {
 		if up.Specification.Namespace == "" {
-			name = strings.Join([]string{logicalcloud.MetaData.LogicalCloudName, "-clusterRoleBinding", strconv.Itoa(i)}, "")
+			name = strings.Join([]string{logicalcloud.MetaData.Name, "-clusterRoleBinding", strconv.Itoa(i)}, "")
 			kind = "ClusterRole"
 			kindbinding = "ClusterRoleBinding"
 		} else {
-			name = strings.Join([]string{logicalcloud.MetaData.LogicalCloudName, "-roleBinding", strconv.Itoa(i)}, "")
+			name = strings.Join([]string{logicalcloud.MetaData.Name, "-roleBinding", strconv.Itoa(i)}, "")
 			kind = "Role"
 			kindbinding = "RoleBinding"
 		}
@@ -210,9 +211,9 @@ func createRoleBindings(logicalcloud LogicalCloud, userpermissions []UserPermiss
 		}
 		if up.Specification.Namespace != "" {
 			roleBinding.MetaData.Namespace = up.Specification.Namespace
-			roleBinding.RoleRefs.Name = strings.Join([]string{logicalcloud.MetaData.LogicalCloudName, "-role", strconv.Itoa(i)}, "")
+			roleBinding.RoleRefs.Name = strings.Join([]string{logicalcloud.MetaData.Name, "-role", strconv.Itoa(i)}, "")
 		} else {
-			roleBinding.RoleRefs.Name = strings.Join([]string{logicalcloud.MetaData.LogicalCloudName, "-clusterRole", strconv.Itoa(i)}, "")
+			roleBinding.RoleRefs.Name = strings.Join([]string{logicalcloud.MetaData.Name, "-clusterRole", strconv.Itoa(i)}, "")
 		}
 
 		rBData, err := yaml.Marshal(&roleBinding)
@@ -263,7 +264,7 @@ func createQuotas(quotaList []Quota, namespace string) ([]string, []string, erro
 	return datas, names, nil
 }
 
-func createUserCSR(logicalcloud LogicalCloud, pkData string) (string, string, error) {
+func createUserCSR(logicalcloud common.LogicalCloud, pkData string) (string, string, error) {
 	pa, err := base64.StdEncoding.DecodeString(strings.Trim(pkData, "\""))
 	if err != nil {
 		return "", "", err
@@ -279,7 +280,7 @@ func createUserCSR(logicalcloud LogicalCloud, pkData string) (string, string, er
 	}
 
 	userName := logicalcloud.Specification.User.UserName
-	name := strings.Join([]string{logicalcloud.MetaData.LogicalCloudName, "-user-csr"}, "")
+	name := strings.Join([]string{logicalcloud.MetaData.Name, "-user-csr"}, "")
 
 	csrTemplate := x509.CertificateRequest{Subject: pkix.Name{CommonName: userName}}
 
@@ -315,7 +316,7 @@ func createUserCSR(logicalcloud LogicalCloud, pkData string) (string, string, er
 	return string(csrData), strings.Join([]string{name, "+CertificateSigningRequest"}, ""), nil
 }
 
-func createApprovalSubresource(logicalcloud LogicalCloud) (string, error) {
+func createApprovalSubresource(logicalcloud common.LogicalCloud) (string, error) {
 	subresource := subresources.ApprovalSubresource{
 		Message:        "Approved for Logical Cloud authentication",
 		Reason:         "LogicalCloud",
@@ -420,8 +421,8 @@ func callRsyncUpdate(FromContextid, ToContextid interface{}) error {
 }
 
 // TODO: use context.ctxid instead of passing cid
-func prepL1ClusterAppContext(oldCid string, logicalcloud LogicalCloud, cluster Cluster, quotaList []Quota, userPermissionList []UserPermission, lcclient *LogicalCloudClient, lckey LogicalCloudKey, pkData string, context appcontext.AppContext, cid string) error {
-	logicalCloudName := logicalcloud.MetaData.LogicalCloudName
+func prepL1ClusterAppContext(oldCid string, logicalcloud common.LogicalCloud, cluster common.Cluster, quotaList []Quota, userPermissionList []UserPermission, lcclient *LogicalCloudClient, lckey common.LogicalCloudKey, pkData string, context appcontext.AppContext, cid string) error {
+	logicalCloudName := logicalcloud.MetaData.Name
 	clusterName := strings.Join([]string{cluster.Specification.ClusterProvider, "+", cluster.Specification.ClusterName}, "")
 	appHandle, err := context.GetAppHandle(lcAppName)                // caution: ignoring error
 	clusterHandle, err := context.AddCluster(appHandle, clusterName) // caution: ignoring error
@@ -545,13 +546,13 @@ func prepL1ClusterAppContext(oldCid string, logicalcloud LogicalCloud, cluster C
 // judgements about that logical cloud. It doesn't check for any current status for that logical cloud, it
 // simply adds it to a new appcontext, with a new appcontext ID, even if it was previously there. Any
 // judgements about the logical cloud, and any calls to rsync, are done by either Instantiate() or Update().
-func blindInstantiateL0(project string, logicalcloud LogicalCloud, lcclient *LogicalCloudClient,
-	clusterList []Cluster) (appcontext.AppContext, string, error) {
+func blindInstantiateL0(project string, logicalcloud common.LogicalCloud, lcclient *LogicalCloudClient,
+	clusterList []common.Cluster) (appcontext.AppContext, string, error) {
 	var err error
 	var context appcontext.AppContext
 	l0ns := ""
-	logicalCloudName := logicalcloud.MetaData.LogicalCloudName
-	lckey := LogicalCloudKey{
+	logicalCloudName := logicalcloud.MetaData.Name
+	lckey := common.LogicalCloudKey{
 		LogicalCloudName: logicalCloudName,
 		Project:          project,
 	}
@@ -688,12 +689,12 @@ func alreadyGotCsr(oldCid string, newAc appcontext.AppContext, app, cluster, csr
 }
 
 // // blindInstantiateL1 is the equivalent of blindInstantiateL0 but for Level-1 Logical Clouds.
-func blindInstantiateL1(oldCid string, project string, logicalcloud LogicalCloud, lcclient *LogicalCloudClient,
-	clusterList []Cluster, quotaList []Quota, userPermissionList []UserPermission) (appcontext.AppContext, string, error) {
+func blindInstantiateL1(oldCid string, project string, logicalcloud common.LogicalCloud, lcclient *LogicalCloudClient,
+	clusterList []common.Cluster, quotaList []Quota, userPermissionList []UserPermission) (appcontext.AppContext, string, error) {
 	var err error
 	var context appcontext.AppContext
-	logicalCloudName := logicalcloud.MetaData.LogicalCloudName
-	lckey := LogicalCloudKey{
+	logicalCloudName := logicalcloud.MetaData.Name
+	lckey := common.LogicalCloudKey{
 		LogicalCloudName: logicalCloudName,
 		Project:          project,
 	}
@@ -783,10 +784,10 @@ func blindInstantiateL1(oldCid string, project string, logicalcloud LogicalCloud
 
 // Instantiate prepares all yaml resources to be given to the clusters via rsync,
 // then creates an appcontext with such resources and asks rsync to instantiate the logical cloud
-func Instantiate(project string, logicalcloud LogicalCloud, clusterList []Cluster,
+func Instantiate(project string, logicalcloud common.LogicalCloud, clusterList []common.Cluster,
 	quotaList []Quota, userPermissionList []UserPermission) error {
 
-	logicalCloudName := logicalcloud.MetaData.LogicalCloudName
+	logicalCloudName := logicalcloud.MetaData.Name
 	level := logicalcloud.Specification.Level
 
 	lcclient := NewLogicalCloudClient()
@@ -802,7 +803,7 @@ func Instantiate(project string, logicalcloud LogicalCloud, clusterList []Cluste
 		if err != nil {
 			return err
 		}
-		acStatus, err := GetAppContextStatus(ac)
+		acStatus, err := state.GetAppContextStatus(cid) // new from state
 		if err != nil {
 			return err
 		}
@@ -891,10 +892,10 @@ func Instantiate(project string, logicalcloud LogicalCloud, clusterList []Cluste
 }
 
 // Terminate asks rsync to terminate the logical cloud
-func Terminate(project string, logicalcloud LogicalCloud, clusterList []Cluster,
+func Terminate(project string, logicalcloud common.LogicalCloud, clusterList []common.Cluster,
 	quotaList []Quota) error {
 
-	logicalCloudName := logicalcloud.MetaData.LogicalCloudName
+	logicalCloudName := logicalcloud.MetaData.Name
 	level := logicalcloud.Specification.Level
 	namespace := logicalcloud.Specification.NameSpace
 
@@ -907,10 +908,6 @@ func Terminate(project string, logicalcloud LogicalCloud, clusterList []Cluster,
 	}
 	cid := state.GetLastContextIdFromStateInfo(s)
 	if cid != "" {
-		ac, err := state.GetAppContextFromId(cid)
-		if err != nil {
-			return err
-		}
 
 		// If we're trying to terminate a stopped instantiation, first clear the stop flag
 		stateVal, err := state.GetCurrentStateFromStateInfo(s)
@@ -926,7 +923,7 @@ func Terminate(project string, logicalcloud LogicalCloud, clusterList []Cluster,
 
 		// Make sure rsync status for this logical cloud is Terminated,
 		// otherwise we can't re-instantiate logical cloud yet
-		acStatus, err := GetAppContextStatus(ac)
+		acStatus, err := state.GetAppContextStatus(cid) // new from state
 		if err != nil {
 			return err
 		}
@@ -988,9 +985,9 @@ func Terminate(project string, logicalcloud LogicalCloud, clusterList []Cluster,
 }
 
 // Stop asks rsync to stop the instantiation or termination of the logical cloud
-func Stop(project string, logicalcloud LogicalCloud) error {
+func Stop(project string, logicalcloud common.LogicalCloud) error {
 
-	logicalCloudName := logicalcloud.MetaData.LogicalCloudName
+	logicalCloudName := logicalcloud.MetaData.Name
 	lcclient := NewLogicalCloudClient()
 
 	// Find and deal with state
@@ -1005,12 +1002,6 @@ func Stop(project string, logicalcloud LogicalCloud) error {
 	}
 
 	cid := state.GetLastContextIdFromStateInfo(s)
-	// Uncomment to use appcontext status if additional info is needed to inform the actual state transition that should take place:
-	// ac, err := state.GetAppContextFromId(cid)
-	// if err != nil {
-	// 	return err
-	// }
-	// acStatus, err := GetAppContextStatus(ac)
 
 	stopState := state.StateEnum.Undefined
 	switch stateVal {
