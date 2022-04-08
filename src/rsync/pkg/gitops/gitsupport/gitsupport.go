@@ -243,6 +243,7 @@ func (p *GitProvider) StartClusterWatcher() error {
 				// Check if AppContext doesn't exist then exit the thread
 				if _, err := utils.NewAppContextReference(p.Cid); err != nil {
 					// Delete the Status CR updated by Monitor running on the cluster
+					log.Info("Deleting cluster StatusCR", log.Fields{})
 					p.DeleteClusterStatusCR()
 					// AppContext deleted - Exit thread
 					return nil
