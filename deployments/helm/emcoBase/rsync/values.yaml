@@ -20,6 +20,9 @@ command: "./rsync"
 args: ""
 workingDir: /opt/emco/rsync
 
+# flag to mount mongo db secret
+mountMongoSecret: true
+
 # flag to enable debugging - application support required
 debugEnabled: false
 

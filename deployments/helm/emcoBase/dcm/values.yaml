@@ -20,6 +20,9 @@ command: "./dcm"
 args: ""
 workingDir: /opt/emco/dcm
 
+# flag to mount mongo db secret
+mountMongoSecret: true
+
 # flag to enable debugging - application support required
 debugEnabled: false
 

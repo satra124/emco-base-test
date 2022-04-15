@@ -76,6 +76,11 @@ Replace `SETPASS` with the your choice of passwords for MongoDB and etcd, respec
 
 Replace `22.03.1` with the version of EMCO you wish to deploy. If you don't set this field, the `latest` EMCO container images will be installed. Typically, the `latest` tag is updated once a day.
 
+Release `22.06` introduces an optional database encryption feature, which is not enabled by default.  To enable it, set the following flags to the `helm install` command:
+
+- `--set global.enableMongoSecret=true`  Enable the encryption feature
+- `--set global.db.dataSecret=<secret value>` (optionally) set the value for the secret which is used to generate the key.  If not provided, helm will autogenerate a key.
+
 Installation should take a handful of minutes to complete, as the multiple pods will be brought up, including etcd and mongo, and initialization takes place.
 The temporary restarts and probe failures you may witness are expected and relate to the initialization of mongo, etcd, and instantiating the [Referential Integrity](docs/developer/ReferentialIntegrity.md) schema.
 

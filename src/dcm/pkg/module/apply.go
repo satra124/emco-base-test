@@ -769,11 +769,18 @@ func blindInstantiateL1(oldCid string, project string, logicalcloud common.Logic
 	if err != nil {
 		return context, "", cleanupCompositeApp(context, err, "Error getting private key from logical cloud", []string{logicalCloudName})
 	}
-	pkData := string(pkDataArray[0])
+	if len(pkDataArray) == 0 {
+		return context, "", cleanupCompositeApp(context, err, "Private key from logical cloud not found", []string{logicalCloudName})
+	}
+	privKey := common.PrivateKey{}
+	err = db.DBconn.Unmarshal(pkDataArray[0], &privKey)
+	if err != nil {
+		return context, "", cleanupCompositeApp(context, err, "Private key unmarshal error", []string{logicalCloudName})
+	}
 
 	// Iterate through cluster list and add all the clusters
 	for _, cluster := range clusterList {
-		err = prepL1ClusterAppContext(oldCid, logicalcloud, cluster, quotaList, userPermissionList, lcclient, lckey, pkData, context, cid)
+		err = prepL1ClusterAppContext(oldCid, logicalcloud, cluster, quotaList, userPermissionList, lcclient, lckey, privKey.KeyValue, context, cid)
 		if err != nil {
 			return context, "", err
 		}

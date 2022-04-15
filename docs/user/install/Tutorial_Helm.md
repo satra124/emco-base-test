@@ -231,6 +231,13 @@ Workarounds:
 - Or, disable database persistence on installation:
     - Remove the `-p enable` option from installation, or set `-p disable`
 
+### Database Encryption
+
+EMCO can be configured during installation to enable the encryption of critical data elements in the database - e.g. kubeconfig, keys, etc.  In release `22.06`, this feature is not enabled by default.  To enable, add the following flags to the helm install command:
+
+- `--set global.enableMongoSecret=true`  (optional) Enable the encryption feature
+- `--set global.db.dataSecret=<secret value>` (optionally) set the value for the secret which is used to generate the key.  If not provided, helm will autogenerate a key.
+
 ### Deploying an Application
 The release artifacts includes a sample promethues and collectd applications that can be deployed. In this section we will demonstrate how to deploy the application.
 

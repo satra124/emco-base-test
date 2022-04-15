@@ -54,6 +54,13 @@ spec:
         - name: https_proxy
           value: {{ .Values.httpsProxy }}
         {{- end}}
+        {{- if (and (eq (empty .Values.global.enableMongoSecret) false) (eq (empty .Values.mountMongoSecret) false)) }}
+        - name: EMCO_DATA_KEY
+          valueFrom:
+            secretKeyRef:
+              name: mongo-data-secret
+              key: key
+        {{- end}}
         {{- if eq (empty .Values.global.disableDbAuth) true }}
         - name: DB_EMCO_USERNAME
           value: emco

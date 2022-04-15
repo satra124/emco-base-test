@@ -15,7 +15,7 @@ type clientDbInfo struct {
 	storeName    string // name of the mongodb collection to use for client documents
 	tagNamespace string // attribute key name for the namespace section of a CloudConfig
 	tagConfig    string // attribute key name for the kubeconfig section of a CloudConfig
-	tagMeta		 string // attribute key name for the GitOps related Objects
+	tagMeta      string // attribute key name for the GitOps related Objects
 }
 
 // ClusterKey is the key structure that is used in the database
@@ -36,7 +36,7 @@ type CloudConfig struct {
 }
 
 type KubeConfig struct {
-	Config string `json:"config"`
+	Config string `json:"config" encrypted:""`
 }
 
 // ClusterSyncObjectKey is the key structure that is used in the database
@@ -47,11 +47,11 @@ type ClusterSyncObjectsKey struct {
 
 // CloudConfig contains the parameters that specify access to a cloud at any level
 type CloudGitOpsConfig struct {
-	Provider  string `json:"cloudConfigClusterProvider"`
-	Cluster   string `json:"cloudConfigCluster"`
-	Level     string `json:"level"`
-	Namespace string `json:"namespace"`
-	Config 		  mtypes.GitOpsSpec `json:"gitOps"`
+	Provider  string            `json:"cloudConfigClusterProvider"`
+	Cluster   string            `json:"cloudConfigCluster"`
+	Level     string            `json:"level"`
+	Namespace string            `json:"namespace"`
+	Config    mtypes.GitOpsSpec `json:"gitOps"`
 }
 
 // CloudConfigManager is an interface that exposes the Cloud Config functionality
@@ -256,7 +256,6 @@ func (c *CloudConfigClient) DeleteCloudConfig(provider string, cluster string, l
 
 	return nil
 }
-
 
 func (c *CloudConfigClient) CreateClusterSyncObjects(provider string, p mtypes.ClusterSyncObjects, exists bool) (mtypes.ClusterSyncObjects, error) {
 	key := ClusterSyncObjectsKey{

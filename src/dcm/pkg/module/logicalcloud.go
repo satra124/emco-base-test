@@ -94,7 +94,11 @@ func (v *LogicalCloudClient) Create(project string, c common.LogicalCloud) (comm
 			},
 		))
 
-		err = db.DBconn.Insert(v.storeName, key, nil, "privatekey", string(pkData))
+		privKey := common.PrivateKey{
+			KeyValue: string(pkData),
+		}
+
+		err = db.DBconn.Insert(v.storeName, key, nil, "privatekey", privKey)
 		if err != nil {
 			return common.LogicalCloud{}, pkgerrors.New("Failure storing Logical Cloud user key")
 		}

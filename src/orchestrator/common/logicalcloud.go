@@ -32,3 +32,8 @@ type LogicalCloudKey struct {
 	Project          string `json:"project"`
 	LogicalCloudName string `json:"logicalCloud"`
 }
+
+// PrivateKey is the key structure that is used in the database
+type PrivateKey struct {
+	KeyValue string `json:"key" encrypted:""`
+}

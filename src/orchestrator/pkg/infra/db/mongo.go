@@ -17,6 +17,7 @@ import (
 	"github.com/tidwall/gjson"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	utils "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/utils"
 
 	pkgerrors "github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
@@ -493,6 +494,15 @@ func (m *MongoStore) Unmarshal(inp []byte, out interface{}) error {
 	if err != nil {
 		return pkgerrors.Wrapf(err, "Error Unmarshalling bson data to %T", out)
 	}
+
+	// Decrypt data if required
+	oe := utils.GetObjectEncryptor("emco")
+	if oe != nil {
+		_, err := oe.DecryptObject(out)
+		if err != nil {
+			log.Warn("Error to decrypt object", log.Fields{"error": err.Error()})
+		}
+	}
 	return nil
 }
 
@@ -639,6 +649,24 @@ func (m *MongoStore) Insert(coll string, key Key, query interface{}, tag string,
 	keyId, err := m.createKeyIdField(key)
 	if err != nil {
 		return pkgerrors.Wrapf(err, "db Insert error: Error creating KeyID with key %T %v", key, key)
+	}
+
+	// Encrypt data if required
+	oe := utils.GetObjectEncryptor("emco")
+	if oe != nil {
+		var edata interface{}
+		if reflect.TypeOf(data).Kind() == reflect.Ptr {
+			// avoid changing data's field value during encryption
+			edata, err = oe.EncryptObject(reflect.ValueOf(data).Elem().Interface())
+		} else {
+			edata, err = oe.EncryptObject(data)
+		}
+
+		if err == nil {
+			data = edata
+		} else {
+			log.Warn("Error to encrypt object", log.Fields{"collection": coll, "tag": tag})
+		}
 	}
 
 	// verify references for Inserts with the "data" tag

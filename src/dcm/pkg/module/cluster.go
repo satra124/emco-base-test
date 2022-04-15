@@ -267,9 +267,17 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 		return "", pkgerrors.Wrap(err, "Error getting logical cloud")
 	}
 	// get user's private key
-	privateKeyData, err := db.DBconn.Find(v.storeName, lckey, "privatekey")
+	pkDataArray, err := db.DBconn.Find(v.storeName, lckey, "privatekey")
 	if err != nil {
 		return "", pkgerrors.Wrap(err, "Error getting private key from logical cloud")
+	}
+	if len(pkDataArray) == 0 {
+		return "", pkgerrors.Errorf("Private key from logical cloud not found")
+	}
+	privateKey := common.PrivateKey{}
+	err = db.DBconn.Unmarshal(pkDataArray[0], &privateKey)
+	if err != nil {
+		return "", pkgerrors.Wrap(err, "Private key unmarshal error")
 	}
 
 	// get cluster from dcm (need provider/name)
@@ -365,7 +373,6 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 	}
 
 	// all data needed for final kubeconfig:
-	privateKey := string(privateKeyData[0])
 	signedCert := cluster.Specification.Certificate
 	clusterCert := adminKubeConfig.Clusters[0].ClusterDef.CertificateAuthorityData
 	clusterAddr := adminKubeConfig.Clusters[0].ClusterDef.Server
@@ -402,7 +409,7 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 				UserName: userName,
 				UserDef: common.KubeUserDef{
 					ClientCertificateData: signedCert,
-					ClientKeyData:         privateKey,
+					ClientKeyData:         privateKey.KeyValue,
 				},
 			},
 		},
