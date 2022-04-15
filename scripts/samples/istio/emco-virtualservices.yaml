@@ -47,6 +47,14 @@ spec:
     - uri:
         regex: /v2/projects/.+/composite-apps/[^\/]*\/[^\/]*/deployment-intent-groups/[^\/]*/terminate
     - uri:
+        regex: /v2/projects/.+/composite-apps/[^\/]*\/[^\/]*/deployment-intent-groups/[^\/]*/update
+    - uri:
+        regex: /v2/projects/.+/composite-apps/[^\/]*\/[^\/]*/deployment-intent-groups/[^\/]*/rollback
+    - uri:
+        regex: /v2/projects/.+/composite-apps/[^\/]*\/[^\/]*/deployment-intent-groups/[^\/]*/status
+    - uri:
+        regex: /v2/projects/.+/composite-apps/[^\/]*\/[^\/]*/deployment-intent-groups/[^\/]*/stop
+    - uri:
         regex: /v2/projects/.+/composite-apps/[^\/]*\/[^\/]*/deployment-intent-groups/[^\/]*/intents
     - uri:
         regex: /v2/projects/.+/composite-apps/[^\/]*\/[^\/]*/deployment-intent-groups/[^\/]*/intents/[^\/]*
@@ -112,17 +120,21 @@ spec:
   http:
   - match:
     - uri:
-        regex: /v2/cluster-providers/.+/.+/.+/networks/*
+        regex: /v2/cluster-providers/.+/clusters/.+/networks
     - uri:
-        regex: /v2/cluster-providers/.+/.+/.+/provider-networks/*
+        regex: /v2/cluster-providers/.+/clusters/.+/networks/[^\/]*
     - uri:
-        regex: /v2/cluster-providers/.+/.+/.+/networks/[^\/]*
+        regex: /v2/cluster-providers/.+/clusters/.+/provider-networks
     - uri:
-        regex: /v2/cluster-providers/.+/.+/.+/provider-networks/[^\/]*
+        regex: /v2/cluster-providers/.+/clusters/.+/provider-networks/[^\/]*
     - uri:
-        regex: /v2/cluster-providers/.+/.+/.+/apply
+        regex: /v2/cluster-providers/.+/clusters/.+/apply
     - uri:
-        regex: /v2/cluster-providers/.+/.+/.+/terminate
+        regex: /v2/cluster-providers/.+/clusters/.+/terminate
+    - uri:
+        regex: /v2/cluster-providers/.+/clusters/.+/status
+    - uri:
+        regex: /v2/cluster-providers/.+/clusters/.+/stop
     route:
     - destination:
         port:
@@ -208,6 +220,8 @@ spec:
   http:
   - match:
     - uri:
+        prefix: /v2/dtc-controllers
+    - uri:
         regex: /v2/projects/.+/composite-apps/.+/.+/deployment-intent-groups/.+/traffic-group-intents
     - uri:
         regex: /v2/projects/.+/composite-apps/.+/.+/deployment-intent-groups/.+/traffic-group-intents/.*
@@ -216,6 +230,94 @@ spec:
         port:
           number: 9018
         host: dtc
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: vs-emco-sfc
+  namespace: emco
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - emco-gateway
+  http:
+  - match:
+    - uri:
+        regex: /v2/projects/.+/composite-apps/.+/.+/deployment-intent-groups/.+/network-chains
+    - uri:
+        regex: /v2/projects/.+/composite-apps/.+/.+/deployment-intent-groups/.+/network-chains/.*
+    route:
+    - destination:
+        port:
+          number: 9055
+        host: sfc
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: vs-emco-sfc-client
+  namespace: emco
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - emco-gateway
+  http:
+  - match:
+    - uri:
+        regex: /v2/projects/.+/composite-apps/.+/.+/deployment-intent-groups/.+/sfc-clients
+    - uri:
+        regex: /v2/projects/.+/composite-apps/.+/.+/deployment-intent-groups/.+/sfc-clients/.*
+    route:
+    - destination:
+        port:
+          number: 9057
+        host: sfcclient
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: vs-emco-hpaplc
+  namespace: emco
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - emco-gateway
+  http:
+  - match:
+    - uri:
+        regex: /v2/projects/.+/composite-apps/.+/.+/deployment-intent-groups/.+/hpa-intents
+    - uri:
+        regex: /v2/projects/.+/composite-apps/.+/.+/deployment-intent-groups/.+/hpa-intents/.*
+    route:
+    - destination:
+        port:
+          number: 9091
+        host: hpaplc
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: vs-emco-workflowmgr
+  namespace: emco
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - emco-gateway
+  http:
+  - match:
+    - uri:
+        regex: /v2/projects/.+/composite-apps/.+/.+/deployment-intent-groups/.+/temporal-workflow-intents
+    - uri:
+        regex: /v2/projects/.+/composite-apps/.+/.+/deployment-intent-groups/.+/temporal-workflow-intents/.*
+    route:
+    - destination:
+        port:
+          number: 9095
+        host: workflowmgr
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService

@@ -1,6 +1,6 @@
 ```text
 SPDX-License-Identifier: Apache-2.0
-Copyright (c) 2020 Intel Corporation
+Copyright (c) 2020-2022 Intel Corporation
 ```
 <!-- omit in toc -->
 # Edge Multi-Cloud Orchestrator (EMCO) Integrity and Access Management
@@ -49,6 +49,9 @@ spec:
 Create the certificate for Ingress Gateway and create the secret for Istio Ingress Gateway
 ```
 $ kubectl create -n istio-system secret tls emco-credential --key=v2.key --cert=v2.crt
+
+where v2.key and v2.crt is an x509 certificate and private key that is prepared by the
+user for access to the gateway.
  ```
 
 Example Gateway yaml:
@@ -81,7 +84,7 @@ spec:
 ```
 
 #### Create Istio VirtualServices Resources for EMCO
-An Istio VirtualService Resource is required for each of the EMCO microservices. EMCO [VirtualService Resources](../../kud/samples/istio/emco-virtualservices.yaml) need to be applied in the cluster.
+An Istio VirtualService Resource is required for each of the EMCO microservices. EMCO [VirtualService Resources](../../scripts/samples/istio/emco-virtualservices.yaml) need to be applied in the cluster.
 
 Make sure the EMCO service is accessible through Istio Ingress Gateway at this point.  "https://istio-ingress-url/v2/projects"
 
@@ -110,6 +113,8 @@ spec:
       jwksUri: "http://<keycloak-url>/auth/realms/enterprise1/protocol/openid-connect/certs"
 ```
 
+> **Note** With a development setup where keycloak was installed via [Docker](https://www.keycloak.org/getting-started/getting-started-docker) on a baremetal server.  Keycloak version was v17.0.1.  It was observed that the `auth/` portion of the above URLs needed to be removed.  E.g. `jwksUri: "http://<keycloak-url>/realms/enterprise1/protocol/openid-connect/certs"`, and similar for the `issuer` setting.
+
 #### Authorization Policies with Istio
 
 A deny policy is added to ensure that only authenticated users (with the right token) are allowed access.
@@ -136,7 +141,7 @@ An attempt to `curl` to the EMCO URL will give an error "403 : RBAC: access deni
 Retrieve the access token from Keycloak and use it to access EMCO resources.
 
 ```
-$ export TOKEN=`curl --location --request POST 'http://<keycloack url>/auth/realms/enterprise1/protocol/openid-connect/token' --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'grant_type=password' --data-urlencode 'client_id=emco' --data-urlencode 'username=user1' --data-urlencode 'password=test' --data-urlencode 'client_secret=<secret>' | jq .access_token`
+$ export TOKEN=`curl --location --request POST 'http://<keycloak url>/auth/realms/enterprise1/protocol/openid-connect/token' --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'grant_type=password' --data-urlencode 'client_id=emco' --data-urlencode 'username=user1' --data-urlencode 'password=test' --data-urlencode 'client_secret=<secret>' | jq .access_token`
 
 $ curl --header "Authorization: Bearer $TOKEN"  http://<istio-ingress-url>/v2/projects
 
@@ -145,6 +150,9 @@ OR
 $ emcoctl get projects -t $TOKEN
 
 ```
+
+> **Note** With a development setup where keycloak was installed via [Docker](https://www.keycloak.org/getting-started/getting-started-docker) on a baremetal server.  Keycloak version was v17.0.1.  It was observed that the `auth/` portion of the above URL to get the token needed to be removed.  E.g. `'http://<keycloak url>/realms/enterprise1/protocol/openid-connect/token'`
+
 #### Authorization Policies with Istio
 
 As specified in the Keycloak section, Role Mappers are created using Keycloak. Check the Keycloak documentation on how to create Roles using Keycloak. These can be used apply authorizations based on Role of the user.
@@ -322,8 +330,8 @@ To make configuration of authservice easier to work with EMCO, we use a project 
     name: chain-sample-1
     namespace: istio-system
   spec:
-    authorizationUri: "https://<keycloack-url>/auth/realms/enterprise1/protocol/openid-connect/auth"
-    tokenUri: "https://<keycloack-url>/auth/realms/enterprise1/protocol/openid-connect/token"
+    authorizationUri: "https://<keycloak-url>/auth/realms/enterprise1/protocol/openid-connect/auth"
+    tokenUri: "https://<keycloak-url>/auth/realms/enterprise1/protocol/openid-connect/token"
     callbackUri: "https://<istio-ingress-url>/mesh/auth_callback"
     clientId: "emco"
     clientSecret: "1f07edc2-8ca3-4529-b91d-8c9ab01f1295"
