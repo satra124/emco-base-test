@@ -83,7 +83,9 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 			Namespace: namespace,
 		},
 		Spec: kustomize.KustomizationSpec{
-			Interval: metav1.Duration{Duration: time.Second * 300},
+			Interval: metav1.Duration{Duration: time.Second * time.Duration(p.syncInterval)},
+			RetryInterval: &metav1.Duration{Duration: time.Second * time.Duration(p.retryInterval)},
+			Timeout: &metav1.Duration{Duration: time.Second * time.Duration(p.timeOut)},
 			Path:     "clusters/" + p.gitProvider.Cluster + "/context/" + p.gitProvider.Cid,
 			Prune:    true,
 			SourceRef: kustomize.CrossNamespaceSourceReference{

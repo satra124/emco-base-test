@@ -20,6 +20,9 @@ GITHUB_USER=${GITHUB_USER:-"oops"}
 GITHUB_TOKEN=${GITHUB_TOKEN:-"oops"}
 GITHUB_REPO=${GITHUB_REPO:-"oops"}
 OUTPUT_DIR=output
+TIME_OUT=${TIME_OUT:-"60"}
+SYNC_INTERVAL=${SYNC_INTERVAL:-"60"}
+RETRY_INTERVAL=${RETRY_INTERVAL:-"60"}
 
 function create_common_values {
     local output_dir=$1
@@ -31,7 +34,7 @@ function create_common_values {
         cat << NET > values.yaml
     PackagesPath: $output_dir
     ProjectName: proj-flux-1
-    ClusterProvider: provider1flux
+    ClusterProvider: provider-flux
     ClusterLabel: edge-cluster
     AdminCloud: default
     CompositeApp: test-composite-app
@@ -49,10 +52,14 @@ function create_common_values {
     APP2: collectd
     APP3: operator
     GitObj: GitObjectFluxRepo
+    GitResObj: GitObjectFluxRes
     GithubUser: $GITHUB_USER
     GithubToken: $GITHUB_TOKEN
     GithubRepo: $GITHUB_REPO
     branch: main
+    TimeOut: $TIME_OUT
+    SyncInterval: $SYNC_INTERVAL
+    RetryInterval: $RETRY_INTERVAL
 
     Clusters:
       - Name: cluster1
@@ -65,7 +72,6 @@ function create_common_values {
     Applist:
       - Name: collectd
         Cluster:
-          - cluster1
           - cluster2
 
 NET
