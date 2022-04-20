@@ -179,7 +179,9 @@ func (h *TemplateClient) GenerateKubernetesArtifacts(inputPath string, valueFile
 	release, err := client.Run(chartRequested, rawVals)
 	if err != nil {
 		logger.Error("Error in processing the helm chart", logger.Fields{"Error": err.Error()})
-		return nil, hookList, err
+		// Unwrap error returned by Helm library to have the complete cause of the error
+		errString := pkgerrors.Unwrap(err).Error()
+		return nil, hookList, pkgerrors.Errorf("%s", errString)
 	}
 	// SplitManifests returns integer-sortable so that manifests get output
 	// in the same order as the input by `BySplitManifestsOrder`.

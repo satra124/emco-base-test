@@ -248,7 +248,7 @@ func GetSortedTemplateForApp(appName, p, ca, v, rName, cp, namespace string, ove
 		appProfileContent, overrideValuesOfAppStr,
 		appName)
 
-	log.Info(":: Total no. of sorted templates ::", log.Fields{"len(sortedTemplates):": len(sortedTemplates)})
+	log.Debug(":: Total no. of sorted templates ::", log.Fields{"len(sortedTemplates):": len(sortedTemplates)})
 
 	return sortedTemplates, hookList, err
 }
