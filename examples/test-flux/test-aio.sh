@@ -2,9 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2020-2022 Intel Corporation
 
-
-test_case_name=$1
-action=$2
+action=$1
 
 
 function create {
@@ -17,62 +15,43 @@ function cleanup {
 
 function get_variables {
     project=$(cat values.yaml | grep ProjectName: | sed -z 's/.*ProjectName: //')
-    logical_cloud_name=$(cat values.yaml | grep LogicalCloud: | sed -z 's/.*LogicalCloud: //')
+    logical_cloud_name=$(cat values.yaml | grep AdminCloud: | sed -z 's/.*AdminCloud: //')
 
-    case $test_case_name in
-        "test-prometheus-collectd")
-            composite_app="prometheus-collectd-composite-app"
-            deployment_intent_group_name="collection-deployment-intent-group"
-            ;;
-        "test-dtc")
-            composite_app="dtc-composite-app"
-            deployment_intent_group_name="collection-deployment-intent-group"
-            ;;
-        "test-vfw")
-            composite_app="compositevfw"
-            deployment_intent_group_name="vfw_deployment_intent_group"
-            ;;
-        "monitor")
-            composite_app="monitor-composite-app"
-            deployment_intent_group_name="collection-deployment-intent-group"
-            ;;
-        *)
-            echo "Invalid testcase file"
-            exit
-            ;;
-    esac
+    echo $logical_cloud_name
+    echo $projects
+
 }
 
 function apply_prerequisites {
-    emcoctl --config emco-cfg.yaml apply -f prerequisites.yaml -v values.yaml -s
+    emcoctl --config emco-cfg.yaml apply -f 00-prerequisites.yaml -v values.yaml -s
 }
 
 function apply_logical_cloud {
-    emcoctl --config emco-cfg.yaml apply -f instantiate-lc.yaml -v values.yaml -s
+    emcoctl --config emco-cfg.yaml apply -f 01-logical-cloud.yaml -v values.yaml -s
 }
 
 function apply_deployment {
-    emcoctl --config emco-cfg.yaml apply -f "${test_case_name}-deployment.yaml" -v values.yaml -s
+    emcoctl --config emco-cfg.yaml apply -f 02-deployment-intent.yaml -v values.yaml -s
 }
 
 function apply_instantiate_testcase {
-    emcoctl --config emco-cfg.yaml apply -f "${test_case_name}-instantiate.yaml" -v values.yaml -s
+    emcoctl --config emco-cfg.yaml apply -f 03-instantiation.yaml -v values.yaml -s
 }
 
 function delete_prerequisites {
-    emcoctl --config emco-cfg.yaml delete -f prerequisites.yaml -v values.yaml -s
+    emcoctl --config emco-cfg.yaml delete -f 00-prerequisites.yaml -v values.yaml -s
 }
 
 function delete_logical_cloud {
-    emcoctl --config emco-cfg.yaml delete -f instantiate-lc.yaml -v values.yaml -s
+    emcoctl --config emco-cfg.yaml delete -f 01-logical-cloud.yaml -v values.yaml -s
 }
 
 function delete_deployment {
-    emcoctl --config emco-cfg.yaml delete -f "${test_case_name}-deployment.yaml" -v values.yaml -s
+    emcoctl --config emco-cfg.yaml delete -f 02-deployment-intent.yaml -v values.yaml -s
 }
 
 function delete_instantiate_testcase {
-    emcoctl --config emco-cfg.yaml delete -f "${test_case_name}-instantiate.yaml" -v values.yaml -s
+    emcoctl --config emco-cfg.yaml delete -f 03-instantiation.yaml -v values.yaml -s
 }
 
 # Function to obtain logical cloud status and wait for it to get instantiated
@@ -115,7 +94,7 @@ function get_deployment_intent_group_apply_status {
     echo "Deployment in progress... Please Wait"
     for try in {0..300}; do
         sleep 1
-        deployment_status="$(emcoctl --config emco-cfg.yaml get projects/$project/composite-apps/$composite_app/v1/deployment-intent-groups/$deployment_intent_group_name/status?status=deployed |  sed -z 's/.*Response://' | jq -r .deployedStatus)"
+        deployment_status="$(emcoctl --config emco-cfg.yaml get projects/$project/composite-apps/test-composite-app/v1/deployment-intent-groups/test-deployment-intent/status?status=deployed |  sed -z 's/.*Response://' | jq -r .deployedStatus)"
 
         case $deployment_status in
             "InstantiateFailed")
@@ -186,7 +165,7 @@ function get_deployment_intent_group_delete_status {
     echo "Deployment deletion in progress... Please Wait"
     for try in {0..300}; do
         sleep 1
-        deployment_status="$(emcoctl --config emco-cfg.yaml get projects/$project/composite-apps/$composite_app/v1/deployment-intent-groups/$deployment_intent_group_name/status?status=deployed |  sed -z 's/.*Response://' | jq -r .deployedStatus)"
+        deployment_status="$(emcoctl --config emco-cfg.yaml get projects/$project/composite-apps/test-composite-app/v1/deployment-intent-groups/test-deployment-intent/status?status=deployed |  sed -z 's/.*Response://' | jq -r .deployedStatus)"
 
         case $deployment_status in
             "TerminateFailed")
@@ -218,8 +197,8 @@ function get_deployment_intent_group_delete_status {
 
 function usage {
 
-    echo "Usage: $0 <test case file> apply|delete"
-    echo "Example: $0 test-prometheus-collectd.yaml apply"
+    echo "Usage: $0 apply|delete"
+    echo "Example: $0 apply"
 
 }
 
@@ -246,12 +225,12 @@ function delete {
     cleanup
 }
 
-if [ "$#" -lt 2 ] ; then
+if [ "$#" -lt 1 ] ; then
     usage
     exit
 fi
 
-case "$2" in
+case "$1" in
     "apply" ) apply ;;
     "delete" ) delete ;;
     *) usage ;;
