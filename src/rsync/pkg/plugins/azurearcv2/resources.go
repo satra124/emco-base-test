@@ -7,9 +7,9 @@ import (
 	"context"
 
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 )
 
 // Creates a new resource if the not already existing

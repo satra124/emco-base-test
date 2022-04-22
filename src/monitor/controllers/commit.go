@@ -94,7 +94,7 @@ func NewGitHubClient() (GithubAccessClient, error) {
 
 func (c *GithubAccessClient) CommitCRToGitHub(cr *k8spluginv1alpha1.ResourceBundleState, l map[string]string) error {
 
-	// Check if Github Client is available
+	//Check if Github Client is available
 	if c.cl == (GitClient{}) {
 		return nil
 	}
@@ -122,9 +122,10 @@ func (c *GithubAccessClient) CommitCRToGitHub(cr *k8spluginv1alpha1.ResourceBund
 		Path:    &path,
 		Content: &s,
 	})
-	commitMessage := "Adding Status for " + path
 
 	appName := c.cluster + "-" + cid + "-" + app
+
+	commitMessage := "Adding Status for " + path + " to branch " + appName
 	// commitfiles
 	err = c.CommitFiles(context.Background(), "main", commitMessage, appName, files)
 

@@ -55,7 +55,7 @@ type KustomizationProperties struct {
 	Path                   string `json:"path"`
 	TimeoutInSeconds       int    `json:"timeoutInSeconds"`
 	SyncIntervalInSeconds  int    `json:"syncIntervalInSeconds"`
-	RetryIntervalInSeconds int   `json:"retryIntervalInSeconds"`
+	RetryIntervalInSeconds int    `json:"retryIntervalInSeconds"`
 	Prune                  bool   `json:"prune"`
 	Force                  bool   `json:"force"`
 }
@@ -65,11 +65,11 @@ type RequestbodyFlux struct {
 }
 
 type FluxExtension struct {
-	Identity   IndentityProp `json:"identity"`
-	Properties ExtensionProp `json:"properties"`
+	AKSIdentityType AKSIdentityTypeProp `json:"aksIdentityType"`
+	Properties      ExtensionProp       `json:"properties"`
 }
 
-type IndentityProp struct {
+type AKSIdentityTypeProp struct {
 	Type string `json:"type"`
 }
 
@@ -123,7 +123,6 @@ func (p *AzureArcV2Provider) getAccessToken(clientId string, clientSecret string
 
 	return newToken.AccessToken, nil
 }
-
 
 /*
 	Function to create gitconfiguration of fluxv1 type in azure
@@ -221,12 +220,12 @@ func (p *AzureArcV2Provider) createFluxConfiguration(accessToken string, reposit
 					Branch: gitbranch}},
 			Kustomizations: KustomizationsUnit{
 				FirstKustomization: KustomizationProperties{
-					Path:                  gitpath,
-					TimeoutInSeconds:      timeOut,
-					SyncIntervalInSeconds: syncInterval,
+					Path:                   gitpath,
+					TimeoutInSeconds:       timeOut,
+					SyncIntervalInSeconds:  syncInterval,
 					RetryIntervalInSeconds: retryInterval,
-					Prune:                 true,
-					Force:                 false}}}}
+					Prune:                  true,
+					Force:                  false}}}}
 
 	dataProperties, err := json.Marshal(properties)
 	if err != nil {
@@ -234,7 +233,7 @@ func (p *AzureArcV2Provider) createFluxConfiguration(accessToken string, reposit
 		return "", err
 	}
 
-	urlPut := subscriptionURL + subscriptionIdValue + "/resourceGroups/" + arcClusterResourceGroupName + "/providers/Microsoft.Kubernetes/connectedClusters/" + arcClusterName + "/providers/Microsoft.KubernetesConfiguration/fluxConfigurations/" + gitConfiguration + "?api-version=2022-01-01-preview"
+	urlPut := subscriptionURL + subscriptionIdValue + "/resourceGroups/" + arcClusterResourceGroupName + "/providers/Microsoft.Kubernetes/connectedClusters/" + arcClusterName + "/providers/Microsoft.KubernetesConfiguration/fluxConfigurations/" + gitConfiguration + "?api-version=2022-03-01"
 	reqPut, err := http.NewRequest(http.MethodPut, urlPut, bytes.NewBuffer(dataProperties))
 
 	if err != nil {
@@ -248,12 +247,12 @@ func (p *AzureArcV2Provider) createFluxConfiguration(accessToken string, reposit
 	fmt.Println(reqPut)
 	resPut, err := client.Do(reqPut)
 	if err != nil {
-		log.Error("Error in http resonse for creation of flux configuration", log.Fields{"err": err})
+		log.Error("Error in http response for creation of flux configuration", log.Fields{"err": err})
 		return "", err
 	}
 	responseDataPut, err := ioutil.ReadAll(resPut.Body)
 	if err != nil {
-		log.Error("Error in reading data from http resonse for creation of flux configuration", log.Fields{"err": err})
+		log.Error("Error in reading data from http response for creation of flux configuration", log.Fields{"err": err})
 		return "", err
 	}
 	return string(responseDataPut), nil
@@ -269,7 +268,7 @@ func (p *AzureArcV2Provider) installFluxExtension(accessToken string, subscripti
 	// PUT request for installing microsoft.flux extension
 	// PUT request body
 	client := http.Client{}
-	properties := FluxExtension{IndentityProp{"SystemAssigned"}, ExtensionProp{"microsoft.flux", true}}
+	properties := FluxExtension{AKSIdentityTypeProp{"SystemAssigned"}, ExtensionProp{"microsoft.flux", true}}
 	dataProperties, err := json.Marshal(properties)
 	if err != nil {
 		log.Error("Error in Marshalling data for Flux extension installation", log.Fields{"err": err})

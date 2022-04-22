@@ -228,8 +228,11 @@ func (p *GitProvider) StartClusterWatcher() error {
 	branch := p.Cluster + "-" + p.Cid + "-" + p.App
 	err = emcogit.CreateBranch(ctx, p.Client, latestSHA, p.UserName, p.RepoName, branch, p.GitType)
 	if err != nil {
-		return err
+		if !strings.Contains(err.Error(), "422 Reference already exists") {
+			return err
+		}
 	}
+
 	// Start thread to sync monitor CR
 	go func() error {
 		ctx := context.Background()
