@@ -33,6 +33,7 @@ type client struct {
 	ClientServiceName string
 	InstallClientRes  bool
 	ClusterData       []clusterData
+	AccessData        []clientAccessData
 }
 type serverData struct {
 	AppName		 string
@@ -40,7 +41,15 @@ type serverData struct {
 	ClusterData	 []clusterData
 	Clients		 []client
 	ExternalSvc      bool
+	AccessClients    bool
 	ExternalSvcData  externalSvcData
+}
+
+type clientAccessData struct {
+	Action		 string
+	Url              []string
+	Methods          []string
+	Hosts            []string
 }
 
 type externalSvcData struct {
@@ -313,6 +322,39 @@ func UpdateAppContext(intentName, appContextId string) error {
 					return err
 				}
 			}
+			acs, err := module.NewClientsAccessInboundIntentClient().GetClientsAccessInboundIntents(project,
+				compositeapp,
+				compositeappversion,
+				deployIntentGroup,
+				intentName,
+				is.Metadata.Name,
+				ic.Metadata.Name)
+			if err != nil {
+				log.Error("Error getting access clients inbound intents", log.Fields{
+					"error": err,
+				})
+				return pkgerrors.Wrapf(err,
+					"Error getting access clients inbound intents %v under client inbound intent %v for %v/%v%v/%v not found",
+					ic.Metadata.Name, intentName, project, compositeapp, compositeappversion, deployIntentGroup)
+			}
+			la := len(acs)
+			servers[index].Clients[i].AccessData = make([]clientAccessData, la)
+			hosts := []string{}
+			for k, ac := range acs {
+				servers[index].AccessClients = true
+				servers[index].Clients[i].AccessData[k].Action = ac.Spec.Action
+				servers[index].Clients[i].AccessData[k].Url = ac.Spec.Url
+				servers[index].Clients[i].AccessData[k].Methods = ac.Spec.Access
+				h1 := is.Spec.ServiceName + "." + namespace
+				hosts = append(hosts, h1)
+				h2 := is.Spec.ServiceName + "." + namespace + "."+ "svc.cluster.local"
+				hosts = append(hosts, h2)
+				hosts = append(hosts, is.Spec.ServiceName)
+				if servers[index].ExternalSvc {
+					hosts = append(hosts, is.Spec.ExternalName)
+				}
+				servers[index].Clients[i].AccessData[k].Hosts = hosts
+			}
 		}
 		// check if external service
 		if servers[index].ExternalSvc {
@@ -327,8 +369,6 @@ func UpdateAppContext(intentName, appContextId string) error {
 						"Error creating server external resources")
 				}
 			}
-			index = index + 1
-			continue
 		}
 		// check if the server and clients are on the same cluster
 		for ci, scd := range servers[index].ClusterData {
@@ -353,8 +393,29 @@ func UpdateAppContext(intentName, appContextId string) error {
 					"error":    err,
 					"svc name": is.Spec.ServiceName,
 				})
-				return pkgerrors.Wrapf(err,
-					"Error creating server resources")
+				return pkgerrors.Wrapf(err, "Error creating server resources")
+			}
+		}
+		// check if the access res needs to be created
+		if servers[index].AccessClients {
+			for _, cli := range servers[index].Clients {
+				for k, acl := range cli.AccessData {
+					out, err := createAuthPolicy(is.Spec.AppName, namespace, acl.Action, acl.Methods, acl.Url, acl.Hosts)
+					if err != nil {
+						log.Error("Error creating auth policy resources", log.Fields{
+							"error":    err,
+							"svc name": is.Spec.ServiceName,
+						})
+						return pkgerrors.Wrapf(err,
+							"Error creating auth policy resources")
+					}
+					for m, _ := range servers[index].ClusterData {
+						resname := is.Spec.ServiceName + "-auth-" + strconv.Itoa(k) + strconv.Itoa(m)
+						res := make(map[string][]byte)
+						res[resname] = out
+						servers[index].ClusterData[m].Reslist = append(servers[index].ClusterData[m].Reslist, res)
+					}
+				}
 			}
 		}
 		index = index + 1

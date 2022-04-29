@@ -6,8 +6,3 @@
 version: emco/v2
 resourceContext:
   anchor: projects/{{ .ProjectName }}/composite-apps/{{ .CompositeApp }}/{{ .CompositeAppVersion }}/deployment-intent-groups/{{ .DeploymentIntentGroup }}/terminate
----
-#Terminate the logical clouds installed
-version: emco/v2
-resourceContext:
-  anchor: projects/{{ .ProjectName }}/logical-clouds/{{ .LogicalCloud }}/terminate

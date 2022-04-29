@@ -51,6 +51,30 @@ spec:
 {{- end }}
 
 ---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ .ProjectName }}/composite-apps/{{ .CompositeApp }}/{{ .CompositeAppVersion }}/deployment-intent-groups/{{ .DeploymentIntentGroup }}/generic-placement-intents
+metadata :
+  name: {{ .GenericPlacementIntent2 }}
+
+{{- range $index, $app := .AppsInCluster2 }}
+---
+#add the app placement intent to the generic placement intent for cluster2
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $.CompositeApp }}/{{ $.CompositeAppVersion }}/deployment-intent-groups/{{ $.DeploymentIntentGroup }}/generic-placement-intents/{{ $.GenericPlacementIntent }}/app-intents
+metadata:
+  name: {{ $app }}-placement-intent
+spec:
+  app: {{ $app }}
+  intent:
+    allOf:
+    - clusterProvider: {{ $.ClusterProvider }}
+      clusterLabel: {{ $.Cluster2Label }}
+{{- end }}
+
+---
 #add the traffic group intent
 version: emco/v2
 resourceContext:
@@ -101,6 +125,31 @@ spec:
   management:
     sidecarProxy: yes
     tlsType: NONE
+---
+#add the client intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ .ProjectName }}/composite-apps/{{ .CompositeApp }}/{{ .CompositeAppVersion }}/deployment-intent-groups/{{ .DeploymentIntentGroup }}/traffic-group-intents/{{ .DtcIntent }}/inbound-intents/{{ .DtcHttpbinServerIntent }}/clients
+metadata:
+  name: {{ .DtcClientsIntent }}
+spec:
+  app: sleep
+  appLabel: app=sleep
+  serviceName: sleep
+  namespaces: []
+  cidrs: []
+
+---
+#add the client access intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ .ProjectName }}/composite-apps/{{ .CompositeApp }}/{{ .CompositeAppVersion }}/deployment-intent-groups/{{ .DeploymentIntentGroup }}/traffic-group-intents/{{ .DtcIntent }}/inbound-intents/{{ .DtcHttpbinServerIntent }}/clients/{{ .DtcClientsIntent }}/access-points
+metadata:
+  name: {{ .DtcClientsAccessIntent }}
+spec:
+  action: "ALLOW"
+  url: ["/status/*", "/status/418"]
+  access: ["GET"]
 ---
 #Approve
 version: emco/v2
