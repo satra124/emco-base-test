@@ -8,6 +8,7 @@ import (
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	gogithub "github.com/google/go-github/v41/github"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 )
 
@@ -15,17 +16,43 @@ const (
 	githubDomain = "github.com"
 )
 
+type GithubClient struct {
+	gitProviderClient gitprovider.Client
+	gogithubClient    *gogithub.Client
+}
+
 /*
-	Function to create gitprovider githubClient
+	Function to create githubClient
 	params : github token
-	return : gitprovider github client, error
+	return : github client, error
 */
-func CreateClient(githubToken string) (gitprovider.Client, error) {
-	c, err := github.NewClient(gitprovider.WithOAuth2Token(githubToken), gitprovider.WithDestructiveAPICalls(true))
+func CreateClient(userName, githubToken string) (GithubClient, error) {
+
+	var client GithubClient
+	var err error
+
+	client.gitProviderClient, err = github.NewClient(gitprovider.WithOAuth2Token(githubToken), gitprovider.WithDestructiveAPICalls(true))
 	if err != nil {
-		return nil, err
+		return GithubClient{}, err
 	}
-	return c, nil
+
+	tp := gogithub.BasicAuthTransport{
+		Username: userName,
+		Password: githubToken,
+	}
+	client.gogithubClient = gogithub.NewClient(tp.Client())
+
+	return client, nil
+
+}
+
+/*
+	Helper function to convert interface to GithubClient
+	params: files interface{}
+	return: GithubClient
+*/
+func convertToClient(c interface{}) GithubClient {
+	return c.(GithubClient)
 }
 
 /*
@@ -33,7 +60,10 @@ func CreateClient(githubToken string) (gitprovider.Client, error) {
 	params : context, github client, Repository Name, User Name, description
 	return : nil/error
 */
-func CreateRepo(ctx context.Context, c gitprovider.Client, repoName string, userName string, desc string) error {
+func CreateRepo(ctx context.Context, c interface{}, repoName string, userName string, desc string) error {
+
+	// obtain client
+	client := convertToClient(c)
 
 	// create repo reference
 	userRepoRef := getRepoRef(userName, repoName)
@@ -45,7 +75,7 @@ func CreateRepo(ctx context.Context, c gitprovider.Client, repoName string, user
 	}
 
 	// Create the repository
-	_, err := c.UserRepositories().Create(ctx, userRepoRef, userRepoInfo, &gitprovider.RepositoryCreateOptions{
+	_, err := client.gitProviderClient.UserRepositories().Create(ctx, userRepoRef, userRepoInfo, &gitprovider.RepositoryCreateOptions{
 		AutoInit:        gitprovider.BoolVar(true),
 		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
 	})
@@ -63,12 +93,15 @@ func CreateRepo(ctx context.Context, c gitprovider.Client, repoName string, user
 	params : context, github client, User Name, Repo Name, Branch Name, Commit Message, files ([]gitprovider.CommitFile)
 	return : nil/error
 */
-func CommitFiles(ctx context.Context, c gitprovider.Client, userName string, repoName string, branch string, commitMessage string, files []gitprovider.CommitFile) error {
+func CommitFiles(ctx context.Context, c interface{}, userName string, repoName string, branch string, commitMessage string, files []gitprovider.CommitFile) error {
+
+	// obtain client
+	client := convertToClient(c)
 
 	// create repo reference
 	userRepoRef := getRepoRef(userName, repoName)
 
-	userRepo, err := c.UserRepositories().Get(ctx, userRepoRef)
+	userRepo, err := client.gitProviderClient.UserRepositories().Get(ctx, userRepoRef)
 	if err != nil {
 		return err
 	}
@@ -83,15 +116,18 @@ func CommitFiles(ctx context.Context, c gitprovider.Client, userName string, rep
 
 /*
 	Function to delete repo
-	params : context, gitprovider client , user name, repo name
+	params : context, github client , user name, repo name
 	return : nil/error
 */
-func DeleteRepo(ctx context.Context, c gitprovider.Client, userName string, repoName string) error {
+func DeleteRepo(ctx context.Context, c interface{}, userName string, repoName string) error {
+
+	// obtain client
+	client := convertToClient(c)
 
 	// create repo reference
 	userRepoRef := getRepoRef(userName, repoName)
 	// get the reference of the repo to be deleted
-	userRepo, err := c.UserRepositories().Get(ctx, userRepoRef)
+	userRepo, err := client.gitProviderClient.UserRepositories().Get(ctx, userRepoRef)
 
 	if err != nil {
 		return err
@@ -160,11 +196,14 @@ func Delete(path string, files []gitprovider.CommitFile) []gitprovider.CommitFil
 	params : context, github client, User Name, Repo Name, Branch Name, path)
 	return : []*gitprovider.CommitFile, nil/error
 */
-func GetFiles(ctx context.Context, c gitprovider.Client, userName string, repoName string, branch string, path string) ( []*gitprovider.CommitFile, error ){
+func GetFiles(ctx context.Context, c interface{}, userName string, repoName string, branch string, path string) ([]*gitprovider.CommitFile, error) {
+
+	// obtain client
+	client := convertToClient(c)
 
 	// create repo reference
 	userRepoRef := getRepoRef(userName, repoName)
-	userRepo, err := c.UserRepositories().Get(ctx, userRepoRef)
+	userRepo, err := client.gitProviderClient.UserRepositories().Get(ctx, userRepoRef)
 	if err != nil {
 		return nil, err
 	}
@@ -174,4 +213,40 @@ func GetFiles(ctx context.Context, c gitprovider.Client, userName string, repoNa
 		return nil, err
 	}
 	return cf, nil
+}
+
+/*
+	Function to obtaion the SHA of latest commit
+	params : context, github client, User Name, Repo Name, Branch, Path
+	return : LatestCommit string, error
+*/
+func GetLatestCommitSHA(ctx context.Context, c interface{}, userName, repoName, branch, path string) (string, error) {
+
+	// obtain client
+	client := convertToClient(c)
+
+	perPage := 1
+	page := 1
+
+	lcOpts := &gogithub.CommitsListOptions{
+		ListOptions: gogithub.ListOptions{
+			PerPage: perPage,
+			Page:    page,
+		},
+		SHA:  branch,
+		Path: path,
+	}
+	//Get the latest SHA
+	resp, _, err := client.gogithubClient.Repositories.ListCommits(ctx, userName, repoName, lcOpts)
+	if err != nil {
+		log.Error("Error in obtaining the list of commits", log.Fields{"err": err})
+		return "", err
+	}
+	if len(resp) == 0 {
+		log.Info("File not created yet.", log.Fields{"Latest Commit Array": resp})
+		return "", nil
+	}
+	latestCommitSHA := *resp[0].SHA
+
+	return latestCommitSHA, nil
 }

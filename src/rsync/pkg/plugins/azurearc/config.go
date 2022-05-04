@@ -160,7 +160,7 @@ func (p *AzureArcProvider) createGitConfiguration(accessToken string, repository
 */
 func (p *AzureArcProvider) addDummyFile(ctx context.Context, gitBranch string) error {
 
-	c, err := emcogit.CreateClient(p.gitProvider.GitToken, p.gitProvider.GitType)
+	c, err := emcogit.CreateClient(p.gitProvider.UserName, p.gitProvider.GitToken, p.gitProvider.GitType)
 
 	if err != nil {
 		log.Error("Error Creating emcogit client", log.Fields{"err": err})
@@ -187,7 +187,7 @@ func (p *AzureArcProvider) addDummyFile(ctx context.Context, gitBranch string) e
 */
 func (p *AzureArcProvider) deleteDummyFile(ctx context.Context, gitBranch string) error {
 
-	c, err := emcogit.CreateClient(p.gitProvider.GitToken, p.gitProvider.GitType)
+	c, err := emcogit.CreateClient(p.gitProvider.UserName, p.gitProvider.GitToken, p.gitProvider.GitType)
 
 	if err != nil {
 		log.Error("Error Creating emcogit client", log.Fields{"err": err})

@@ -6,10 +6,9 @@ package emcogit
 import (
 	"context"
 
-	emcogithub "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogithub"
-
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	pkgerrors "github.com/pkg/errors"
+	emcogithub "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogithub"
 )
 
 /*
@@ -36,12 +35,12 @@ func convertToCommitFile(ref interface{}) []gitprovider.CommitFile {
 }
 
 /*
-	Helper function to convert interface to gitprovider.Client
+	Helper function to convert interface to emcogithub.GithubClient
 	params: files interface{}
-	return: gitprovider.Client
+	return: emcogithub.GithubClient
 */
-func convertToClient(c interface{}) gitprovider.Client {
-	return c.(gitprovider.Client)
+func convertToClient(c interface{}) emcogithub.GithubClient {
+	return c.(emcogithub.GithubClient)
 }
 
 /*
@@ -49,10 +48,10 @@ func convertToClient(c interface{}) gitprovider.Client {
 	params : git token
 	return : git client, error
 */
-func CreateClient(gitToken string, gitType string) (interface{}, error) {
+func CreateClient(userName, gitToken, gitType string) (interface{}, error) {
 	switch gitType {
 	case "github":
-		c, err := emcogithub.CreateClient(gitToken)
+		c, err := emcogithub.CreateClient(userName, gitToken)
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +70,7 @@ func CreateRepo(ctx context.Context, c interface{}, repoName string, userName st
 
 	switch gitType {
 	case "github":
-		err := emcogithub.CreateRepo(ctx, convertToClient(c), repoName, userName, desc)
+		err := emcogithub.CreateRepo(ctx, c, repoName, userName, desc)
 		if err != nil {
 			return err
 		}
@@ -91,7 +90,7 @@ func DeleteRepo(ctx context.Context, c interface{}, userName string, repoName st
 
 	switch gitType {
 	case "github":
-		err := emcogithub.DeleteRepo(ctx, convertToClient(c), userName, repoName)
+		err := emcogithub.DeleteRepo(ctx, c, userName, repoName)
 		if err != nil {
 			return err
 		}
@@ -110,7 +109,7 @@ func CommitFiles(ctx context.Context, c interface{}, userName string, repoName s
 
 	switch gitType {
 	case "github":
-		err := emcogithub.CommitFiles(ctx, convertToClient(c), userName, repoName, branch, commitMessage, convertToCommitFile(files))
+		err := emcogithub.CommitFiles(ctx, c, userName, repoName, branch, commitMessage, convertToCommitFile(files))
 		if err != nil {
 			return err
 		}
@@ -150,12 +149,27 @@ func Delete(path string, files interface{}, gitType string) interface{} {
 	return nil
 }
 
-func GetFiles(ctx context.Context, c interface{}, userName, repoName, branch, path, gitType string) ( interface{}, error) {
+func GetFiles(ctx context.Context, c interface{}, userName, repoName, branch, path, gitType string) (interface{}, error) {
 	switch gitType {
 	case "github":
-		ref, err := emcogithub.GetFiles(ctx, convertToClient(c), userName, repoName, branch, path)
+		ref, err := emcogithub.GetFiles(ctx, c, userName, repoName, branch, path)
 		return ref, err
 	}
 	//Add other types like gitlab, bitbucket etc
 	return nil, nil
+}
+
+/*
+	Function to obtaion the SHA of latest commit
+	params : context, go git client, User Name, Repo Name, Branch, Path
+	return : LatestCommit string, error
+*/
+func GetLatestCommitSHA(ctx context.Context, c interface{}, userName, repoName, branch, path, gitType string) (string, error) {
+	switch gitType {
+	case "github":
+		latestCommitSHA, err := emcogithub.GetLatestCommitSHA(ctx, c, userName, repoName, branch, path)
+		return latestCommitSHA, err
+	}
+	//Add other types like gitlab, bitbucket etc
+	return "", nil
 }
