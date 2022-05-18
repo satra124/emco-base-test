@@ -15,7 +15,7 @@ Make sure to add "/" in the end while defining the repository
 
 `$ make all`
 
-Packages helm charts in tar.gz format. All packages are in **dist/packages** directory and the package of intrest are:
+Packages helm charts in gzipped tarball format. All packages are in the **dist/packages** directory. This will create the following tarballs:
 
   | File                        | Description                                                               |
   | --------------------------- | ------------------------------------------------------------------------- |

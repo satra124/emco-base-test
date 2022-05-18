@@ -70,7 +70,7 @@ This will build the image that can then be used to create Helm charts for every 
 The image names outlined in `config/config.txt` will be searched in `MAINDOCKERREPO`.
 `BUILD_BASE_IMAGE_NAME` which defaults to `emco-build-base` must be first built and pushed to `EMCODOCKERREPO`. Additionally, the `mongodb` and `etcd` images will also be pulled from `MAINDOCKERREPO`.
 
-Both `EMCODOCKERREPO` and `MAINDOCKERREPO` can be set to the same exat container registry, in which case both pulling and pushing will always be done in the same registry.
+Both `EMCODOCKERREPO` and `MAINDOCKERREPO` can be set to identical container registry URLs, in which case both pulling and pushing will always be done in the same registry.
 
 Here are some of the images and versions that have been validated as of this writing:
   1.	alpine:3.12 (this is the default `SERVICE_BASE_IMAGE_*`, the base for EMCO microservice images)
