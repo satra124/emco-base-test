@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022 Intel Corporation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xstream-service
+spec:
+  selector:
+    matchLabels:
+      app: xstream-service
+  template:
+    metadata:
+      labels:
+        app: xstream-service
+    spec:
+      containers:
+      - env:
+        - name: PORT
+          value: {{ .Values.xstreamservice.server.port | quote }}
+        image: {{ .Values.xstreamservice.server.image.repository }}:{{ .Values.xstreamservice.server.image.tag | default .Chart.AppVersion }}
+        imagePullPolicy: {{ .Values.xstreamservice.server.image.pullPolicy }}
+        name: server
+        ports:
+        - containerPort: {{ .Values.xstreamservice.server.port }}
+        resources: {{- toYaml .Values.xstreamservice.server.resources | nindent 10 }}
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5 

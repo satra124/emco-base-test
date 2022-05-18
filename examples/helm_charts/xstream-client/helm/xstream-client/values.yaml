@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022 Intel Corporation
+xstreamclient:
+  client:
+    port: 9111
+    image:
+      repository: <docker-registry-url>/xstream-client
+      tag: "1.0"
+      pullPolicy: IfNotPresent
+    resources:
+      limits:
+        cpu: 300m
+        memory: 300Mi
+      requests:
+        cpu: 200m
+        memory: 180Mi
+  type: ClusterIP

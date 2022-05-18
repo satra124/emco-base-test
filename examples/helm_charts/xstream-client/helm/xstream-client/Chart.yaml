@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022 Intel Corporation
+apiVersion: v2
+appVersion: 1.1.0
+description: A Helm chart for xstream-client to be deployed on app namespace
+name: xstream-client
+type: application
+version: 0.1.0

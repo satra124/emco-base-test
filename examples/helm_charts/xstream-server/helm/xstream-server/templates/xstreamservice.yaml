@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022 Intel Corporation
+apiVersion: v1
+kind: Service
+metadata:
+  name: xstream-service
+spec:
+  type: {{ .Values.xstreamservice.type }}
+  selector:
+    app: xstream-service
+  ports:
+	{{- .Values.xstreamservice.ports | toYaml | nindent 2 -}}

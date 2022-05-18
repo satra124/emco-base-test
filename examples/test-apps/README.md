@@ -49,4 +49,30 @@
 ```
     docker push <docker-registry-url>/httpbin-client:1.0
 ```
-
+**Steps to build grpc xstream server client images:**
+(1) Clone the repo
+```
+    cd examples/test-apps
+    git clone https://github.com/toransahu/grpc-eg-go/
+```
+(2) Compile client and server
+```
+    cd grpc-eg-go/cmd;go build run_machine_server.go
+    cd ../client;go build machine.go
+```
+(3) Build client and server images
+```
+    cd ../..
+    docker build -t xstream-server -f Dockerfile_xstream-server .
+    docker build -t xstream-client -f Dockerfile_xstream-client .
+```
+(4) Tag the images
+```
+    docker tag xstream-server:latest <docker-registry-url>/xstream-server:1.0
+    docker tag xstream-client:latest <docker-registry-url>/xstream-client:1.0
+```
+(5) Push the images to docker repo
+```
+    docker push <docker-registry-url>/xstream-server:1.0
+    docker push <docker-registry-url>/xstream-client:1.0
+```

@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022 Intel Corporation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xstream-client
+spec:
+  selector:
+    matchLabels:
+      app: xstream-client
+  template:
+    metadata:
+      labels:
+        app: xstream-client
+    spec:
+      containers:
+      - image: {{ .Values.xstreamclient.client.image.repository }}:{{ .Values.xstreamclient.client.image.tag | default .Chart.AppVersion }}
+        imagePullPolicy: {{ .Values.xstreamclient.client.image.pullPolicy }}
+        name: client
+        resources: {{- toYaml .Values.xstreamclient.client.resources | nindent 10 }}
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5 
