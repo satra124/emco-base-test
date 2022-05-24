@@ -141,7 +141,7 @@ Example of a Azure Arc Object Cluster Sync object for the above API:
 Existing cluster registration API takes in a kubeconfig file for accessing a cluster directly. The API is extended to add 3 fields under gitOps section in spec. If gitOps section is provided than all 3 fields are mandatory. If this section is omitted than that is the default case and behaviour of the API doesn't change from the existing API.
 
 - gitOpsType: This specifies the provider of GitOps. Examples are Azure Arc, Google Anthos, FluxCD, and ArgoCD.
-    - Fixed values will be "azureArc", "fluxv2", "googleAnthos".
+    - Fixed values will be "azureArc", "fluxv2", "anthos".
 
 - gitOpsReferenceObject: This is the cluster-sync-object for providing credentials for the gitOps provider.
 

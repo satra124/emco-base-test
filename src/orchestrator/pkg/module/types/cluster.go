@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright (c) 2020 Intel Corporation
+// Copyright (c) 2021-2022 Intel Corporation
 
 package types
 
@@ -12,7 +12,7 @@ type GitOpsSpec struct {
 
 // GitOps Properties for Reference and Resource Objects
 type GitOpsProps struct {
-	// GitOps type - example Fluxv2, AzureArc, GoogleAnthos
+	// GitOps type - example fluxv2, azureArc, anthos
 	GitOpsType string `json:"gitOpsType"`
 	// Refrence Sync object for the cloud configuration
 	GitOpsReferenceObject string `json:"gitOpsReferenceObject"`

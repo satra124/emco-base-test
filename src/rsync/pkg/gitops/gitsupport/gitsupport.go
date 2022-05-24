@@ -36,7 +36,7 @@ type GitProvider struct {
 }
 
 /*
-	Function to create a New gitProivider
+	Function to create a New gitProvider
 	params : cid, app, cluster, level, namespace string
 	return : GitProvider, error
 */

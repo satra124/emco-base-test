@@ -26,6 +26,9 @@ ifndef MODS
 MODS=clm dcm dtc nps sds its genericactioncontroller monitor ncm orchestrator ovnaction rsync tools/emcoctl sfc sfcclient hpa-plc hpa-ac workflowmgr ca-certs swc
 endif
 
+noparam:
+	@echo "Please pick a make a target, such as: all, build-base, deploy, develop, test, clean-all."
+
 all: check-env compile build-containers
 
 check-env:

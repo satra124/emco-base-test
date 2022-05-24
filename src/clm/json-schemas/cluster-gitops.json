@@ -32,7 +32,7 @@
               }
             }
           },
-          
+
           "spec": {
                 "type":"object",
                 "required": ["gitOps"],
@@ -42,7 +42,7 @@
                         "properties": {
                             "gitOpsType":{
                                 "type":"string",
-                                "enum": ["azureArc", "fluxv2", "googleAnthos"]
+                                "enum": ["azureArc", "fluxv2", "anthos"]
                             },
                             "gitOpsReferenceObject":{
                                 "type": "string",

@@ -11,6 +11,7 @@ import (
 	pkgerrors "github.com/pkg/errors"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/anthos"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/azurearc"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/azurearcv2"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/fluxv2"
@@ -90,7 +91,6 @@ func (p *Provider) GetClientProviders(app, cluster, level, namespace string) (Cl
 			return nil, err
 		}
 		return cl, nil
-		//Add other types like Azure Arc, Anthos etc here
 	case "azureArc":
 		cl, err := azurearc.NewAzureArcProvider(p.cid, app, cluster, level, namespace)
 		if err != nil {
@@ -99,6 +99,12 @@ func (p *Provider) GetClientProviders(app, cluster, level, namespace string) (Cl
 		return cl, nil
 	case "azureArcV2":
 		cl, err := azurearcv2.NewAzureArcProvider(p.cid, app, cluster, level, namespace)
+		if err != nil {
+			return nil, err
+		}
+		return cl, nil
+	case "anthos":
+		cl, err := anthos.NewAnthosProvider(p.cid, app, cluster, level, namespace)
 		if err != nil {
 			return nil, err
 		}
