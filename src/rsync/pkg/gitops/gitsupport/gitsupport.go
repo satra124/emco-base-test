@@ -194,7 +194,8 @@ func (p *GitProvider) Commit(ctx context.Context, ref interface{}) error {
 		log.Error("Commit: No ref found", log.Fields{})
 		return nil
 	}
-	err := emcogit.CommitFiles(ctx, p.Client, p.UserName, p.RepoName, p.Branch, "Commit for "+p.GetPath("context"), ref.([]gitprovider.CommitFile), p.GitType)
+	appName := p.Cid + "-" + p.App
+	err := emcogit.CommitFiles(ctx, p.Client, p.UserName, p.RepoName, p.Branch, "Commit for "+p.GetPath("context"), appName, ref.([]gitprovider.CommitFile), p.GitType)
 
 	return err
 }
@@ -215,6 +216,20 @@ var waitTime int = 60
 // go routine starts and reads after waitTime
 // Thread exists when the AppContext is deleted
 func (p *GitProvider) StartClusterWatcher() error {
+	// obtain the sha key for main
+	//obtain shaake
+	ctx := context.Background()
+
+	latestSHA, err := emcogit.GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, p.Branch, "", p.GitType)
+	if err != nil {
+		return err
+	}
+	// create branch for status
+	branch := p.Cluster + "-" + p.Cid + "-" + p.App
+	err = emcogit.CreateBranch(ctx, p.Client, latestSHA, p.UserName, p.RepoName, branch, p.GitType)
+	if err != nil {
+		return err
+	}
 	// Start thread to sync monitor CR
 	go func() error {
 		ctx := context.Background()
@@ -233,8 +248,10 @@ func (p *GitProvider) StartClusterWatcher() error {
 					return nil
 				}
 				path := p.GetPath("status")
+				// branch to track
+				branch := p.Cluster + "-" + p.Cid + "-" + p.App
 
-				latestCommitSHA, err := emcogit.GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, p.Branch, path, p.GitType)
+				latestCommitSHA, err := emcogit.GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, branch, path, p.GitType)
 				if err != nil {
 					log.Error("Error in obtaining latest commit SHA", log.Fields{"err": err})
 				}
@@ -243,7 +260,7 @@ func (p *GitProvider) StartClusterWatcher() error {
 					// new commit get files
 					// Read file
 					log.Debug("New Status File, pulling files", log.Fields{"LatestSHA": latestCommitSHA, "LastSHA": lastCommitSHA})
-					c, err := emcogit.GetFiles(ctx, p.Client, p.UserName, p.RepoName, p.Branch, path, p.GitType)
+					c, err := emcogit.GetFiles(ctx, p.Client, p.UserName, p.RepoName, branch, path, p.GitType)
 					if err != nil {
 						log.Debug("Status file not available", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
 						continue
@@ -274,10 +291,16 @@ func (p *GitProvider) StartClusterWatcher() error {
 // DeleteClusterStatusCR deletes the status CR provided by the monitor on the cluster
 func (p *GitProvider) DeleteClusterStatusCR() error {
 	// Delete the status CR
-	path := p.GetPath("status") + p.Cid + "-" + p.App
-	rf := []gitprovider.CommitFile{}
-	ref := emcogit.Delete(path, rf, p.GitType)
-	err := emcogit.CommitFiles(context.Background(), p.Client, p.UserName, p.RepoName, p.Branch,
-		"Commit for Delete Status CR "+p.GetPath("status"), ref, p.GitType)
-	return err
+	// branch to track
+	branch := p.Cluster + "-" + p.Cid + "-" + p.App
+
+	ctx := context.Background()
+
+	// Delete the branch
+	err := emcogit.DeleteBranch(ctx, p.Client, p.UserName, p.RepoName, branch, p.GitType)
+	if err != nil {
+		log.Error("Error in deleting branch", log.Fields{"err": err})
+		return err
+	}
+	return nil
 }

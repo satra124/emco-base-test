@@ -5,6 +5,10 @@ package emcogithub
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
+	"strings"
+	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -14,6 +18,7 @@ import (
 
 const (
 	githubDomain = "github.com"
+	maxrand      = 0x7fffffffffffffff
 )
 
 type GithubClient struct {
@@ -90,26 +95,69 @@ func CreateRepo(ctx context.Context, c interface{}, repoName string, userName st
 
 /*
 	Function to commit multiple files to the github repo
-	params : context, github client, User Name, Repo Name, Branch Name, Commit Message, files ([]gitprovider.CommitFile)
+	params : context, github client, User Name, Repo Name, BranchName, Commit Message, files ([]gitprovider.CommitFile)
 	return : nil/error
 */
-func CommitFiles(ctx context.Context, c interface{}, userName string, repoName string, branch string, commitMessage string, files []gitprovider.CommitFile) error {
+func CommitFiles(ctx context.Context, c interface{}, userName, repoName, branch, commitMessage, appName string, files []gitprovider.CommitFile) error {
 
 	// obtain client
 	client := convertToClient(c)
 
-	// create repo reference
-	userRepoRef := getRepoRef(userName, repoName)
+	n := 0
+	for {
+		// obtain the sha key for main
+		//obtain sha
+		latestSHA, err := GetLatestCommitSHA(ctx, client, userName, repoName, branch, "")
+		if err != nil {
+			return err
+		}
+		//create a new branch from main
+		ra := rand.New(rand.NewSource(time.Now().UnixNano()))
+		rn := ra.Int63n(maxrand)
+		id := fmt.Sprintf("%v", rn)
 
-	userRepo, err := client.gitProviderClient.UserRepositories().Get(ctx, userRepoRef)
-	if err != nil {
-		return err
-	}
-	//Commit file to this repo
-	_, err = userRepo.Commits().Create(ctx, branch, commitMessage, files)
+		mergeBranch := appName + "-" + id
+		err = CreateBranch(ctx, client, latestSHA, userName, repoName, mergeBranch)
 
-	if err != nil {
-		return err
+		// defer deletion of the created branch
+		defer DeleteBranch(ctx, client, userName, repoName, mergeBranch)
+
+		if err != nil {
+			return err
+		}
+
+		// commit the files to this new branch
+		// create repo reference
+		userRepoRef := getRepoRef(userName, repoName)
+
+		userRepo, err := client.gitProviderClient.UserRepositories().Get(ctx, userRepoRef)
+		if err != nil {
+			return err
+		}
+
+		//Commit file to this repo
+		resp, err := userRepo.Commits().Create(ctx, mergeBranch, commitMessage, files)
+		if err != nil {
+			log.Error("Error in commiting the files", log.Fields{"err": err, "mergeBranch": mergeBranch, "commitMessage": commitMessage, "files": files})
+			return err
+		}
+		log.Debug("CommitResponse for userRepo:", log.Fields{"resp": resp})
+
+		// merge the branch to the main
+		err = mergeBranchToMain(ctx, client, userName, repoName, branch, mergeBranch)
+
+		if err != nil {
+			// check error for merge conflict "409 Merge conflict"
+			if strings.Contains(err.Error(), "409 Merge conflict") && n < 3 {
+				// Merge conflict flag
+				n++
+				log.Error("Merge Conflict, trying again!", log.Fields{"err": err})
+				continue
+			} else {
+				return err
+			}
+		}
+		return nil
 	}
 	return nil
 }
@@ -249,4 +297,98 @@ func GetLatestCommitSHA(ctx context.Context, c interface{}, userName, repoName, 
 	latestCommitSHA := *resp[0].SHA
 
 	return latestCommitSHA, nil
+}
+
+/*
+	function to create new branch from main
+	params : context, go git client, latestCommitSHA, User Name, Repo Name, branch
+	return : error
+*/
+func CreateBranch(ctx context.Context, c interface{}, latestCommitSHA, userName, repoName, branch string) error {
+
+	// obtain client
+	client := convertToClient(c)
+
+	// create a new branch
+	ref, _, err := client.gogithubClient.Git.CreateRef(ctx, userName, repoName, &gogithub.Reference{
+		Ref: gogithub.String("refs/heads/" + branch),
+		Object: &gogithub.GitObject{
+			SHA: gogithub.String(latestCommitSHA),
+		},
+	})
+	if err != nil {
+		log.Error("Git.CreateRef returned error:", log.Fields{"err": err})
+		return err
+
+	}
+	log.Info("Branch Created: ", log.Fields{"ref": ref})
+	return nil
+}
+
+/*
+	function to merge the branch to main
+	params : context, go git client, User Name, Repo Name,branch, mergeBranch
+	return : LatestCommit string, error
+*/
+func mergeBranchToMain(ctx context.Context, c interface{}, userName, repoName, branch, mergeBranch string) error {
+	// obtain client
+	client := convertToClient(c)
+
+	// merge the branch
+	input := &gogithub.RepositoryMergeRequest{
+		Base:          gogithub.String(branch),
+		Head:          gogithub.String(mergeBranch),
+		CommitMessage: gogithub.String("merging " + mergeBranch + " to " + branch),
+	}
+
+	commit, _, err := client.gogithubClient.Repositories.Merge(ctx, userName, repoName, input)
+	if err != nil {
+		log.Error("Error occured while Merging", log.Fields{"err": err})
+		return err
+	}
+
+	log.Info("Branch Merged, Merge response:", log.Fields{"commit": commit})
+
+	return nil
+
+}
+
+/*
+	Function to delete the branch
+	params : context, go git client, User Name, Repo Name, mergeBranch
+	return : LatestCommit string, error
+*/
+func DeleteBranch(ctx context.Context, c interface{}, userName, repoName, mergeBranch string) error {
+
+	// obtain client
+	client := convertToClient(c)
+
+	// Delete the Git branch
+	_, err := client.gogithubClient.Git.DeleteRef(ctx, userName, repoName, "refs/heads/"+mergeBranch)
+	if err != nil {
+		log.Error("Git.DeleteRef returned error: ", log.Fields{"err": err})
+		return err
+	}
+	log.Info("Branch Deleted", log.Fields{"mergeBranch": mergeBranch})
+	return nil
+}
+
+/*
+	Function to check if file exists
+	params : context, go git client, User Name, Repo Name, Branch, Path
+	return : LatestCommit string, error
+*/
+func CheckIfFileExists(ctx context.Context, c interface{}, userName, repoName, branch, path string) (bool, error) {
+
+	latestSHA, err := GetLatestCommitSHA(ctx, c, userName, repoName, branch, path)
+	if err != nil {
+		return false, err
+	}
+
+	if latestSHA == "" {
+		return false, nil
+	}
+
+	return true, nil
+
 }

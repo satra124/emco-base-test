@@ -35,15 +35,6 @@ func convertToCommitFile(ref interface{}) []gitprovider.CommitFile {
 }
 
 /*
-	Helper function to convert interface to emcogithub.GithubClient
-	params: files interface{}
-	return: emcogithub.GithubClient
-*/
-func convertToClient(c interface{}) emcogithub.GithubClient {
-	return c.(emcogithub.GithubClient)
-}
-
-/*
 	Function to create git client
 	params : git token
 	return : git client, error
@@ -102,14 +93,14 @@ func DeleteRepo(ctx context.Context, c interface{}, userName string, repoName st
 
 /*
 	Function to commit multiple files to the github repo
-	params : context, git client, User Name, Repo Name, Branch Name, Commit Message, files
+	params : context, git client, User Name, Repo Name, Branch Name, Commit Message, appName, files
 	return : nil/error
 */
-func CommitFiles(ctx context.Context, c interface{}, userName string, repoName string, branch string, commitMessage string, files interface{}, gitType string) error {
+func CommitFiles(ctx context.Context, c interface{}, userName, repoName, branch, commitMessage, appName string, files interface{}, gitType string) error {
 
 	switch gitType {
 	case "github":
-		err := emcogithub.CommitFiles(ctx, c, userName, repoName, branch, commitMessage, convertToCommitFile(files))
+		err := emcogithub.CommitFiles(ctx, c, userName, repoName, branch, commitMessage, appName, convertToCommitFile(files))
 		if err != nil {
 			return err
 		}
@@ -161,7 +152,7 @@ func GetFiles(ctx context.Context, c interface{}, userName, repoName, branch, pa
 
 /*
 	Function to obtaion the SHA of latest commit
-	params : context, go git client, User Name, Repo Name, Branch, Path
+	params : context, go git client, User Name, Repo Name, Branch, Path, gitType
 	return : LatestCommit string, error
 */
 func GetLatestCommitSHA(ctx context.Context, c interface{}, userName, repoName, branch, path, gitType string) (string, error) {
@@ -172,4 +163,50 @@ func GetLatestCommitSHA(ctx context.Context, c interface{}, userName, repoName, 
 	}
 	//Add other types like gitlab, bitbucket etc
 	return "", nil
+}
+
+/*
+	Function to check if file exists
+	params : context, go git client, User Name, Repo Name, Branch, Path, gitType
+	return : LatestCommit string, error
+*/
+func CheckIfFileExists(ctx context.Context, c interface{}, userName, repoName, branch, path, gitType string) (bool, error) {
+	switch gitType {
+	case "github":
+		check, err := emcogithub.CheckIfFileExists(ctx, c, userName, repoName, branch, path)
+		return check, err
+	}
+	//Add other types like gitlab, bitbucket etc
+	return false, nil
+}
+
+/*
+	Function to delete the branch
+	params : context, go git client, User Name, Repo Name, mergeBranch, gitType
+	return : LatestCommit string, error
+*/
+func DeleteBranch(ctx context.Context, c interface{}, userName, repoName, mergeBranch, gitType string) error {
+	switch gitType {
+	case "github":
+		err := emcogithub.DeleteBranch(ctx, c, userName, repoName, mergeBranch)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	//Add other types like gitlab, bitbucket etc
+	return pkgerrors.New("Git Provider type not supported")
+}
+
+func CreateBranch(ctx context.Context, c interface{}, latestCommitSHA, userName, repoName, branch, gitType string) error {
+	switch gitType {
+	case "github":
+		err := emcogithub.CreateBranch(ctx, c, latestCommitSHA, userName, repoName, branch)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	//Add other types like gitlab, bitbucket etc
+	return pkgerrors.New("Git Provider type not supported")
 }
