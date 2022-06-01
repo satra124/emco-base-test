@@ -94,7 +94,7 @@ This is done in two stages:
    using `deployments/docker/docker-compose.yml`. This spawns a set of
    containers, each running one EMCO component.
 
-See [this tutorial](docs/user/Tutorial_Local_Install.md) for further details.
+See [this tutorial](user/install/Tutorial_Local_Install.md) for further details.
 
 ### Deploy EMCO in a Kubernetes cluster
 Alternatively, you can build EMCO locally and deploy EMCO components in a
@@ -136,9 +136,9 @@ Do the following steps:
    - Run the script in the `bin/helm` folder: `./emco-base-helm-install.sh install` (`./emco-base-helm-install.sh -h` for more details)
 
 ### Deploy sample test cases with EMCO
-See [this Readme](examples/single-cluster/Readme.md) on how to setup an environment and run a few test cases with EMCO.
+See [this Readme](../examples/single-cluster/README.md) on how to setup an environment and run a few test cases with EMCO.
 
-See [this tutorial](docs/user/install/Tutorial_Helm.md) for further details.
+See [this tutorial](user/install/Tutorial_Helm.md) for further details.
 
 
 ## Top-level build system (Makefile)
