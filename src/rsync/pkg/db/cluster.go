@@ -100,7 +100,7 @@ func unmarshal(values [][]byte) (KubeConfig, error) {
 		return kc, nil
 	}
 	log.Info("DB values is nil", log.Fields{})
-	return KubeConfig{}, pkgerrors.New("DB values is nil")
+	return KubeConfig{}, pkgerrors.New("Invalid kubeconfig")
 }
 
 // GetCloudConfig allows to get an existing cloud config entry
@@ -424,11 +424,12 @@ func (c *CloudConfigClient) GetGitOpsConfig(provider string, cluster string, lev
 
 	value, err := db.DBconn.Find(c.db.storeName, key, c.db.tagMeta)
 	if err != nil {
-		log.Error("Failure inserting CloudConfig", log.Fields{})
-		return CloudGitOpsConfig{}, pkgerrors.Wrap(err, "Failure inserting CloudConfig")
+		return CloudGitOpsConfig{}, pkgerrors.Wrap(err, "GitOps Config not found")
 	}
 	log.Info("Get in gs db", log.Fields{"value": value})
-
+	if len(value) <= 0 {
+		return CloudGitOpsConfig{}, pkgerrors.New("GitOps Config not found")
+	}
 	cp := mtypes.GitOpsSpec{}
 	err = db.DBconn.Unmarshal(value[0], &cp)
 	if err != nil {

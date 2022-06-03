@@ -30,7 +30,7 @@ func (i *Instantiator) MakeAppContext() (contextForCompositeApp, error) {
 		return contextForCompositeApp{}, err
 	}
 
-	cca, err := i.makeAppContextForCompositeApp(namespace, level)
+	cca, err := i.makeAppContextForCompositeApp(namespace, level, i.deploymentIntentGrp.Spec.LogicalCloud)
 	if err != nil {
 		return contextForCompositeApp{}, err
 	}
@@ -44,7 +44,7 @@ func (i *Instantiator) MakeAppContext() (contextForCompositeApp, error) {
 	return cca, nil
 }
 
-func (i *Instantiator) makeAppContextForCompositeApp(namespace, level string) (contextForCompositeApp, error) {
+func (i *Instantiator) makeAppContextForCompositeApp(namespace, level, logicalCloud string) (contextForCompositeApp, error) {
 	context := appcontext.AppContext{}
 	ctxval, err := context.InitAppContext()
 	if err != nil {
@@ -61,8 +61,10 @@ func (i *Instantiator) makeAppContextForCompositeApp(namespace, level string) (c
 		Version:               i.compAppVersion,
 		Release:               rName,
 		DeploymentIntentGroup: i.deploymentIntent,
-		Namespace:             namespace,
-		Level:                 level})
+		Namespace: namespace,
+		Level: level,
+		LogicalCloud: logicalCloud,
+	})
 	if err != nil {
 		return contextForCompositeApp{}, pkgerrors.Wrap(err, "Error Adding CompositeAppMeta")
 	}

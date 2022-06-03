@@ -247,6 +247,13 @@ func checkAppContext(appContextID string) bool {
 		}
 		// iterate over all clusters of appcontext
 		for k := 0; k < len(clusterNames); k++ {
+			gitOps, err := IsGitOpsCluster(clusterNames[k])
+			if err != nil {
+				return false
+			}
+			if gitOps {
+				continue
+			}
 			chandle, err := ac.GetClusterHandle(app, clusterNames[k])
 			if err != nil {
 				log.Info("Error getting cluster handle", log.Fields{"cluster": clusterNames[k]})
