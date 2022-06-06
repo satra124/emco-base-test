@@ -410,7 +410,7 @@ func (c InstantiationClient) Instantiate(p string, ca string, v string, di strin
 	// END : Make app context
 
 	// BEGIN : callScheduler
-	err = callScheduler(cca.context, cca.ctxval, p, ca, v, di)
+	err = callScheduler(cca.context, cca.ctxval, nil, p, ca, v, di)
 	if err != nil {
 		return pkgerrors.Wrap(err, "Error in callScheduler")
 	}
@@ -425,6 +425,9 @@ func (c InstantiationClient) Instantiate(p string, ca string, v string, di strin
 	// END : Rsync code
 
 	err = storeAppContextIntoMetaDB(cca.ctxval, c.db.storeName, c.db.tagState, s, p, ca, v, di)
+
+	// Call Post INSTANTIATE Event for all controllers
+	_ = callPostEventScheduler(cca.ctxval, p, ca, v, di, "INSTANTIATE")
 
 	log.Info(":: Done with instantiation call to rsync... ::", log.Fields{"CompositeAppName": ca})
 	return err
@@ -609,6 +612,13 @@ func (c InstantiationClient) Terminate(p string, ca string, v string, di string)
 
 	currentCtxId := state.GetLastContextIdFromStateInfo(s)
 
+	// BEGIN : callScheduler
+	err = callTerminateScheduler(currentCtxId, p, ca, v, di)
+	if err != nil {
+		return pkgerrors.Wrap(err, "Error in callTerminateScheduler")
+	}
+	// END : callScheduler
+
 	if stateVal == state.StateEnum.InstantiateStopped {
 		err = state.UpdateAppContextStopFlag(currentCtxId, false)
 		if err != nil {
@@ -660,6 +670,8 @@ func (c InstantiationClient) Terminate(p string, ca string, v string, di string)
 	if err != nil {
 		return pkgerrors.Wrap(err, "Error updating the stateInfo of the DeploymentIntentGroup: "+di)
 	}
+	// Call Post Terminate Event for all controllers
+	_ = callPostEventScheduler(currentCtxId, p, ca, v, di, "TERMINATE")
 
 	return nil
 }

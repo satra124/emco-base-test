@@ -41,7 +41,7 @@ func (cs *contextupdateServer) UpdateAppContext(ctx context.Context, req *contex
 	})
 
 	for _, c := range clist {
-		err := client.InvokeContextUpdate(c.Metadata.Name, req.IntentName, req.AppContext)
+		err := client.InvokeContextUpdate(c.Metadata.Name, req.IntentName, req.AppContext, "")
 		if err != nil {
 			log.Error("invoke context update failed for sub controller", log.Fields{
 				"error": err,

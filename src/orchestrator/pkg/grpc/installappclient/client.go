@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
+	pkgerrors "github.com/pkg/errors"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
 	installpb "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/installapp"
-	pkgerrors "github.com/pkg/errors"
 )
 
 const rsyncName = "rsync"

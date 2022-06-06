@@ -54,12 +54,12 @@ type appDepInstr struct {
 	AppDepMap map[string]string `json:"appdependency"`
 }
 
-type AppHandler struct{
-	appName string
-	namespace string
-	clusters gpic.ClusterList
-	ht []helm.KubernetesResourceTemplate
-	hk []*helm.Hook
+type AppHandler struct {
+	appName    string
+	namespace  string
+	clusters   gpic.ClusterList
+	ht         []helm.KubernetesResourceTemplate
+	hk         []*helm.Hook
 	dependency []AdSpecData
 }
 
@@ -130,7 +130,7 @@ func getHookResources(hk []*helm.Hook) (map[string][]resource, error) {
 	return resources, nil
 }
 
-func (ah *AppHandler)addResourcesToCluster(ct appcontext.AppContext, ch interface{}) ([]resource, error) {
+func (ah *AppHandler) addResourcesToCluster(ct appcontext.AppContext, ch interface{}) ([]resource, error) {
 
 	crdResources, resources, err := getResources(ah.ht)
 	if err != nil {
@@ -151,14 +151,14 @@ func (ah *AppHandler)addResourcesToCluster(ct appcontext.AppContext, ch interfac
 	// Add resource order for the cluster
 	jresOrderInstr, _ := json.Marshal(resOrderInstr)
 	_, err = ct.AddInstruction(ch, "resource", "order", string(jresOrderInstr))
-	if err != nil  {
+	if err != nil {
 		return nil, pkgerrors.Wrapf(err, "Error adding instruction for resource order")
 	}
 	return crdResources, nil
 }
 
 // Add Hook resources and add an instruction
-func (ah *AppHandler)addHooksToCluster(ct appcontext.AppContext, ch interface{}, crdResources []resource) error {
+func (ah *AppHandler) addHooksToCluster(ct appcontext.AppContext, ch interface{}, crdResources []resource) error {
 	hk, err := getHookResources(ah.hk)
 	if err != nil {
 		return err
@@ -185,10 +185,10 @@ func (ah *AppHandler)addHooksToCluster(ct appcontext.AppContext, ch interface{},
 	// Add CRD Resources also
 	for _, res := range crdResources {
 		_, err := ct.AddResource(ch, res.name, res.filecontent)
-			if err != nil {
-				return err
-			}
-			resdep["crd-install"] = append(resdep["crd-install"], res.name)
+		if err != nil {
+			return err
+		}
+		resdep["crd-install"] = append(resdep["crd-install"], res.name)
 	}
 	log.Info(":: Hook and CRD resources  ::", log.Fields{"Dependency": resdep})
 	resDepInstr.Resdep = resdep
@@ -201,7 +201,7 @@ func (ah *AppHandler)addHooksToCluster(ct appcontext.AppContext, ch interface{},
 }
 
 //addClustersToAppContextHelper helper to add clusters
-func (ah *AppHandler)addClustersToAppContextHelper(cg []gpic.ClusterGroup, ct appcontext.AppContext, appHandle interface{}) error {
+func (ah *AppHandler) addClustersToAppContextHelper(cg []gpic.ClusterGroup, ct appcontext.AppContext, appHandle interface{}) error {
 	for _, eachGrp := range cg {
 		oc := eachGrp.Clusters
 		gn := eachGrp.GroupNumber
@@ -236,7 +236,7 @@ func (ah *AppHandler)addClustersToAppContextHelper(cg []gpic.ClusterGroup, ct ap
 	return nil
 }
 
-func (ah *AppHandler)addAppToAppContext(cxtForCApp contextForCompositeApp) error {
+func (ah *AppHandler) addAppToAppContext(cxtForCApp contextForCompositeApp) error {
 
 	ct := cxtForCApp.context
 	appHandle, err := ct.AddApp(cxtForCApp.compositeAppHandle, ah.appName)
@@ -276,7 +276,7 @@ func (ah *AppHandler)addAppToAppContext(cxtForCApp contextForCompositeApp) error
 /*
 verifyResources method is just to check if the resource handles are correctly saved.
 */
-func (ah *AppHandler)verifyResources(cxtForCApp contextForCompositeApp) error {
+func (ah *AppHandler) verifyResources(cxtForCApp contextForCompositeApp) error {
 
 	ct := cxtForCApp.context
 	_, resources, err := getResources(ah.ht)

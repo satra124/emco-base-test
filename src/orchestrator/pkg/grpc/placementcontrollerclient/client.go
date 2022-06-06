@@ -7,12 +7,12 @@ import (
 	"context"
 	"time"
 
+	pkgerrors "github.com/pkg/errors"
 	plsctrlclientpb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/placementcontroller"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
-	pkgerrors "github.com/pkg/errors"
 )
 
 // InvokeFilterClusters ..  will make the grpc call to the specified controller

@@ -4,17 +4,16 @@
 package updateappclient
 
 import (
-	updatepb "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/updateapp"
 	"context"
-	"time"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
+	pkgerrors "github.com/pkg/errors"
 	inc "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/installappclient"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
-	pkgerrors "github.com/pkg/errors"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
+	updatepb "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/updateapp"
+	"time"
 )
 
 const rsyncName = "rsync"
-
 
 func InvokeUpdateApp(FromAppContextID, ToAppContextID string) error {
 	var err error
@@ -22,8 +21,6 @@ func InvokeUpdateApp(FromAppContextID, ToAppContextID string) error {
 	var updateAppRes *updatepb.UpdateAppResponse
 	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
 	defer cancel()
-
-
 
 	conn := rpc.GetRpcConn(rsyncName)
 	if conn == nil {
@@ -36,7 +33,7 @@ func InvokeUpdateApp(FromAppContextID, ToAppContextID string) error {
 		updateReq := new(updatepb.UpdateAppRequest)
 		updateReq.UpdateFromAppContext = FromAppContextID
 		updateReq.UpdateToAppContext = ToAppContextID
-		
+
 		updateAppRes, err = rpcClient.UpdateApp(ctx, updateReq)
 		if err == nil {
 			log.Info("Response from UpdateApp GRPC call", log.Fields{
@@ -52,15 +49,15 @@ func InvokeUpdateApp(FromAppContextID, ToAppContextID string) error {
 		if updateAppRes.AppContextUpdated {
 			log.Info("UpdateApp Success", log.Fields{
 				"FromAppContext": FromAppContextID,
-				"ToAppContext": ToAppContextID,
-				"Message":    updateAppRes.AppContextUpdateMessage,
+				"ToAppContext":   ToAppContextID,
+				"Message":        updateAppRes.AppContextUpdateMessage,
 			})
 			return nil
 		} else {
 			log.Info("UpdateApp Success", log.Fields{
 				"FromAppContext": FromAppContextID,
-				"ToAppContext": ToAppContextID,
-				"Message":    updateAppRes.AppContextUpdateMessage,
+				"ToAppContext":   ToAppContextID,
+				"Message":        updateAppRes.AppContextUpdateMessage,
 			})
 			return pkgerrors.Errorf("UpdateApp Failed: %v", updateAppRes.AppContextUpdateMessage)
 		}

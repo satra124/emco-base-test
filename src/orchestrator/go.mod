@@ -1,6 +1,6 @@
 module gitlab.com/project-emco/core/emco-base/src/orchestrator
 
-go 1.16 // 1.17 has indirect dependencies not required for EMCO
+go 1.16
 
 replace (
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d

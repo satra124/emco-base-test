@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"time"
 
+	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
-	pkgerrors "github.com/pkg/errors"
 )
 
 // MigrateJson contains metadata and spec for migrate API
@@ -81,7 +81,7 @@ func (c InstantiationClient) Migrate(p string, ca string, v string, tCav string,
 	// END : Make app context
 
 	// BEGIN : callScheduler
-	err = callScheduler(cca.context, cca.ctxval, p, ca, tCav, tDi)
+	err = callScheduler(cca.context, cca.ctxval, sourceCtxId, p, ca, tCav, tDi)
 	if err != nil {
 		return pkgerrors.Wrap(err, "Error in callScheduler")
 	}
@@ -158,6 +158,8 @@ func (c InstantiationClient) Migrate(p string, ca string, v string, tCav string,
 	if err != nil {
 		return pkgerrors.Wrap(err, "Error updating the stateInfo of the DeploymentIntentGroup: "+tDi)
 	}
+	// Call Post Update Event for all controllers
+	_ = callPostEventScheduler(targetCtxId, p, ca, v, di, "UPDATE")
 	return nil
 }
 
@@ -205,7 +207,7 @@ func (c InstantiationClient) Update(p string, ca string, v string, di string) (i
 	// END : Make app context
 
 	// BEGIN : callScheduler
-	err = callScheduler(cca.context, cca.ctxval, p, ca, v, di)
+	err = callScheduler(cca.context, cca.ctxval, sourceCtxId, p, ca, v, di)
 	if err != nil {
 		return -1, pkgerrors.Wrap(err, "Error in callScheduler")
 	}
@@ -264,6 +266,9 @@ func (c InstantiationClient) Update(p string, ca string, v string, di string) (i
 	}
 
 	log.Info("Updated revisionID", log.Fields{"Updated to revisionID": latestRevision})
+
+	// Call Post Update Event for all controllers
+	_ = callPostEventScheduler(targetCtxId, p, ca, v, di, "UPDATE")
 
 	return latestRevision, nil
 
@@ -343,6 +348,7 @@ func (c InstantiationClient) Rollback(p string, ca string, v string, di string, 
 	}
 
 	log.Info("Rollback Completed", log.Fields{"Rollback revisionID": latestRevision})
-
+	// Call Post Update Event for all controllers
+	_ = callPostEventScheduler(targetCtxId, p, ca, v, di, "UPDATE")
 	return nil
 }

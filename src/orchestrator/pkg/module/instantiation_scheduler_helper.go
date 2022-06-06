@@ -5,9 +5,11 @@ package module
 
 import (
 	"container/heap"
+	"strings"
 
 	"fmt"
 
+	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	client "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/contextupdateclient"
 	rsyncclient "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/installappclient"
@@ -15,7 +17,6 @@ import (
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
 	mtypes "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
-	pkgerrors "github.com/pkg/errors"
 )
 
 // ControllerTypePlacement denotes "placement" Controller Type
@@ -173,14 +174,15 @@ func getPrioritizedControllerList(p, ca, v, di string) (PrioritizedControlList, 
 callGrpcForControllerList method shall take in a list of controllers, a map of contollers to controllerIntentNames and contextID. It invokes the context
 updation through the grpc client for the given list of controllers.
 */
-func callGrpcForControllerList(cl []controller.Controller, mc map[string]string, contextid interface{}) error {
+func callGrpcForControllerList(cl []controller.Controller, mc map[string]string, contextid, updateFromContextid interface{}) error {
 	for _, c := range cl {
 		controller := c.Metadata.Name
 		controllerIntentName := mc[controller]
 		appContextID := fmt.Sprintf("%v", contextid)
+		updateAppContextId := fmt.Sprintf("%v", updateFromContextid)
 		log.Info("callGrpcForControllerList .. Invoking action-controller.", log.Fields{
 			"controller": controller, "controllerIntentName": controllerIntentName, "appContextID": appContextID})
-		err := client.InvokeContextUpdate(controller, controllerIntentName, appContextID)
+		err := client.InvokeContextUpdate(controller, controllerIntentName, appContextID, updateAppContextId)
 		if err != nil {
 			return err
 		}
@@ -303,7 +305,7 @@ func deleteExtraClusters(apps []App, ct appcontext.AppContext) error {
 }
 
 // callScheduler instantiates based on the controller priority list
-func callScheduler(context appcontext.AppContext, ctxval interface{}, p, ca, v, di string) error {
+func callScheduler(context appcontext.AppContext, ctxval, ctxUpdateFromval interface{}, p, ca, v, di string) error {
 	// BEGIN: scheduler code
 
 	allApps, err := NewAppClient().GetApps(p, ca, v)
@@ -334,7 +336,7 @@ func callScheduler(context appcontext.AppContext, ctxval interface{}, p, ca, v, 
 	}
 
 	// Invoke all Action Controllers communication interface
-	err = callGrpcForControllerList(pl.pActCont, mapOfControllers, ctxval)
+	err = callGrpcForControllerList(pl.pActCont, mapOfControllers, ctxval, ctxUpdateFromval)
 	log.Warn("", log.Fields{"pl.pActCont::": pl.pActCont})
 	log.Warn("", log.Fields{"mapOfControllers::": mapOfControllers})
 	log.Warn("", log.Fields{"ctxval::": ctxval})
@@ -343,5 +345,56 @@ func callScheduler(context appcontext.AppContext, ctxval interface{}, p, ca, v, 
 		return pkgerrors.Wrap(err, "Error calling gRPC for action controller list")
 	}
 	// END: Scheduler code
+	return nil
+}
+
+// callScheduler terminates based on the controller priority list
+func callTerminateScheduler(ctxval interface{}, p, ca, v, di string) error {
+
+	pl, mc, err := getPrioritizedControllerList(p, ca, v, di)
+	if err != nil {
+		return pkgerrors.Wrap(err, "Error adding getting prioritized controller list")
+	}
+
+	for _, c := range pl.pActCont {
+		controller := c.Metadata.Name
+		controllerIntentName := mc[controller]
+		appContextID := fmt.Sprintf("%v", ctxval)
+		log.Info("callTerminateScheduler .. Invoking action-controller.", log.Fields{
+			"controller": controller, "controllerIntentName": controllerIntentName, "appContextID": appContextID})
+		err := client.InvokeContextTerminate(controller, appContextID)
+		// If GRPC endpoint not implemented by controller don't consider that as an error
+		if err != nil && !strings.Contains(err.Error(), "TerminateAppContext not implemented") {
+			log.Error("InvokeContextTerminate: Error", log.Fields{"controller": controller, "err": err})
+			return err
+		}
+
+	}
+	return nil
+
+}
+
+// callPostEventScheduler instantiates based on the controller priority list
+func callPostEventScheduler(ctxval interface{}, p, ca, v, di, event string) error {
+
+	iList, err := NewIntentClient().GetAllIntents(p, ca, v, di)
+	if err != nil {
+		return err
+	}
+	appContextID := fmt.Sprintf("%v", ctxval)
+	for _, eachmap := range iList.ListOfIntents {
+		for controller, _ := range eachmap {
+			if controller != GenericPlacementIntentName {
+				log.Info("Invoking action-controller for Post Event hook.", log.Fields{
+					"controller": controller, "appContextID": appContextID, "event": event})
+				err := client.InvokePostEvent(controller, appContextID, event)
+				// If GRPC endpoint not implemented by controller don't consider that as an error
+				if err != nil && !strings.Contains(err.Error(), "PostEvent not implemented") {
+					log.Error("InvokePostEvent: Error", log.Fields{"controller": controller, "err": err})
+					return err
+				}
+			}
+		}
+	}
 	return nil
 }
