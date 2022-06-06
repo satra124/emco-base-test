@@ -148,3 +148,6 @@ resources:
     parent: caCertLc
   - name: caCertClusterGroupLc
     parent: caCertLogicalCloud
+#emco-policy
+  - name: policyIntent
+    parent: deploymentIntentGroup
