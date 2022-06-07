@@ -6,6 +6,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"net"
 	"strconv"
 	"strings"
 	"sync"
@@ -189,7 +190,7 @@ func RemoveRpcConn(name string) {
 func createClientConn(Host string, Port int) (*grpc.ClientConn, error) {
 	var opts []grpc.DialOption
 
-	serverAddr := Host + ":" + strconv.Itoa(Port)
+	serverAddr := net.JoinHostPort(Host, strconv.Itoa(Port))
 	serverNameOverride := config.GetConfiguration().GrpcServerNameOverride
 
 	tls := strings.Contains(config.GetConfiguration().GrpcEnableTLS, "enable")
