@@ -81,7 +81,7 @@ pre-compile: clean
 compile: pre-compile
 	@echo "Building artifacts"
 	@for m in $(MODS); do \
-	    $(MAKE) -C ./src/$$m all; \
+	    $(MAKE) -C ./src/$$m all || exit 1; \
 	 done
 	@echo "    Done."
 
@@ -103,7 +103,7 @@ build-containers:
 	      *) d=$$m; n=$$m;; \
 	    esac; \
 	    echo "Packaging $$m"; \
-	    docker build $$ARGS --rm -t emco-$$n -f ./build/docker/Dockerfile.$$d ./bin/$$m; \
+	    docker build $$ARGS --rm -t emco-$$n -f ./build/docker/Dockerfile.$$d ./bin/$$m || exit 1; \
 	 done
 	@echo "    Done."
 
