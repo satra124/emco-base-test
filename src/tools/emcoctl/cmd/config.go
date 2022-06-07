@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"strconv"
 )
@@ -75,7 +76,7 @@ func GetIngressURL() string {
 	if Configurations.Ingress.Host == "" || Configurations.Ingress.Port == 0 {
 		return ""
 	}
-	return urlPrefix + Configurations.Ingress.Host + ":" + strconv.Itoa(Configurations.Ingress.Port) + "/" + urlVersion
+	return urlPrefix + net.JoinHostPort(Configurations.Ingress.Host, strconv.Itoa(Configurations.Ingress.Port)) + "/" + urlVersion
 }
 
 // GetOrchestratorURL Url for Orchestrator
@@ -89,7 +90,7 @@ func GetOrchestratorURL() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return urlPrefix + Configurations.Orchestrator.Host + ":" + strconv.Itoa(Configurations.Orchestrator.Port) + "/" + urlVersion
+	return urlPrefix + net.JoinHostPort(Configurations.Orchestrator.Host, strconv.Itoa(Configurations.Orchestrator.Port)) + "/" + urlVersion
 }
 
 // GetClmURL Url for Clm
@@ -103,7 +104,7 @@ func GetClmURL() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return urlPrefix + Configurations.Clm.Host + ":" + strconv.Itoa(Configurations.Clm.Port) + "/" + urlVersion
+	return urlPrefix + net.JoinHostPort(Configurations.Clm.Host, strconv.Itoa(Configurations.Clm.Port)) + "/" + urlVersion
 }
 
 // GetNcmURL Url for Ncm
@@ -117,7 +118,7 @@ func GetNcmURL() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return urlPrefix + Configurations.Ncm.Host + ":" + strconv.Itoa(Configurations.Ncm.Port) + "/" + urlVersion
+	return urlPrefix + net.JoinHostPort(Configurations.Ncm.Host, strconv.Itoa(Configurations.Ncm.Port)) + "/" + urlVersion
 }
 
 // GetDcmURL Url for Dcm
@@ -131,7 +132,7 @@ func GetDcmURL() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return urlPrefix + Configurations.Dcm.Host + ":" + strconv.Itoa(Configurations.Dcm.Port) + "/" + urlVersion
+	return urlPrefix + net.JoinHostPort(Configurations.Dcm.Host, strconv.Itoa(Configurations.Dcm.Port)) + "/" + urlVersion
 }
 
 // GetOvnactionURL Url for Ovnaction
@@ -145,7 +146,7 @@ func GetOvnactionURL() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return urlPrefix + Configurations.OvnAction.Host + ":" + strconv.Itoa(Configurations.OvnAction.Port) + "/" + urlVersion
+	return urlPrefix + net.JoinHostPort(Configurations.OvnAction.Host, strconv.Itoa(Configurations.OvnAction.Port)) + "/" + urlVersion
 }
 
 // GetDtcURL Url for Dtc
@@ -159,7 +160,7 @@ func GetDtcURL() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return urlPrefix + Configurations.Dtc.Host + ":" + strconv.Itoa(Configurations.Dtc.Port) + "/" + urlVersion
+	return urlPrefix + net.JoinHostPort(Configurations.Dtc.Host, strconv.Itoa(Configurations.Dtc.Port)) + "/" + urlVersion
 }
 
 // GetGacURL Url for gac
@@ -173,7 +174,7 @@ func GetGacURL() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return urlPrefix + Configurations.Gac.Host + ":" + strconv.Itoa(Configurations.Gac.Port) + "/" + urlVersion
+	return urlPrefix + net.JoinHostPort(Configurations.Gac.Host, strconv.Itoa(Configurations.Gac.Port)) + "/" + urlVersion
 }
 
 // GetHpaPlacementURL Url for Hpa Placement controller
@@ -187,7 +188,7 @@ func GetHpaPlacementURL() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return urlPrefix + Configurations.HpaPlacement.Host + ":" + strconv.Itoa(Configurations.HpaPlacement.Port) + "/" + urlVersion
+	return urlPrefix + net.JoinHostPort(Configurations.HpaPlacement.Host, strconv.Itoa(Configurations.HpaPlacement.Port)) + "/" + urlVersion
 }
 
 // GetSfcURL Url for sfc
@@ -201,7 +202,7 @@ func GetSfcURL() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return urlPrefix + Configurations.Sfc.Host + ":" + strconv.Itoa(Configurations.Sfc.Port) + "/" + urlVersion
+	return urlPrefix + net.JoinHostPort(Configurations.Sfc.Host, strconv.Itoa(Configurations.Sfc.Port)) + "/" + urlVersion
 }
 
 // GetSfcClientURL Url for sfcclient
@@ -215,7 +216,7 @@ func GetSfcClientURL() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return urlPrefix + Configurations.SfcClient.Host + ":" + strconv.Itoa(Configurations.SfcClient.Port) + "/" + urlVersion
+	return urlPrefix + net.JoinHostPort(Configurations.SfcClient.Host, strconv.Itoa(Configurations.SfcClient.Port)) + "/" + urlVersion
 }
 
 func GetWorkflowMgrURL() string {
@@ -228,7 +229,7 @@ func GetWorkflowMgrURL() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return urlPrefix + Configurations.WorkflowMgr.Host + ":" + strconv.Itoa(Configurations.WorkflowMgr.Port) + "/" + urlVersion
+	return urlPrefix + net.JoinHostPort(Configurations.WorkflowMgr.Host, strconv.Itoa(Configurations.WorkflowMgr.Port)) + "/" + urlVersion
 }
 
 // GetOrchestratorGrpcEndpoint gRPC endpoint for Orchestrator
@@ -238,7 +239,7 @@ func GetOrchestratorGrpcEndpoint() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return Configurations.Orchestrator.Host + ":" + strconv.Itoa(Configurations.Orchestrator.StatusPort)
+	return net.JoinHostPort(Configurations.Orchestrator.Host, strconv.Itoa(Configurations.Orchestrator.StatusPort))
 }
 
 // GetNcmGrpcEndpoint gRPC endpoint for ncm
@@ -248,7 +249,7 @@ func GetNcmGrpcEndpoint() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return Configurations.Ncm.Host + ":" + strconv.Itoa(Configurations.Ncm.StatusPort)
+	return net.JoinHostPort(Configurations.Ncm.Host, strconv.Itoa(Configurations.Ncm.StatusPort))
 }
 
 // GetDcmGrpcEndpoint gRPC endpoint for dcm
@@ -258,7 +259,7 @@ func GetDcmGrpcEndpoint() string {
 		// Exit executing
 		os.Exit(1)
 	}
-	return Configurations.Dcm.Host + ":" + strconv.Itoa(Configurations.Dcm.StatusPort)
+	return net.JoinHostPort(Configurations.Dcm.Host, strconv.Itoa(Configurations.Dcm.StatusPort))
 }
 
 // GetCaCertUrl construct the baseUrl for CaCert controller
