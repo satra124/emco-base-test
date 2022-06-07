@@ -6,6 +6,7 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"os"
 	"reflect"
 	"sort"
@@ -78,7 +79,7 @@ var cursorClose = func(ctx context.Context, cursor *mongo.Cursor) error {
 // If a database with that name exists, it will be returned
 func NewMongoStore(name string, store *mongo.Database) (Store, error) {
 	if store == nil {
-		ip := "mongodb://" + config.GetConfiguration().DatabaseIP + ":27017"
+		ip := "mongodb://" + net.JoinHostPort(config.GetConfiguration().DatabaseIP, "27017")
 		clientOptions := options.Client()
 		clientOptions.ApplyURI(ip)
 		if len(os.Getenv("DB_EMCO_USERNAME")) > 0 && len(os.Getenv("DB_EMCO_PASSWORD")) > 0 {

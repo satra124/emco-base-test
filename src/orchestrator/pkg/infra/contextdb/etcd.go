@@ -6,6 +6,7 @@ package contextdb
 import (
 	"context"
 	"encoding/json"
+	"net"
 	"os"
 	"time"
 
@@ -42,7 +43,7 @@ var getEtcd = func(e *EtcdClient) Etcd {
 func NewEtcdClient(store *clientv3.Client, c EtcdConfig) (ContextDb, error) {
 	var endpoint string
 	if store == nil {
-		endpoint = "http://" + c.Endpoint + ":2379"
+		endpoint = "http://" + net.JoinHostPort(c.Endpoint, "2379")
 
 		etcdClient := clientv3.Config{
 			Endpoints:   []string{endpoint},
