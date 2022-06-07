@@ -13,8 +13,6 @@ import (
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 	controller "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
-	mtypes "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
-	pkgerrors "github.com/pkg/errors"
 )
 
 var controllerJSONFile string = "json-schemas/controller.json"
@@ -25,43 +23,6 @@ type controllerHandler struct {
 	// Interface that implements controller operations
 	// We will set this variable with a mock interface for testing
 	client controller.ControllerManager
-}
-
-// Check for valid format of input parameters
-func validateControllerInputs(c controller.Controller) error {
-	// validate metadata
-	err := mtypes.IsValidMetadata(c.Metadata)
-	if err != nil {
-		return pkgerrors.Wrap(err, "Invalid controller metadata")
-	}
-
-	errs := validation.IsValidName(c.Spec.Host)
-	if len(errs) > 0 {
-		return pkgerrors.Errorf("Invalid host name for controller %v, errors: %v", c.Spec.Host, errs)
-	}
-
-	errs = validation.IsValidNumber(c.Spec.Port, 0, 65535)
-	if len(errs) > 0 {
-		return pkgerrors.Errorf("Invalid controller port [%v], errors: %v", c.Spec.Port, errs)
-	}
-
-	found := false
-	for _, val := range controller.CONTROLLER_TYPES {
-		if c.Spec.Type == val {
-			found = true
-			break
-		}
-	}
-	if !found {
-		return pkgerrors.Errorf("Invalid controller type: %v", c.Spec.Type)
-	}
-
-	errs = validation.IsValidNumber(c.Spec.Priority, controller.MinControllerPriority, controller.MaxControllerPriority)
-	if len(errs) > 0 {
-		return pkgerrors.Errorf("Invalid controller priority = [%v], errors: %v", c.Spec.Priority, errs)
-	}
-
-	return nil
 }
 
 // Create handles creation of the controller entry in the database
