@@ -5,8 +5,8 @@ package types
 import (
 	"strings"
 
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 	pkgerrors "github.com/pkg/errors"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 )
 
 const VLAN_PROVIDER_NET_TYPE_VLAN string = "VLAN"
@@ -24,8 +24,15 @@ var CNI_TYPES = [...]string{CNI_TYPE_OVN4NFV}
 type Ipv4Subnet struct {
 	Subnet  string `json:"subnet" yaml:"subnet"` // CIDR notation, e.g. 172.16.33.0/24
 	Name    string `json:"name" yaml:"name"`
-	Gateway string `json:"gateway" yaml:"gateway"`       // IPv4 addre, e.g. 172.16.33.1/24
-	Exclude string `json:"excludeIps" yaml:"excludeIps"` // space separated list of single IPs or ranges e.g. "172.16.33.2 172.16.33.5..172.16.33.10"
+	Gateway string `json:"gateway,omitempty" yaml:"gateway,omitempty"`       // IPv4 address, e.g. 172.16.33.1/24
+	Exclude string `json:"excludeIps,omitempty" yaml:"excludeIps,omitempty"` // space separated list of single IPs or ranges e.g. "172.16.33.2 172.16.33.5..172.16.33.10"
+}
+
+type Ipv6Subnet struct {
+	Subnet  string `json:"subnet" yaml:"subnet"` // CIDR notation, e.g. 2001:db8:1::/64
+	Name    string `json:"name" yaml:"name"`
+	Gateway string `json:"gateway,omitempty" yaml:"gateway,omitempty"`       // IPv6 address, e.g. 2001:db8:1::1/64
+	Exclude string `json:"excludeIps,omitempty" yaml:"excludeIps,omitempty"` // space separated list of single IPs or ranges e.g. "2001:db8:1::2 2001:db8:1::5..2001:db8:1::10"
 }
 
 const VLAN_NODE_ANY = "any"

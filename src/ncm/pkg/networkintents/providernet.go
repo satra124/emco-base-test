@@ -24,6 +24,7 @@ type ProviderNet struct {
 type ProviderNetSpec struct {
 	CniType         string                `json:"cniType" yaml:"cniType"`
 	Ipv4Subnets     []nettypes.Ipv4Subnet `json:"ipv4Subnets" yaml:"ipv4Subnets"`
+	Ipv6Subnets     []nettypes.Ipv6Subnet `json:"ipv6Subnets,omitempty" yaml:"ipv6Subnets,omitempty"`
 	ProviderNetType string                `json:"providerNetType" yaml:"providerNetType"`
 	Vlan            nettypes.Vlan         `json:"vlan" yaml:"vlan"`
 }

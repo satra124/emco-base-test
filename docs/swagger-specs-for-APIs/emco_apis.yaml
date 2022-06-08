@@ -6681,6 +6681,26 @@ components:
                 - subnet
                 type: object
               type: array
+            ipv6Subnets:
+              items:
+                properties:
+                  excludeIps:
+                    type: string
+                    maxLength: 1024
+                  gateway:
+                    type: string
+                    maxLength: 128
+                  name:
+                    type: string
+                    maxLength: 128
+                  subnet:
+                    type: string
+                    maxLength: 128
+                required:
+                - name
+                - subnet
+                type: object
+              type: array
     VirtualNetworkArray:
       type: array
       items:
@@ -6696,6 +6716,26 @@ components:
               type: string
               maxLength: 128
             ipv4Subnets:
+              items:
+                properties:
+                  excludeIps:
+                    type: string
+                    maxLength: 128
+                  gateway:
+                    type: string
+                    maxLength: 128
+                  name:
+                    type: string
+                    maxLength: 128
+                  subnet:
+                    type: string
+                    maxLength: 128
+                required:
+                - name
+                - subnet
+                type: object
+              type: array
+            ipv6Subnets:
               items:
                 properties:
                   excludeIps:

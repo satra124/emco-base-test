@@ -41,6 +41,36 @@
                     },
                     "type": "array"
                 },
+                "ipv6Subnets": {
+                    "items": {
+                        "required": [
+                            "name",
+                            "subnet"
+                        ],
+                        "type": "object",
+                        "properties": {
+                            "subnet": {
+                                "type": "string",
+                                "maxLength": 128,
+                                "pattern": "[-_0-9a-zA-Z]+$"
+                            },
+                            "excludeIps": {
+                                "type": "string",
+                                "maxLength": 128
+                            },
+                            "gateway": {
+                                "type": "string",
+                                "maxLength": 128
+                            },
+                            "name": {
+                                "type": "string",
+                                "maxLength": 128,
+                                "pattern": "^([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9]$"
+                            }
+                        }
+                    },
+                    "type": "array"
+                },
                 "cniType": {
                     "type": "string",
                     "maxLength": 128,

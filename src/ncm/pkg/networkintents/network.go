@@ -24,6 +24,7 @@ type Network struct {
 type NetworkSpec struct {
 	CniType     string                `json:"cniType" yaml:"cniType"`
 	Ipv4Subnets []nettypes.Ipv4Subnet `json:"ipv4Subnets" yaml:"ipv4Subnets"`
+	Ipv6Subnets []nettypes.Ipv6Subnet `json:"ipv6Subnets,omitempty" yaml:"ipv6Subnets,omitempty"`
 }
 
 // NetworkKey is the key structure that is used in the database
