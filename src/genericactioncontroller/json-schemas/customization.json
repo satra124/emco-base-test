@@ -87,6 +87,7 @@
             "type": "string",
             "enum": [
               "json",
+              "merge",
               ""
             ]
           },
@@ -138,6 +139,15 @@
             "description": "data key name for the configurations in the customization file",
             "type": "string",
             "maxLength": 128
+          },
+          "mergePatch": {
+            "description": "indicates whether the customization files contain strategic merge patch data.",
+            "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "default": "false"
           }
         },
         "required": [

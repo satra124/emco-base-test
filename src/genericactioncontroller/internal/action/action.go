@@ -1,7 +1,7 @@
-package action
-
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2020 Intel Corporation
+
+package action
 
 import (
 	"strings"
@@ -15,15 +15,16 @@ import (
 // SEPARATOR used while creating resourceNames to store in etcd
 const SEPARATOR = "+"
 
-// updateOptions
-type updateOptions struct {
+// UpdateOptions
+type UpdateOptions struct {
 	appContext           appcontext.AppContext
 	appMeta              appcontext.CompositeAppMeta
-	customization        module.Customization
-	customizationContent module.CustomizationContent
+	Customization        module.Customization
+	customizations       []module.Customization
+	CustomizationContent module.CustomizationContent
 	intent               string
-	objectKind           string
-	resource             module.Resource
+	ObjectKind           string
+	Resource             module.Resource
 	resourceContent      module.ResourceContent
 }
 
@@ -53,14 +54,14 @@ func UpdateAppContext(intent, appContextID string) error {
 		return err
 	}
 
-	for _, resource := range resources {
-		o := updateOptions{
-			appContext: appContext,
-			appMeta:    appMeta,
-			intent:     intent,
-		}
-		o.objectKind = strings.ToLower(resource.Spec.ResourceGVK.Kind)
-		o.resource = resource
+	o := UpdateOptions{
+		appContext: appContext,
+		appMeta:    appMeta,
+		intent:     intent,
+	}
+
+	for _, o.Resource = range resources {
+		o.ObjectKind = strings.ToLower(o.Resource.Spec.ResourceGVK.Kind)
 		if err := o.createOrUpdateResource(); err != nil {
 			return err
 		}
@@ -70,34 +71,32 @@ func UpdateAppContext(intent, appContextID string) error {
 }
 
 // createOrUpdateResource creates a new k8s object or updates the existing one
-func (o *updateOptions) createOrUpdateResource() error {
+func (o *UpdateOptions) createOrUpdateResource() error {
 	if err := o.getResourceContent(); err != nil {
 		return err
 	}
 
-	customizations, err := o.getAllCustomization()
-	if err != nil {
+	if err := o.getAllCustomization(); err != nil {
 		return err
 	}
 
-	for _, customization := range customizations {
-		o.customization = customization
-		if o.objectKind == "configmap" ||
-			o.objectKind == "secret" {
-			// customization using files is supported only for ConfigMap/Secret
-			if err = o.getCustomizationContent(); err != nil {
+	for _, o.Customization = range o.customizations {
+		if o.ObjectKind == "configmap" ||
+			o.ObjectKind == "secret" ||
+			o.Customization.Spec.PatchType == "merge" {
+			if err := o.getCustomizationContent(); err != nil {
 				return err
 			}
 		}
 
-		if strings.ToLower(o.resource.Spec.NewObject) == "true" {
-			if err = o.createNewResource(); err != nil {
+		if strings.ToLower(o.Resource.Spec.NewObject) == "true" {
+			if err := o.createNewResource(); err != nil {
 				return err
 			}
 			continue
 		}
 
-		if err = o.updateExistingResource(); err != nil {
+		if err := o.updateExistingResource(); err != nil {
 			return err
 		}
 	}
@@ -106,8 +105,8 @@ func (o *updateOptions) createOrUpdateResource() error {
 }
 
 // createNewResource creates a new k8s object
-func (o *updateOptions) createNewResource() error {
-	switch o.objectKind {
+func (o *UpdateOptions) createNewResource() error {
+	switch o.ObjectKind {
 	case "configmap":
 		if err := o.createConfigMap(); err != nil {
 			return err
@@ -126,7 +125,7 @@ func (o *updateOptions) createNewResource() error {
 }
 
 // createK8sResource creates a new k8s object
-func (o *updateOptions) createK8sResource() error {
+func (o *UpdateOptions) createK8sResource() error {
 	if len(o.resourceContent.Content) == 0 {
 		o.logUpdateError(
 			updateError{
@@ -140,18 +139,12 @@ func (o *updateOptions) createK8sResource() error {
 		return err
 	}
 
-	if strings.ToLower(o.customization.Spec.PatchType) == "json" &&
-		len(o.customization.Spec.PatchJSON) > 0 {
-		// validate the JSON patch value before applying
-		if err := o.validateJSONPatchValue(); err != nil {
-			return err
-		}
-
-		modifiedPatch, err := applyPatch(o.customization.Spec.PatchJSON, value)
+	// apply the patch, if any
+	if len(o.Customization.Spec.PatchType) > 0 {
+		value, err = o.MergePatch(value)
 		if err != nil {
 			return err
 		}
-		value = modifiedPatch // use the merge patch to create the resource
 	}
 
 	if err = o.create(value); err != nil {
@@ -163,18 +156,20 @@ func (o *updateOptions) createK8sResource() error {
 
 // create adds the resource under the app and cluster
 // also add instruction under the given handle and instruction type
-func (o *updateOptions) create(data []byte) error {
+func (o *UpdateOptions) create(data []byte) error {
 	clusters, err := o.getClusterNames()
 	if err != nil {
 		return err
 	}
 
-	clusterName := o.customization.Spec.ClusterInfo.ClusterName
-	clusterSpecific := strings.ToLower(o.customization.Spec.ClusterSpecific)
-	label := o.customization.Spec.ClusterInfo.ClusterLabel
-	mode := strings.ToLower(o.customization.Spec.ClusterInfo.Mode)
-	provider := o.customization.Spec.ClusterInfo.ClusterProvider
-	scope := strings.ToLower(o.customization.Spec.ClusterInfo.Scope)
+	var (
+		clusterName     string = o.Customization.Spec.ClusterInfo.ClusterName
+		clusterSpecific string = strings.ToLower(o.Customization.Spec.ClusterSpecific)
+		label           string = o.Customization.Spec.ClusterInfo.ClusterLabel
+		mode            string = strings.ToLower(o.Customization.Spec.ClusterInfo.Mode)
+		provider        string = o.Customization.Spec.ClusterInfo.ClusterProvider
+		scope           string = strings.ToLower(o.Customization.Spec.ClusterInfo.Scope)
+	)
 
 	for _, cluster := range clusters {
 		if clusterSpecific == "true" && scope == "label" {
@@ -202,7 +197,7 @@ func (o *updateOptions) create(data []byte) error {
 			return err
 		}
 
-		resource := o.resource.Spec.ResourceGVK.Name + SEPARATOR + o.resource.Spec.ResourceGVK.Kind
+		resource := o.Resource.Spec.ResourceGVK.Name + SEPARATOR + o.Resource.Spec.ResourceGVK.Kind
 
 		if err = o.addResource(handle, resource, string(data)); err != nil {
 			return err
@@ -223,19 +218,10 @@ func (o *updateOptions) create(data []byte) error {
 }
 
 // updateExistingResource update the existing k8s object
-func (o *updateOptions) updateExistingResource() error {
-	// make sure we have a valid JSON patch to update the resource
-	if strings.ToLower(o.customization.Spec.PatchType) != "json" ||
-		len(o.customization.Spec.PatchJSON) == 0 {
-		o.logUpdateError(
-			updateError{
-				message: "invalid json patch"})
-		return errors.New("invalid json patch")
-	}
-
-	// validate the JSON patch value before applying
-	if err := o.validateJSONPatchValue(); err != nil {
-		return err
+func (o *UpdateOptions) updateExistingResource() error {
+	// make sure a patch type is specified
+	if len(o.Customization.Spec.PatchType) == 0 {
+		return errors.New("patch type not defined")
 	}
 
 	clusters, err := o.getClusterNames()
@@ -243,12 +229,15 @@ func (o *updateOptions) updateExistingResource() error {
 		return err
 	}
 
-	clusterName := o.customization.Spec.ClusterInfo.ClusterName
-	clusterSpecific := strings.ToLower(o.customization.Spec.ClusterSpecific)
-	label := o.customization.Spec.ClusterInfo.ClusterLabel
-	mode := strings.ToLower(o.customization.Spec.ClusterInfo.Mode)
-	provider := o.customization.Spec.ClusterInfo.ClusterProvider
-	scope := strings.ToLower(o.customization.Spec.ClusterInfo.Scope)
+	var (
+		modifiedPatch   []byte
+		clusterName     string = o.Customization.Spec.ClusterInfo.ClusterName
+		clusterSpecific string = strings.ToLower(o.Customization.Spec.ClusterSpecific)
+		label           string = o.Customization.Spec.ClusterInfo.ClusterLabel
+		mode            string = strings.ToLower(o.Customization.Spec.ClusterInfo.Mode)
+		provider        string = o.Customization.Spec.ClusterInfo.ClusterProvider
+		scope           string = strings.ToLower(o.Customization.Spec.ClusterInfo.Scope)
+	)
 
 	for _, cluster := range clusters {
 		if clusterSpecific == "true" && scope == "label" {
@@ -271,8 +260,8 @@ func (o *updateOptions) updateExistingResource() error {
 			}
 		}
 
-		handle, err := o.getResourceHandle(cluster, strings.Join([]string{o.resource.Spec.ResourceGVK.Name,
-			o.resource.Spec.ResourceGVK.Kind}, SEPARATOR))
+		handle, err := o.getResourceHandle(cluster, strings.Join([]string{o.Resource.Spec.ResourceGVK.Name,
+			o.Resource.Spec.ResourceGVK.Kind}, SEPARATOR))
 		if err != nil {
 			continue
 		}
@@ -282,7 +271,8 @@ func (o *updateOptions) updateExistingResource() error {
 			continue
 		}
 
-		modifiedPatch, err := applyPatch(o.customization.Spec.PatchJSON, []byte(val.(string)))
+		// apply the patch, if any
+		modifiedPatch, err = o.MergePatch([]byte(val.(string)))
 		if err != nil {
 			return err
 		}

@@ -1,7 +1,7 @@
-package api
-
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2020 Intel Corporation
+
+package api
 
 import (
 	"bytes"
@@ -328,7 +328,6 @@ func validateCustomizationData(customization module.Customization) error {
 							"Error": e.Error()})
 					err = append(err, e.Error())
 				}
-
 			}
 		}
 	}
