@@ -18,12 +18,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type ResourceProvider interface {
-	GetClient() client.Client
-	UpdateStatus(*k8spluginv1alpha1.ResourceBundleState, runtime.Object) (bool, error)
-	DeleteObj(*k8spluginv1alpha1.ResourceBundleState, string) bool
-}
-
 // checkLabel verifies if the expected label exists and returns bool
 func checkLabel(labels map[string]string) bool {
 
@@ -75,60 +69,32 @@ func listClusterResources(cli client.Client,
 	return listResources(cli, "", labelSelector, returnData)
 }
 
-func GetCRListForResource(client client.Client, item *unstructured.Unstructured) (*k8spluginv1alpha1.ResourceBundleStateList, error) {
-	rbStatusList := &k8spluginv1alpha1.ResourceBundleStateList{}
+// Assume only one CR for label, multiple throws error
+func GetCRForResource(cli client.Client, item *unstructured.Unstructured, namespace string) (*k8spluginv1alpha1.ResourceBundleState, error) {
+	rbStatus := &k8spluginv1alpha1.ResourceBundleState{}
 
 	// Find the CRs which track this resource via the labelselector
 	crSelector := returnLabel(item.GetLabels())
 	if crSelector == nil {
 		log.Println("We should not be here. The predicate should have filtered this resource")
-		return rbStatusList, fmt.Errorf("Unexpected Error: Resource not filtered by predicate")
+		return rbStatus, fmt.Errorf("Unexpected Error: Resource not filtered by predicate")
 	}
-	// Get the CRs which have this label and update them all
-	// Ideally, we will have only one CR, but there is nothing
-	// preventing the creation of multiple.
-	err := listResources(client, item.GetNamespace(), crSelector, rbStatusList)
+	// Name of resource is same as the label value
+	var namespaced types.NamespacedName
+	namespaced.Name = crSelector["emco/deployment-id"]
+	if namespace == "" {
+		namespaced.Namespace = "default"
+	} else {
+		namespaced.Namespace = namespace
+	}
+	err := cli.Get(context.TODO(), namespaced, rbStatus)
 	if err != nil {
-		return rbStatusList, err
+		return rbStatus, err
 	}
-	if len(rbStatusList.Items) == 0 {
-		return rbStatusList, nil
-	}
-	return rbStatusList, nil
+	return rbStatus, nil
 }
 
-func UpdateCR(c client.Client, item *unstructured.Unstructured, namespacedName types.NamespacedName, gvk schema.GroupVersionKind) error {
-	var err error
-	var found bool
-	rbStatusList, err := GetCRListForResource(c, item)
-	if err != nil {
-		return err
-	}
-
-	for _, cr := range rbStatusList.Items {
-		orgStatus := cr.Status.DeepCopy()
-
-		// Not scheduled for deletion
-		if item.GetDeletionTimestamp() == nil {
-			_, err := UpdateStatus(&cr, item)
-			if err != nil {
-				fmt.Println("Error updating CR")
-				return err
-			}
-			// Commit
-			err = CommitCR(c, &cr, orgStatus)
-		} else {
-			// Scheduled for deletion
-			found, err = DeleteObj(&cr, namespacedName.Name, gvk)
-			if found && err == nil {
-				err = CommitCR(c, &cr, orgStatus)
-			}
-		}
-	}
-	return err
-}
-
-func UpdateStatus(cr *k8spluginv1alpha1.ResourceBundleState, item *unstructured.Unstructured) (bool, error) {
+func UpdateStatus(cr *k8spluginv1alpha1.ResourceBundleState, item *unstructured.Unstructured, name, namespace string) (bool, error) {
 
 	switch item.GetObjectKind().GroupVersionKind() {
 	case schema.GroupVersionKind{Version: "v1", Kind: "ConfigMap"}:
@@ -151,7 +117,7 @@ func UpdateStatus(cr *k8spluginv1alpha1.ResourceBundleState, item *unstructured.
 	return false, fmt.Errorf("Resource not supported explicitly")
 }
 
-func DeleteObj(cr *k8spluginv1alpha1.ResourceBundleState, name string, gvk schema.GroupVersionKind) (bool, error) {
+func DeleteObj(cr *k8spluginv1alpha1.ResourceBundleState, name, namespace string, gvk schema.GroupVersionKind) (bool, error) {
 
 	switch gvk {
 	case schema.GroupVersionKind{Version: "v1", Kind: "ConfigMap"}:
@@ -174,93 +140,12 @@ func DeleteObj(cr *k8spluginv1alpha1.ResourceBundleState, name string, gvk schem
 	return false, fmt.Errorf("Resource not supported explicitly")
 }
 
-func DeleteFromSingleCR(c client.Client, cr *k8spluginv1alpha1.ResourceBundleState, name string, gvk schema.GroupVersionKind) error {
-
-	found, _ := DeleteObj(cr, name, gvk)
-	if found {
-		fieldMgr := "emco-monitor"
-		err := c.Status().Update(context.TODO(), cr, &client.UpdateOptions{FieldManager: fieldMgr})
-		if err != nil {
-			log.Printf("failed to update rbstate: %v\n", err)
-			return err
-		}
-	}
-	return nil
-}
-
-func DeleteFromAllCRs(c client.Client, namespacedName types.NamespacedName, gvk schema.GroupVersionKind) error {
-	var err error
-	var found bool
-	rbStatusList := &k8spluginv1alpha1.ResourceBundleStateList{}
-	err = listResources(c, namespacedName.Namespace, nil, rbStatusList)
-	if err != nil || len(rbStatusList.Items) == 0 {
-		log.Printf("Did not find any CRs tracking this resource\n")
-		return fmt.Errorf("Did not find any CRs tracking this resource")
-	}
-	for _, cr := range rbStatusList.Items {
-		orgStatus := cr.Status.DeepCopy()
-		found, err = DeleteObj(&cr, namespacedName.Name, gvk)
-		if found && err == nil {
-			err = CommitCR(c, &cr, orgStatus)
-		}
-	}
-	return err
-}
-
 func ClearLastApplied(annotations map[string]string) map[string]string {
 	_, ok := annotations["kubectl.kubernetes.io/last-applied-configuration"]
 	if ok {
 		annotations["kubectl.kubernetes.io/last-applied-configuration"] = ""
 	}
 	return annotations
-}
-
-//Update CR status for generic resources
-func UpdateResourceStatus(c client.Client, item *unstructured.Unstructured, name, namespace string) error {
-	var err error
-
-	rbStatusList, err := GetCRListForResource(c, item)
-	if err != nil {
-		return err
-	}
-	var found bool
-	for _, cr := range rbStatusList.Items {
-		orgStatus := cr.Status.DeepCopy()
-		// Not scheduled for deletion
-		if item.GetDeletionTimestamp() == nil {
-			found, err = UpdateResourceStatusCR(&cr, item, name, namespace)
-
-			if err == nil {
-				err = CommitCR(c, &cr, orgStatus)
-			}
-		} else {
-			found, err = DeleteResourceStatusCR(&cr, item.GetName(), item.GetNamespace(), item.GroupVersionKind())
-			if found && err == nil {
-				err = CommitCR(c, &cr, orgStatus)
-			}
-		}
-
-	}
-	return err
-}
-
-func DeleteResourceStatusFromAllCRs(c client.Client, namespacedName types.NamespacedName, gvk schema.GroupVersionKind) error {
-	var err error
-	var found bool
-	rbStatusList := &k8spluginv1alpha1.ResourceBundleStateList{}
-	err = listResources(c, namespacedName.Namespace, nil, rbStatusList)
-	if err != nil || len(rbStatusList.Items) == 0 {
-		log.Printf("Did not find any CRs tracking this resource\n")
-		return fmt.Errorf("Did not find any CRs tracking this resource")
-	}
-	for _, cr := range rbStatusList.Items {
-		orgStatus := cr.Status.DeepCopy()
-		found, err = DeleteResourceStatusCR(&cr, namespacedName.Name, namespacedName.Namespace, gvk)
-		if found && err == nil {
-			err = CommitCR(c, &cr, orgStatus)
-		}
-	}
-	return err
 }
 
 func DeleteResourceStatusCR(cr *k8spluginv1alpha1.ResourceBundleState, name, namespace string, gvk schema.GroupVersionKind) (bool, error) {
@@ -297,21 +182,25 @@ func UpdateResourceStatusCR(cr *k8spluginv1alpha1.ResourceBundleState, item *uns
 	group := item.GetObjectKind().GroupVersionKind().Group
 	version := item.GetObjectKind().GroupVersionKind().Version
 	kind := item.GetObjectKind().GroupVersionKind().Kind
-
-	for _, rstatus := range cr.Status.ResourceStatuses {
+	var index int
+	for i, rstatus := range cr.Status.ResourceStatuses {
 		if (rstatus.Group == group) && (rstatus.Version == version) && (rstatus.Kind == kind) && (rstatus.Name == name) && (rstatus.Namespace == namespace) {
 			found = true
-			// Replace
-			resBytes, err := json.Marshal(item)
-			if err != nil {
-				log.Println("json Marshal error for resource::", item, err)
-				return found, err
-			}
-			rstatus.Res = resBytes
+			index = i
 			break
 		}
 	}
-	if !found {
+	if found {
+		// Replace
+		resBytes, err := json.Marshal(item)
+		if err != nil {
+			log.Println("json Marshal error for resource::", item, err, index)
+			return found, err
+		}
+		p := &cr.Status.ResourceStatuses[index]
+		p.Res = make([]byte, len(resBytes))
+		copy(p.Res, resBytes)
+	} else {
 		resBytes, err := json.Marshal(item)
 		if err != nil {
 			log.Println("json Marshal error for resource::", item, err)
@@ -324,8 +213,9 @@ func UpdateResourceStatusCR(cr *k8spluginv1alpha1.ResourceBundleState, item *uns
 			Kind:      kind,
 			Name:      name,
 			Namespace: namespace,
-			Res:       resBytes,
 		}
+		res.Res = make([]byte, len(resBytes))
+		copy(res.Res, resBytes)
 		cr.Status.ResourceStatuses = append(cr.Status.ResourceStatuses, res)
 	}
 	return found, nil

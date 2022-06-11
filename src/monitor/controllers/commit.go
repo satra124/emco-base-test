@@ -4,17 +4,14 @@
 package controllers
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	k8spluginv1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"log"
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"sync"
 )
@@ -63,52 +60,18 @@ func NewGitHubClient() (GithubAccessClient, error) {
 	}, nil
 }
 
-func CommitCR(c client.Client, cr *k8spluginv1alpha1.ResourceBundleState, org *k8spluginv1alpha1.ResourceBundleStateStatus) error {
+var mutex = sync.Mutex{}
 
-	// Compare status and update if status changed
-	resBytesCr, err := json.Marshal(cr.Status)
-	if err != nil {
-		log.Println("json Marshal error for resource::", cr, err)
-		return err
-	}
-	resBytesOrg, err := json.Marshal(org)
-	if err != nil {
-		log.Println("json Marshal error for resource::", cr, err)
-		return err
-	}
-	// If the status is not changed no need to update CR
-	if bytes.Compare(resBytesCr, resBytesOrg) == 0 {
+func (c *GithubAccessClient) CommitCRToGitHub(cr *k8spluginv1alpha1.ResourceBundleState, l map[string]string) error {
+
+	// Check if Github Client is available
+	if c.cl == nil {
 		return nil
-	}
-	err = c.Status().Update(context.TODO(), cr)
-	if err != nil {
-		if k8serrors.IsConflict(err) {
-			return err
-		} else {
-			log.Println("CR Update Error::", err)
-			return err
-		}
 	}
 	resBytes, err := json.Marshal(cr)
 	if err != nil {
 		log.Println("json Marshal error for resource::", cr, err)
 		return err
-	}
-	// Check if GIT Info is provided if so store the information in the Git Repo also
-	err = GitHubClient.CommitCRToGitHub(resBytes, cr.GetLabels())
-	if err != nil {
-		log.Println("Error commiting status to Github", err)
-	}
-	return nil
-}
-
-var mutex = sync.Mutex{}
-
-func (c *GithubAccessClient) CommitCRToGitHub(resBytes []byte, l map[string]string) error {
-
-	// Check if Github Client is available
-	if c.cl == nil {
-		return nil
 	}
 	// Get cid and app id
 	v, ok := l["emco/deployment-id"]

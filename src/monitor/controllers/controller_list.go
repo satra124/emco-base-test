@@ -79,11 +79,14 @@ func (r *ControllerListReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		if k8serrors.IsNotFound(err) {
 			if g, ok := GvkMap[*r.gvk]; ok {
 				var err1 error
-				if g.defaultRes {
-					err1 = DeleteFromAllCRs(r.Client, req.NamespacedName, *r.gvk)
-				} else {
-					err1 = DeleteResourceStatusFromAllCRs(r.Client, req.NamespacedName, *r.gvk)
+				dc := DeleteStatusClient{
+					c:          r.Client,
+					name:       req.Name,
+					namespace:  req.Namespace,
+					gvk:        *r.gvk,
+					defaultRes: g.defaultRes,
 				}
+				err1 = dc.Delete()
 				return ctrl.Result{}, err1
 			}
 			return ctrl.Result{}, nil
@@ -93,11 +96,15 @@ func (r *ControllerListReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// If resource not a default resource for the controller
 	// Add status to ResourceStatues array
 	if g, ok := GvkMap[*r.gvk]; ok {
-		if g.defaultRes {
-			err = UpdateCR(r.Client, resource, req.NamespacedName, *r.gvk)
-		} else {
-			err = UpdateResourceStatus(r.Client, resource, req.NamespacedName.Name, req.NamespacedName.Namespace)
+		uc := UpdateStatusClient{
+			c:          r.Client,
+			item:       resource,
+			name:       req.NamespacedName.Name,
+			namespace:  req.NamespacedName.Namespace,
+			gvk:        *r.gvk,
+			defaultRes: g.defaultRes,
 		}
+		err = uc.Update()
 	}
 	if err != nil {
 		// Requeue the update
