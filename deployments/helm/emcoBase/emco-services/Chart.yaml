@@ -40,6 +40,9 @@ dependencies:
   - name: its
     version: ~1.x-0
     repository: 'file://../its'
+  - name: swc
+    version: ~0.x-0
+    repository: 'file://../swc'
   - name: gac
     version: ~1.x-0
     repository: 'file://../gac'

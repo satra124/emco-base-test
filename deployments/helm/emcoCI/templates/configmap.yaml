@@ -159,6 +159,23 @@ data:
           }
 
 ---
+# SWC Config Map
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: swc
+  labels:
+    app: swc
+data:
+  config.json: |
+          {
+          "database-type": "mongo",
+          "database-ip": "mongo",
+          "etcd-ip": "etcd",
+          }
+
+---
+
 
 # ITS Config Map
 kind: ConfigMap

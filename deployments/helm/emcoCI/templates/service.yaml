@@ -181,6 +181,24 @@ spec:
     nodePort: 30439
     protocol: TCP
     targetPort: 9039
+---
+# SWC Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: swc
+  labels:
+    app: swc
+spec:
+  selector:
+    app: swc
+  type: NodePort
+  ports:
+  - name: internal
+    port: 9088
+    nodePort: 30488
+    protocol: TCP
+    targetPort: 9088
 
 ---
 # ITS Service
