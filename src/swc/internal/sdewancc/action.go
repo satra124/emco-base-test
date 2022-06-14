@@ -6,7 +6,6 @@ package sdewancc
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	pkgerrors "github.com/pkg/errors"
@@ -16,14 +15,12 @@ import (
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 )
 
-const sesubnet string = "240.0.0.1"
-
 type clusterData struct {
 	Reslist        []map[string][]byte //resname: res
 	ClusterName    string
-	GwAddress      string
-	GwExternalPort uint32
-	GwInternalPort uint32
+	CNFPort        string
+	ServicePort    string
+	AllowedCIDR    string
 }
 type client struct {
 	ClientName        string
@@ -78,12 +75,12 @@ func UpdateAppContext(intentName, appContextId string) error {
 	index := 0
 
 	for _, is := range iss {
-		if is.Spec.ServiceMesh != "istio" {
-			log.Error("Error ISTIO not enabled for this server", log.Fields{
+		if is.Spec.EdgeCNF != "sdewan" {
+			log.Error("Error SDEWAN not enabled for this server", log.Fields{
 				"error":    err,
 				"app name": is.Spec.AppName,
 			})
-			return pkgerrors.Wrapf(err, "Error ISTIO not enabled for this server")
+			return pkgerrors.Wrapf(err, "Error SDEWAN not enabled for this server")
 		}
 		clusters, err := ac.GetClusterNames(is.Spec.AppName)
 		if err != nil {
@@ -100,7 +97,33 @@ func UpdateAppContext(intentName, appContextId string) error {
 		lc := len(clusters)
 		servers[index].ClusterData = make([]clusterData, lc)
 		for ci, c := range clusters {
-			servers[index].ClusterData[ci].GwExternalPort = uint32(12345)
+			obj, err := getClusterKvPair(c, "sdewancnfport")
+			if err != nil {
+				log.Error("Error getting sdewan cnf port", log.Fields{
+					"error":    err,
+				})
+				return pkgerrors.Wrapf(err,
+					"Error getting sdewan cnf port")
+			}
+			servers[index].ClusterData[ci].CNFPort = obj
+			obj, err = getClusterKvPair(c, "sdewanserviceport")
+                        if err != nil {
+                                log.Error("Error getting sdewan service port", log.Fields{
+                                        "error":    err,
+                                })
+                                return pkgerrors.Wrapf(err,
+                                        "Error getting sdewan service port")
+                        }
+                        servers[index].ClusterData[ci].ServicePort = obj
+			obj, err = getClusterKvPair(c, "sdewanserviceallowedcidr")
+                        if err != nil {
+                                log.Error("Error getting sdewan service allowed CIDR", log.Fields{
+                                        "error":    err,
+                                })
+                                return pkgerrors.Wrapf(err,
+                                        "Error getting sdewan service allowed CIDR")
+                        }
+                        servers[index].ClusterData[ci].AllowedCIDR = obj
 			servers[index].ClusterData[ci].ClusterName = c
 			servers[index].ClusterData[ci].Reslist = make([]map[string][]byte, 0)
 		}
@@ -118,12 +141,8 @@ func UpdateAppContext(intentName, appContextId string) error {
 				"Error getting clients inbound intents %v under server inbound intent %v for %v/%v%v/%v not found",
 				is.Metadata.Name, intentName, project, compositeapp, compositeappversion, deployIntentGroup)
 		}
-		log.Info("Received Update App Context request", log.Fields{
-		"AppContextId--------------------------------------------------": ""})
 
 		li := len(ics)
-		log.Info("Received Update App Context request", log.Fields{
-                "AppContextId--------------------------------------------------": li,})
 		servers[index].Clients = make([]client, li)
 		for i, ic := range ics {
 			servers[index].Clients[i].ClientName = ic.Spec.AppName
@@ -139,48 +158,13 @@ func UpdateAppContext(intentName, appContextId string) error {
 			}
 			lc := len(clusters)
 			servers[index].Clients[i].ClusterData = make([]clusterData, lc)
-			log.Info("Received Update App Context request", log.Fields{
-                "AppContextId--------------------------------------------------": lc,})
 			for cci, c := range clusters {
-				done := false
-				// check if the server and client are on the same cluster
-				for _, scd := range servers[index].ClusterData {
-					if scd.ClusterName == c {
-						servers[index].Clients[i].ClusterData[cci].ClusterName = c
-						servers[index].Clients[i].ClusterData[cci].Reslist = make([]map[string][]byte, 0)
-						done = true
-						break
-					}
-				}
-
-				if done {
-					continue
-				}
-				// check if the client side resources are alreay created for this cluster
-				done = false
-				for j := 0; j < i; j++ {
-					for _, cd := range servers[index].Clients[j].ClusterData {
-						if cd.ClusterName == c {
-							servers[index].Clients[i].ClusterData[cci].ClusterName = c
-							servers[index].Clients[i].ClusterData[cci].Reslist = make([]map[string][]byte, 0)
-							done = false
-							break
-						}
-					}
-					if done {
-						break
-					}
-				}
-				if done {
-					continue
-				}
-
 				servers[index].Clients[i].ClusterData[cci].ClusterName = c
 				servers[index].Clients[i].ClusterData[cci].Reslist = make([]map[string][]byte, 0)
 
 				err = createClientResources(is, c, servers, namespace, index, i, cci)
 				if err != nil {
-					log.Error("Error creating client resources", log.Fields{
+					log.Error("Error creating client resources for SDEWAN Application", log.Fields{
 						"error":    err,
 						"svc name": ic.Spec.ServiceName,
 					})
@@ -309,9 +293,11 @@ func addClusterResource(ac appcontext.AppContext, appname string, c string, res 
 
 func createServerResources(is module.InboundServerIntent, c string, servers []serverData, namespace string, index, ci int) error {
 
-	port := strconv.FormatInt(int64(is.Spec.Port), 10)
-	dport := strconv.FormatInt(int64(is.Spec.Port), 10)
-	res, err := createSdewanService(is.Spec.ServiceName, namespace, port, dport)
+	cnfport := servers[index].ClusterData[ci].CNFPort
+        serviceport := servers[index].ClusterData[ci].ServicePort
+	cidr := servers[index].ClusterData[ci].AllowedCIDR
+	fullname := is.Spec.ServiceName + "." + namespace + "." + "svc.cluster.local"
+	res, err := createSdewanService(fullname, namespace, cnfport, serviceport, cidr)
 	if err != nil {
 		log.Error("Error creating SDEWAN Service", log.Fields{
 			"error":        err,
@@ -325,9 +311,9 @@ func createServerResources(is module.InboundServerIntent, c string, servers []se
 	return nil
 }
 
-func createSdewanApplication(svcname, namespace string, pslabel string) (map[string][]byte, error) {
+func createSdewanApplication(svcname, namespace string, pslabel string, serviceport string, cnfport string) (map[string][]byte, error) {
 	salabel := createPodSelector(pslabel)
-	saspec := createSdewanApplicationSpec(namespace, salabel, "1234", "1234")
+	saspec := createSdewanApplicationSpec(namespace, salabel, serviceport, cnfport)
 	meta := createGenericMetadata(svcname, namespace, "")
 	out, err := createSdewanApplicationResource(meta, saspec)
 
@@ -345,8 +331,8 @@ func createSdewanApplication(svcname, namespace string, pslabel string) (map[str
 	return res, nil
 }
 
-func createSdewanService(svcname, namespace string, port string, dport string) (map[string][]byte, error) {
-	ssspec := createSdewanServiceSpec(svcname, port, dport, "0.0.0.0/24")
+func createSdewanService(svcname, namespace string, port string, dport string, cidr string) (map[string][]byte, error) {
+	ssspec := createSdewanServiceSpec(svcname, port, dport, cidr)
 	meta := createGenericMetadata(svcname, namespace, "")
 	out, err := createSdewanServiceResource(meta, ssspec)
 
@@ -365,7 +351,9 @@ func createSdewanService(svcname, namespace string, port string, dport string) (
 }
 
 func createClientResources(is module.InboundServerIntent, c string, servers []serverData, namespace string, index, ci, cci int) error {
-	res, err := createSdewanApplication(is.Spec.ServiceName, namespace, is.Spec.AppLabel)
+	cnfport := servers[index].ClusterData[ci].CNFPort
+	serviceport := servers[index].ClusterData[ci].ServicePort
+	res, err := createSdewanApplication(is.Spec.ServiceName, namespace, is.Spec.AppLabel, serviceport, cnfport)
 	if err != nil {
 		log.Error("Error creating SDEWAN Application", log.Fields{
 			"error":        err,

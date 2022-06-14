@@ -24,6 +24,7 @@ type InbondServerIntentSpec struct {
 	ServiceMesh     string `json:"serviceMesh", default:"none"`
 	Management      ServiceMeshManagement `json:"management"`
 	External        ExternalInfo `json:"external"`
+	EdgeCNF         string `json:"edgeCNF", default: "none"`
 }
 
 type ServiceMeshManagement struct {

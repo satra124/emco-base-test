@@ -35,7 +35,7 @@ func createSdewanServiceResource(meta Metadata, spec SdewanServiceSpec) ([]byte,
 	return y, err
 }
 
-func createSdewanServiceSpec(fullname string, port, dport, cidr string) SdewanServiceSpec {
+func createSdewanServiceSpec(fullname string, port string, dport string, cidr string) SdewanServiceSpec {
 	var ssspec = SdewanServiceSpec{
 		FullName: fullname,
 		Port:     port,
