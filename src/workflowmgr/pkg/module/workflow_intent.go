@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"strconv"
 
@@ -285,8 +286,8 @@ func (v *WorkflowIntentClient) StartWorkflowIntent(name,
 		return err
 	}
 
-	url := "http://" + wfi.Spec.WfClientSpec.WfClientEndpointName + ":" +
-		strconv.Itoa(wfi.Spec.WfClientSpec.WfClientEndpointPort) + "/invoke/" +
+	url := "http://" + net.JoinHostPort(wfi.Spec.WfClientSpec.WfClientEndpointName,
+		strconv.Itoa(wfi.Spec.WfClientSpec.WfClientEndpointPort)) + "/invoke/" +
 		wfi.Spec.WfTemporalSpec.WfClientName
 
 	jsonBytes, err := json.Marshal(wfi.Spec.WfTemporalSpec)
