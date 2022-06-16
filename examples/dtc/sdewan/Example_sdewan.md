@@ -41,19 +41,19 @@ Update the profile files with right proxy address and create tar.gz of profiles
 ```shell
 $ cd examples/helm_charts/http-server/profile/sdewan_overrides/http-server-profile
 $ tar -czvf ../http-server-profile.tar.gz .
-$ mv ../http-server-profile.tar.gz examples/dtc/sdewan/
+$ mv ../http-server-profile.tar.gz ../../../../../dtc/sdewan/
 $ cd examples/helm_charts/http-client/profile/sdewan_overrides/http-client-profile
 $ tar -czvf ../http-client-profile.tar.gz .
-$ mv ../http-client-profile.tar.gz examples/dtc/sdewan/
+$ mv ../http-client-profile.tar.gz ../../../../../dtc/sdewan/
 ```
 Create and copy .tgz of application helm charts
 ```shell
 $ cd examples/helm_charts/http-server/helm
 $ tar -czvf http-server.tgz http-server/
-$ mv http-server.tgz examples/dtc/sdewan/
+$ mv http-server.tgz ../../../dtc/sdewan/
 $ cd examples/helm_charts/http-client/helm
 $ tar -czvf http-client.tgz http-client/
-$ mv http-client.tgz examples/dtc/sdewan/
+$ mv http-client.tgz ../../../dtc/sdewan/
 ```
 
 ## Install the client/server app

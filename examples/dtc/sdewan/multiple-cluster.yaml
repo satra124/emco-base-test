@@ -82,12 +82,12 @@ version: emco/v2
 resourceContext:
   anchor: cluster-providers/provider1/clusters/cluster1/kv-pairs
 metadata :
-  name: istioingresskvpairs
+  name: sdewankvpairs
 spec:
   kv:
-    - istioIngressGatewayAddress : "192.168.121.205"
-    - istioIngressGatewayPort: "15443"
-    - istioIngressGatewayInternalPort: "15443"
+    - sdewancnfport: "12354"
+    - sdewanserviceport: "31333"
+    - sdewanserviceallowedcidr: "192.168.22.22/24"
 ---
 #create project
 version: emco/v2
@@ -310,7 +310,7 @@ spec:
   serviceName: http-service
   port: 3333
   protocol: TCP
-  serviceMesh: istio
+  edgeCNF: sdewan
 
 ---
 #add the client intent
