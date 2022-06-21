@@ -11,8 +11,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 	moduleLib "gitlab.com/project-emco/core/emco-base/src/workflowmgr/pkg/module"
 )
 
@@ -20,8 +20,9 @@ type workflowIntentHandler struct {
 	client moduleLib.WorkflowIntentManager
 }
 
-var wfiJSONFile string = "json-schema/workflow_intent.json"
-var crJSONFile string = "json-schema/cancel_request.json"
+// location of the files
+var wfiJSONFile string = "json-schemas/workflow_intent.json"
+var crJSONFile string = "json-schemas/cancel_request.json"
 
 func (h workflowIntentHandler) createHandler(w http.ResponseWriter, r *http.Request) {
 	var wfi moduleLib.WorkflowIntent
@@ -56,7 +57,7 @@ func (h workflowIntentHandler) createHandler(w http.ResponseWriter, r *http.Requ
 		log.Error(err.Error(), log.Fields{})
 		http.Error(w, err.Error(), httpError)
 		return
-	}	
+	}
 
 	ret, err := h.client.CreateWorkflowIntent(wfi, project, cApp, cAppVer, dig, false)
 	if err != nil {

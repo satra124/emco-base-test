@@ -15,7 +15,7 @@ global:
 # emcoTag: latest # uncomment to override default/inherited emcoTag
 image: emco-workflowmgr
 
-pullPolicy: IfNotPresent
+pullPolicy: Always
 args: ""
 command: "./workflowmgr"
 workingDir: /opt/emco/workflowmgr
