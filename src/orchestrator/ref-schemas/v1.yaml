@@ -131,3 +131,15 @@ resources:
 #emco-workflowmgr
   - name: workflowIntent
     parent: deploymentIntentGroup
+#emco-clusterProviderCertificate
+  - name: caCertCp
+    parent: clusterProvider
+  - name: caCertClusterGroupCp
+    parent: caCertCp
+#emco-logicalCloudCertificate
+  - name: caCertLc
+    parent: project
+  - name: caCertLogicalCloud
+    parent: caCertLc
+  - name: caCertClusterGroupLc
+    parent: caCertLogicalCloud
