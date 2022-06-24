@@ -85,9 +85,9 @@ metadata :
   name: sdewankvpairs
 spec:
   kv:
-    - sdewancnfport: "12354"
-    - sdewanserviceport: "31333"
-    - sdewanserviceallowedcidr: "192.168.22.22/24"
+    - SdewanCnfPort: "12354"
+    - SdewanServicePort: "31333"
+    - SdewanServiceAllowedCidr: "192.168.22.22/24"
 ---
 #create project
 version: emco/v2

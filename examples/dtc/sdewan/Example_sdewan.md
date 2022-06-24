@@ -11,7 +11,7 @@ This document describes how to deploy an example application with sdewan control
 - Build the app Images
 - Prepare the edge cluster
 - Configure
-- Install the client/server applicationls
+- Install the client/server applications
 - Verify network policy resource instantiation
 - Sample log from the client pod
 - Uninstall the client/server application

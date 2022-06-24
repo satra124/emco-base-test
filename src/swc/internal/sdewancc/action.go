@@ -97,7 +97,7 @@ func UpdateAppContext(intentName, appContextId string) error {
 		lc := len(clusters)
 		servers[index].ClusterData = make([]clusterData, lc)
 		for ci, c := range clusters {
-			obj, err := getClusterKvPair(c, "sdewancnfport")
+			obj, err := getClusterKvPair(c, "SdewanCnfPort")
 			if err != nil {
 				log.Error("Error getting sdewan cnf port", log.Fields{
 					"error":    err,
@@ -106,7 +106,7 @@ func UpdateAppContext(intentName, appContextId string) error {
 					"Error getting sdewan cnf port")
 			}
 			servers[index].ClusterData[ci].CNFPort = obj
-			obj, err = getClusterKvPair(c, "sdewanserviceport")
+			obj, err = getClusterKvPair(c, "SdewanServicePort")
                         if err != nil {
                                 log.Error("Error getting sdewan service port", log.Fields{
                                         "error":    err,
@@ -115,7 +115,7 @@ func UpdateAppContext(intentName, appContextId string) error {
                                         "Error getting sdewan service port")
                         }
                         servers[index].ClusterData[ci].ServicePort = obj
-			obj, err = getClusterKvPair(c, "sdewanserviceallowedcidr")
+			obj, err = getClusterKvPair(c, "SdewanServiceAllowedCidr")
                         if err != nil {
                                 log.Error("Error getting sdewan service allowed CIDR", log.Fields{
                                         "error":    err,
