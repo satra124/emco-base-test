@@ -23,7 +23,7 @@ type Network struct {
 
 type NetworkSpec struct {
 	CniType     string                `json:"cniType" yaml:"cniType"`
-	Ipv4Subnets []nettypes.Ipv4Subnet `json:"ipv4Subnets" yaml:"ipv4Subnets"`
+	Ipv4Subnets []nettypes.Ipv4Subnet `json:"ipv4Subnets,omitempty" yaml:"ipv4Subnets,omitempty"`
 	Ipv6Subnets []nettypes.Ipv6Subnet `json:"ipv6Subnets,omitempty" yaml:"ipv6Subnets,omitempty"`
 }
 

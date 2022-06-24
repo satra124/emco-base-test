@@ -3,10 +3,13 @@
     "type": "object",
     "properties": {
         "spec": {
-            "required": [
-                "cniType",
-                "ipv4Subnets"
-            ],
+	    "required": [
+		"cniType"
+	    ],
+	    "anyOf": [
+		{"required": ["ipv4Subnets"]},
+		{"required": ["ipv6Subnets"]}
+	    ],
             "properties": {
                 "ipv4Subnets": {
                     "items": {

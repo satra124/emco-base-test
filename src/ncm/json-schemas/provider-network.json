@@ -5,10 +5,13 @@
         "spec": {
             "required": [
                 "cniType",
-                "ipv4Subnets",
                 "providerNetType",
                 "vlan"
             ],
+	    "anyOf": [
+		{"required": ["ipv4Subnets"]},
+		{"required": ["ipv6Subnets"]}
+	    ],
             "type": "object",
             "properties": {
                 "ipv4Subnets": {
