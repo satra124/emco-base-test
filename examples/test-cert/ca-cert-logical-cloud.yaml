@@ -1,0 +1,160 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022 Intel Corporation
+
+# add the cert intent1
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/ca-certs
+metadata:
+  name: {{.CertIntent1}}
+spec:
+  isCA: true
+  issuerRef:
+    name: {{.ClusterIssuer1}}
+    kind: {{.Kind}}
+    group: {{.Group}}
+  duration: 8760
+  issuingCluster: 
+    cluster: {{.IssuingCluster}}
+    clusterProvider: {{.ClusterProvider}}
+  csrInfo: 
+    keySize: {{.KeySize}}
+    version: 1
+    dnsNames: []
+    emailAddresses: []
+    keyUsages: []
+    algorithm: 
+      publicKeyAlgorithm: RSA
+      signatureAlgorithm: SHA512WithRSA
+    subject:
+      locale: 
+        country: []
+        locality: []
+        postalCode: []
+        province: []
+        streetAddress: []
+      names:
+        commonNamePrefix: {{.CommonNamePrefix}}
+      organization:
+        names: []
+        units: []
+---
+# add the cert intent2
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/ca-certs
+metadata:
+  name: {{.CertIntent2}}
+spec:
+  isCA: true
+  issuerRef:
+    name: {{.ClusterIssuer2}}
+    kind: {{.Kind}}
+    group: {{.Group}}
+  duration: 8760
+  issuingCluster: 
+    cluster: {{.IssuingCluster}}
+    clusterProvider: {{.ClusterProvider}}
+  csrInfo: 
+    keySize: {{.KeySize}}
+    version: 1
+    dnsNames: []
+    emailAddresses: []
+    keyUsages: []
+    algorithm: 
+      publicKeyAlgorithm: RSA
+      signatureAlgorithm: SHA512WithRSA
+    subject:
+      locale: 
+        country: []
+        locality: []
+        postalCode: []
+        province: []
+        streetAddress: []
+      names:
+        commonNamePrefix: {{.CommonNamePrefix}}
+      organization:
+        names: []
+        units: []
+---
+# add logical cloud part of the cert intent1
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/ca-certs/{{.CertIntent1}}/logical-clouds
+metadata :
+  name: {{.FooLogicalCloud}}
+spec:
+  logicalCloud: {{.FooLogicalCloud}}
+---
+# add logical cloud part of the cert intent1
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/ca-certs/{{.CertIntent1}}/logical-clouds
+metadata :
+  name: {{.BarLogicalCloud}}
+spec:
+  logicalCloud: {{.BarLogicalCloud}}
+---
+# add logical cloud part of the cert intent2
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/ca-certs/{{.CertIntent2}}/logical-clouds
+metadata :
+  name: {{.FooBarLogicalCloud}}
+spec:
+  logicalCloud: {{.FooBarLogicalCloud}}
+---
+# add cluster from logical cloud by name
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/ca-certs/{{.CertIntent1}}/logical-clouds/{{.FooLogicalCloud}}/clusters
+metadata :
+  name: {{.ClusterGroup1a}}
+spec:
+  scope: name
+  cluster: {{.Cluster1}}
+  clusterProvider: {{.ClusterProvider}}
+---
+# add cluster from logical cloud by label
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/ca-certs/{{.CertIntent1}}/logical-clouds/{{.FooLogicalCloud}}/clusters
+metadata :
+  name: {{.ClusterGroup1b}}
+spec:
+  scope: label
+  label: {{.GroupLabel23}}
+  clusterProvider: {{.ClusterProvider}}
+---
+# add cluster clusters from logical cloud by label
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/ca-certs/{{.CertIntent1}}/logical-clouds/{{.BarLogicalCloud}}/clusters
+metadata :
+  name: {{.ClusterGroup1c}}
+spec:
+  scope: label
+  label: {{.GroupLabel23}}
+  clusterProvider: {{.ClusterProvider}}
+---
+# add cluster clusters from logical cloud by label
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/ca-certs/{{.CertIntent2}}/logical-clouds/{{.FooBarLogicalCloud}}/clusters
+metadata :
+  name: {{.ClusterGroup2a}}
+spec:
+  scope: label
+  label: {{.GroupLabel23}}
+  clusterProvider: {{.ClusterProvider}}
+---
+# add cluster clusters from logical cloud by label
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/ca-certs/{{.CertIntent2}}/logical-clouds/{{.FooBarLogicalCloud}}/clusters
+metadata :
+  name: {{.ClusterGroup2b}}
+spec:
+  scope: label
+  label: {{.GroupLabel1}}
+  clusterProvider: {{.ClusterProvider}}

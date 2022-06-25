@@ -1,0 +1,14 @@
+#instantiate foo logical cloud
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/logical-clouds/{{.FooLogicalCloud}}/instantiate
+---
+#instantiate bar logical cloud
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/logical-clouds/{{.BarLogicalCloud}}/instantiate
+---
+#instantiate foobar logical cloud
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/logical-clouds/{{.FooBarLogicalCloud}}/instantiate
