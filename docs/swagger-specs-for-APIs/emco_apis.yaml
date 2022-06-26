@@ -6242,7 +6242,995 @@ paths:
         '500':
           description: Internal Server Error
 
-
+####################### Certificate ##################################
+  # ClusterProvider CA
+  /cluster-providers/{clusterProvider}/ca-certs:
+    parameters:
+      - $ref: '#/components/parameters/clusterProviderName'
+    post:
+      tags:
+        - CaCert - ClusterProvider
+      summary: Create a new caCert
+      description: Create a new caCert associated with a clusterProvider
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/CaCert'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+      requestBody:
+        content:
+          application/json: 
+            schema:         
+              $ref: '#/components/schemas/CaCert'
+    get: 
+      tags:
+        - CaCert - ClusterProvider
+      summary: Get all the caCert(s)
+      description: Get all the caCert(s) associated with a clusterProvider
+      responses: 
+        '200':
+          description: Success
+          content:
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/CaCertArray'
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+  /cluster-providers/{clusterProvider}/ca-certs/{caCert}:
+    parameters:
+      - $ref: '#/components/parameters/clusterProviderName'
+      - $ref: '#/components/parameters/caCert'
+    get: 
+      tags:
+        - CaCert - ClusterProvider
+      summary: Get the caCert
+      description: Get the caCert associated with a clusterProvider
+      responses: 
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaCert'
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+    delete:
+      tags:
+        - CaCert - ClusterProvider
+      summary: Delete the caCert
+      description: Delete the caCert associated with a clusterProvider
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+    put:
+      tags:
+        - CaCert - ClusterProvider
+      summary: Update the caCert
+      description: Update the caCert associated with a clusterProvider
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaCert'
+          description: Success
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+      requestBody:
+        content:
+          application/json: 
+            schema:
+              $ref: '#/components/schemas/CaCert'
+        required: true   
+  /cluster-providers/{clusterProvider}/ca-certs/{caCert}/clusters:
+    parameters:
+      - $ref: '#/components/parameters/clusterProviderName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert - ClusterProvider
+      summary: Add clusterGroup to the caCert
+      description: Add clusterGroup to the caCert associated with a clusterProvider
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/ClusterGroup'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+      requestBody:
+        content:
+          application/json: 
+            schema:         
+              $ref: '#/components/schemas/ClusterGroup'
+    get: 
+      tags:
+        - CaCert - ClusterProvider
+      summary: Get all the clusterGroup(s) in the caCert
+      description: Get all the clusterGroup(s) in the caCert associated with a clusterProvider
+      responses: 
+        '200':
+          description: Success
+          content:
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/ClusterGroupArray'
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+  /cluster-providers/{clusterProvider}/ca-certs/{caCert}/clusters/{cluster}:
+    parameters:
+      - $ref: '#/components/parameters/clusterProviderName'
+      - $ref: '#/components/parameters/caCert'
+      - $ref: '#/components/parameters/caCertClusterGroup'
+    get: 
+      tags:
+        - CaCert - ClusterProvider
+      summary: Get the clusterGroup in the caCert
+      description: Get the clusterGroup in the caCert associated with a clusterProvider
+      responses: 
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterGroup'
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+    delete:
+      tags:
+        - CaCert - ClusterProvider
+      summary: Delete the clusterGroup in the caCert
+      description: Delete the clusterGroup in the caCert associated with a clusterProvider
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+    put:
+      tags:
+        - CaCert - ClusterProvider
+      summary: Update the clusterGroup in the caCert
+      description: Update the clusterGroup in the caCert associated with a clusterProvider
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterGroup'
+          description: Success
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+      requestBody:
+        content:
+          application/json: 
+            schema:
+              $ref: '#/components/schemas/ClusterGroup'
+        required: true
+  # Enrollment
+  /cluster-providers/{clusterProvider}/ca-certs/{caCert}/enrollment/status:
+    parameters:
+      - $ref: '#/components/parameters/clusterProviderName'
+      - $ref: '#/components/parameters/caCert'
+      - in: query
+        name: instance
+        description: display status for given instance identifier
+        schema:
+          type: string
+          maxLength: 32
+      - in: query
+        name: status
+        description:  source of status information
+        schema:
+          type: string
+          enum: [deployed, ready]
+      - in: query
+        name: output
+        description: output format
+        schema:
+          type: string
+          enum: [summary, all, detail]
+          default: all
+      - in: query
+        name: cluster
+        description: filter status query results by given clusterProvider+cluster
+        schema:
+          type: string
+          maxLength: 128
+      - in: query
+        name: resource
+        description: filter status query results by given resource name
+        schema:
+          type: string
+          maxLength: 64
+      - in: query
+        name: clusters
+        description: query parameter (no value) to get list of clusters, optionally filtered by app
+        schema: {}
+      - in: query
+        name: resources
+        description: query parameter (no value) to get list of resources, optionally filtered by app and/or cluster
+        schema: {}    
+    get:
+      tags:
+        - CaCert Enrollment - ClusterProvider
+      summary: Get the caCert enrollment status
+      description: Get the caCert enrollment status associated with a clusterProvider
+      responses:
+        '200':
+          description: Success
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaCertStatus'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  # enrollment/instantiate
+  /cluster-providers/{clusterProvider}/ca-certs/{caCert}/enrollment/instantiate:
+    parameters:
+      - $ref: '#/components/parameters/clusterProviderName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert Enrollment - ClusterProvider
+      summary: Instantiate the caCert enrollment
+      description: Instantiate the caCert enrollment associated with a clusterProvider
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+  # enrollment/terminate
+  /cluster-providers/{clusterProvider}/ca-certs/{caCert}/enrollment/terminate:
+    parameters:
+      - $ref: '#/components/parameters/clusterProviderName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert Enrollment - ClusterProvider
+      summary: Terminate the caCert enrollment
+      description: Terminate the caCert enrollment associated with a clusterProvider
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+  # enrollment/update
+  /cluster-providers/{clusterProvider}/ca-certs/{caCert}/enrollment/update:
+    parameters:
+      - $ref: '#/components/parameters/clusterProviderName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert Enrollment - ClusterProvider
+      summary: Update the caCert enrollment
+      description: Update the caCert enrollment associated with a clusterProvider
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+  # Distribution
+  /cluster-providers/{clusterProvider}/ca-certs/{caCert}/distribution/status:
+    parameters:
+      - $ref: '#/components/parameters/clusterProviderName'
+      - $ref: '#/components/parameters/caCert'
+      - in: query
+        name: instance
+        description: display status for given instance identifier
+        schema:
+          type: string
+          maxLength: 32
+      - in: query
+        name: status
+        description:  source of status information
+        schema:
+          type: string
+          enum: [deployed, ready]
+      - in: query
+        name: output
+        description: output format
+        schema:
+          type: string
+          enum: [summary, all, detail]
+          default: all
+      - in: query
+        name: cluster
+        description: filter status query results by given clusterProvider+cluster
+        schema:
+          type: string
+          maxLength: 128
+      - in: query
+        name: resource
+        description: filter status query results by given resource name
+        schema:
+          type: string
+          maxLength: 64
+      - in: query
+        name: clusters
+        description: query parameter (no value) to get list of clusters, optionally filtered by app
+        schema: {}
+      - in: query
+        name: resources
+        description: query parameter (no value) to get list of resources, optionally filtered by app and/or cluster
+        schema: {}   
+    get:
+      tags:
+        - CaCert Distribution - ClusterProvider
+      summary: Get the caCert distribution status
+      description: Get the caCert distribution status associated with a clusterProvider
+      responses:
+        '200':
+          description: Success
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaCertStatus'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  # distribution/instantiate
+  /cluster-providers/{clusterProvider}/ca-certs/{caCert}/distribution/instantiate:
+    parameters:
+      - $ref: '#/components/parameters/clusterProviderName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert Distribution - ClusterProvider
+      summary: Instantiate the caCert distribution
+      description: Instantiate the caCert distribution associated with a clusterProvider
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+  # distribution/terminate
+  /cluster-providers/{clusterProvider}/ca-certs/{caCert}/distribution/terminate:
+    parameters:
+      - $ref: '#/components/parameters/clusterProviderName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert Distribution - ClusterProvider
+      summary: Terminate the caCert distribution
+      description: Terminate the caCert distribution associated with a clusterProvider
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+  # distribution/update
+  /cluster-providers/{clusterProvider}/ca-certs/{caCert}/distribution/update:
+    parameters:
+      - $ref: '#/components/parameters/clusterProviderName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert Distribution - ClusterProvider
+      summary: Update the caCert distribution 
+      description: Update the caCert distribution associated with a clusterProvider
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+  # Logical-Cloud CA
+  /projects/{project}/ca-certs:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+    post:
+      tags:
+        - CaCert - LogicalCloud
+      summary: Create a new caCert
+      description: Create a new caCert associated with a project
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/CaCert'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+      requestBody:
+        content:
+          application/json: 
+            schema:         
+              $ref: '#/components/schemas/CaCert'
+    get: 
+      tags:
+        - CaCert - LogicalCloud
+      summary: Get all the caCert(s)
+      description: Get all the caCert(s) associated with a project
+      responses: 
+        '200':
+          description: Success
+          content:
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/CaCertArray'
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+  /projects/{project}/ca-certs/{caCert}:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+    get: 
+      tags:
+        - CaCert - LogicalCloud
+      summary: Get the caCert
+      description: Get the caCert associated with a project
+      responses: 
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaCert'
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+    delete:
+      tags:
+        - CaCert - LogicalCloud
+      summary: Delete the caCert
+      description: Delete the caCert associated with a project
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+    put:
+      tags:
+        - CaCert - LogicalCloud
+      summary: Update the caCert
+      description: Update the caCert associated with a project
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaCert'
+          description: Success
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+      requestBody:
+        content:
+          application/json: 
+            schema:
+              $ref: '#/components/schemas/CaCert'
+        required: true
+  /projects/{project}/ca-certs/{caCert}/logical-clouds:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert - LogicalCloud
+      summary: Add logicalCloud to the caCert
+      description: Add logicalCloud to the caCert associated with a project
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/CaCertLogicalCloud'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+      requestBody:
+        content:
+          application/json: 
+            schema:         
+              $ref: '#/components/schemas/CaCertLogicalCloud'
+    get: 
+      tags:
+        - CaCert - LogicalCloud
+      summary: Get the logicalCloud(s) in the caCert
+      description: Get all the logicalCloud(s) in the caCert associated with a project
+      responses: 
+        '200':
+          description: Success
+          content:
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/CaCertLogicalCloudArray'
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+  /projects/{project}/ca-certs/{caCert}/logical-clouds/{logicalCloud}:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+      - $ref: '#/components/parameters/caCertLogicalCloud'
+    get: 
+      tags:
+        - CaCert - LogicalCloud
+      summary: Get the logicalCloud in the caCert
+      description: Get the logicalCloud in the caCert associated with a project
+      responses: 
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaCertLogicalCloud'
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+    delete:
+      tags:
+        - CaCert - LogicalCloud
+      summary: Delete the logicalCloud in the caCert
+      description: Delete the logicalCloud in the caCert associated with a project
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+    put:
+      tags:
+        - CaCert - LogicalCloud
+      summary: Update the logicalCloud in the caCert
+      description: Update the logicalCloud in the caCert associated with a project
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaCertLogicalCloud'
+          description: Success
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+      requestBody:
+        content:
+          application/json: 
+            schema:
+              $ref: '#/components/schemas/CaCertLogicalCloud'
+        required: true
+  /projects/{project}/ca-certs/{caCert}/logical-clouds/{logicalCloud}/clusters:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+      - $ref: '#/components/parameters/caCertLogicalCloud'
+    post:
+      tags:
+        - CaCert - LogicalCloud
+      summary: Add clusterGroup to the logicalCloud
+      description: Add clusterGroup to the logicalCloud associated with a caCert and project
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/ClusterGroup'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+      requestBody:
+        content:
+          application/json: 
+            schema:         
+              $ref: '#/components/schemas/ClusterGroup'
+    get: 
+      tags:
+        - CaCert - LogicalCloud
+      summary: Get all the clusterGroup(s) in the logicalCloud
+      description: Get all the clusterGroup(s) in the logicalCloud associated with a caCert and project
+      responses: 
+        '200':
+          description: Success
+          content:
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/ClusterGroupArray'
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+  /projects/{project}/ca-certs/{caCert}/logical-clouds/{logicalCloud}/clusters/{cluster}:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+      - $ref: '#/components/parameters/caCertLogicalCloud'
+      - $ref: '#/components/parameters/caCertClusterGroup'
+    get: 
+      tags:
+        - CaCert - LogicalCloud
+      summary: Get the clusterGroup in the logicalCloud
+      description: Get the clusterGroup in the logicalCloud associated with a caCert and project
+      responses: 
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterGroup'
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+    delete:
+      tags:
+        - CaCert - LogicalCloud
+      summary: Delete the clusterGroup in the logicalCloud
+      description: Delete the clusterGroup in the logicalCloud associated with a caCert and project
+      responses:
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+    put:
+      tags:
+        - CaCert - LogicalCloud
+      summary: Update the clusterGroup in the logicalCloud
+      description: Update the clusterGroup in the logicalCloud associated with a caCert and project
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterGroup'
+          description: Success
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+      requestBody:
+        content:
+          application/json: 
+            schema:
+              $ref: '#/components/schemas/ClusterGroup'
+        required: true
+  # enrollment/status
+  /projects/{project}/ca-certs/{caCert}/enrollment/status:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+      - in: query
+        name: instance
+        description: display status for given instance identifier
+        schema:
+          type: string
+          maxLength: 32
+      - in: query
+        name: status
+        description:  source of status information 
+        schema:
+          type: string
+          enum: [deployed, ready]
+      - in: query
+        name: output
+        description: output format
+        schema:
+          type: string
+          enum: [summary, all, detail]
+          default: all
+      - in: query
+        name: cluster
+        description: filter status query results by given clusterProvider+cluster
+        schema:
+          type: string
+          maxLength: 128
+      - in: query
+        name: resource
+        description: filter status query results by given resource name
+        schema:
+          type: string
+          maxLength: 64
+      - in: query
+        name: clusters
+        description: query parameter (no value) to get list of clusters, optionally filtered by app
+        schema: {}
+      - in: query
+        name: resources
+        description: query parameter (no value) to get list of resources, optionally filtered by app and/or cluster
+        schema: {}   
+    get:
+      tags:
+        - CaCert Enrollment - LogicalCloud
+      summary: Get the caCert enrollment status
+      description: Get the caCert enrollment status associated with a project
+      responses:
+        '200':
+          description: Success
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaCertStatus'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  # enrollment/instantiate
+  /projects/{project}/ca-certs/{caCert}/enrollment/instantiate:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert Enrollment - LogicalCloud
+      summary: Instantiate the caCert enrollment
+      description: Instantiate the caCert enrollment associated with a project
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+  # enrollment/terminate
+  /projects/{project}/ca-certs/{caCert}/enrollment/terminate:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert Enrollment - LogicalCloud
+      summary: Terminate the caCert enrollment
+      description: Terminate the caCert enrollment associated with a project
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+  # enrollment/update
+  /projects/{project}/ca-certs/{caCert}/enrollment/update:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert Enrollment - LogicalCloud
+      summary: Update the caCert enrollment
+      description: Update the caCert enrollment associated with a project
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+  # distribution/status
+  /projects/{project}/ca-certs/{caCert}/distribution/status:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+      - in: query
+        name: instance
+        description: display status for given instance identifier
+        schema:
+          type: string
+          maxLength: 32
+      - in: query
+        name: status
+        description:  source of status information
+        schema:
+          type: string
+          enum: [deployed, ready]
+      - in: query
+        name: output
+        description: output format
+        schema:
+          type: string
+          enum: [summary, all, detail]
+          default: all
+      - in: query
+        name: cluster
+        description: filter status query results by given clusterProvider+cluster
+        schema:
+          type: string
+          maxLength: 128
+      - in: query
+        name: resource
+        description: filter status query results by given resource name
+        schema:
+          type: string
+          maxLength: 64
+      - in: query
+        name: clusters
+        description: query parameter (no value) to get list of clusters, optionally filtered by app
+        schema: {}
+      - in: query
+        name: resources
+        description: query parameter (no value) to get list of resources, optionally filtered by app and/or cluster
+        schema: {}   
+    get:
+      tags:
+        - CaCert Distribution - LogicalCloud
+      summary: Get the caCert distribution status
+      description: Get the caCert distribution status associated with a project
+      responses:
+        '200':
+          description: Success
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaCertStatus'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  # distribution/instantiate
+  /projects/{project}/ca-certs/{caCert}/distribution/instantiate:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert Distribution - LogicalCloud
+      summary: Instantiate the caCert distribution
+      description: Instantiate the caCert distribution associated with a project
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+  # distribution/terminate
+  /projects/{project}/ca-certs/{caCert}/distribution/terminate:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert Distribution - LogicalCloud
+      summary: Terminate the caCert distribution
+      description: Terminate the caCert distribution associated with a project
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+  # distribution/update
+  /projects/{project}/ca-certs/{caCert}/distribution/update:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/caCert'
+    post:
+      tags:
+        - CaCert Distribution - LogicalCloud
+      summary: Update the caCert distribution
+      description: Update the caCert distribution associated with a project
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
 
 #########################SCHEMAS####################################################
 # An object to hold reusable parts that can be used across the definition
@@ -7700,6 +8688,403 @@ components:
       items:
         $ref: '#/components/schemas/Dependency'
 
+    ############################ CERTIFICATE AUTHORITY SCHEMAS #################################################
+    CaCert:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/MetadataBase'
+        spec:
+          $ref: '#/components/schemas/CaCertSpec'
+    CaCertSpec:
+      type: object
+      properties:
+        csrInfo:
+          description: represent the certificate signining request(CSR) info
+          $ref: '#/components/schemas/CertificateSigningInfo'
+        duration: 
+          description: duration of the certificate
+          type: string
+        isCA:
+          description: specifies the cert is a CA or not
+          type: boolean
+          enum: [true, false]
+          default: true 
+        issuerRef:
+          description: the details of the issuer for signing the certificate request
+          $ref: '#/components/schemas/IssuerRef'
+        issuingCluster: 
+          description: the details of the issuing cluster
+          $ref: '#/components/schemas/IssuingClusterInfo'
+    CaCertArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/CaCert'
+    ClusterGroup:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/MetadataBase'
+        spec:
+          $ref: '#/components/schemas/ClusterGroupSpec'   
+    ClusterGroupSpec:
+      type: object
+      properties:
+        label:
+          description: select all the clusters with the specific label
+          type: string
+          maxLength: 128
+          example: "label-edge"
+        cluster:
+          description: select the cluster with the specific name
+          type: string
+          maxLength: 128
+          example: "cluster-edge"
+        provider:
+          description: name of the cluster provider
+          type: string
+          maxLength: 128
+          example: "provider1"
+        scope:
+          description: specifies how to identify the clusters
+          type: string
+          enum: [
+            label,
+            cluster
+          ]
+    IssuerRef:
+      type: object
+      properties:
+        group:
+          description: issuer group
+          type: string
+          maxLength: 128
+          example: "cert-manager.io"
+        kind:
+          description: issuer type
+          type: string
+          maxLength: 128
+          example: "ClusterIssuer"
+        name: 
+          description: the issuer for signing the certificate request
+          type: string
+          maxLength: 128
+          example: "foo-issuer"
+        version:
+          description: to identify the resorce
+          type: string
+          maxLength: 128
+          example: "v1"
+    IssuingClusterInfo:
+      type: object
+      properties:
+        cluster: 
+          description: name of the cluster
+          type: string
+          maxLength: 128
+          example: "edge-cluster-1"
+        clusterProvider:
+          description: name of the cluster provider
+          type: string
+          maxLength: 128
+          example: "provider1"
+    ClusterGroupArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/ClusterGroup'   
+    CertificateSigningInfo:
+      type: object
+      properties:
+        keySize: 
+          description: bit size for the key
+          type: integer
+          example: 4096
+        version:
+          description: certificate version
+          type: integer
+          example: 1
+        dnsNames:
+          description: supported DNS names
+          type: array
+          items:
+            type: string
+            maxLength: 128
+        emailAddresses:
+          description: supported Email Addresses
+          type: array
+          items:
+            type: string
+            maxLength: 128
+        keyUsages:
+          description: certificate usages
+          type: array
+          items:
+            type: string
+            maxLength: 128
+          example: ["digitalSignature", "keyEncipherment", "keyCertSign"]
+        algorithm:
+          $ref: '#/components/schemas/Algorithm'
+        subject:
+          $ref: '#/components/schemas/Subject'   
+    CaCertLogicalCloud:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/MetadataBase'
+        spec:
+          $ref: '#/components/schemas/CaCertLogicalCloudSpec'   
+    CaCertLogicalCloudSpec:
+      type: object
+      properties:
+        logicalCloud:
+          description: name of the LogicalCloud
+          type: string
+          maxLength: 128
+          example: "label-edge"
+    CaCertLogicalCloudArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/CaCertLogicalCloud'
+    Algorithm:
+      type: object
+      properties:
+        publicKeyAlgorithm:
+          description: PublicKey Algorithm type
+          type: string
+          maxLength: 128
+          example: "RSA"
+        signatureAlgorithm:
+          description: Signature Algorithm type
+          type: string
+          maxLength: 128
+          example: "SHA256-RSA"
+    Subject:
+      type: object
+      properties:
+        locale:
+          $ref: '#/components/schemas/Locale'
+        names:
+          $ref: '#/components/schemas/Names'
+        organization:
+          $ref: '#/components/schemas/Organization'
+    Locale:
+      type: object
+      properties:
+        country:
+          description: Country details
+          type: array
+          items:
+            type: string
+            maxLength: 128
+          example: ["US", "USA"]
+        locality:
+          description: Locality details
+          type: array
+          items:
+            type: string
+            maxLength: 128
+          example: ["US", "USA"]
+        postalCode:
+          description: Postal details
+          type: array
+          items:
+            type: string
+            maxLength: 128
+          example: ["12345", "67890"]
+        province:
+          description: Province details
+          type: array
+          items:
+            type: string
+            maxLength: 128
+          example: ["County-1", "County-2"]
+        streetAddress:
+          description: Street Address details
+          type: array
+          items:
+            type: string
+            maxLength: 128
+          example: ["Addr-1", "Addr-2"]
+    Names:
+      type: object
+      properties:
+        commonNamePrefix:
+          description: Prefix for the commonName
+          type: string
+          maxLength: 128
+          example: "ns-foo"
+        commonName:
+          description: Common Name
+          type: string
+          maxLength: 128
+          example: "foo"
+    Organization:
+      type: object
+      properties:
+        names:
+          description: Organization details
+          type: array
+          items:
+            type: string
+            maxLength: 128
+          example: ["ORG-1", "ORG-2"]
+        units:
+          description: Organization unit details
+          type: array
+          items:
+            type: string
+            maxLength: 128
+          example: ["Unit-1", "Unit-2"]
+    CaCertStatus:
+      type: object
+      properties:
+        clusterProvider:
+          description: name of the cluster provider
+          type: string
+          maxLength: 128
+          example: "provider1"
+        project:
+          description: name of the project
+          type: string
+          maxLength: 128
+          example: "proj1"
+        caCertStatusResult: 
+          description: caCert status result
+          type: object
+          properties:
+            name:
+              description: name of the cluster provider
+              type: string
+              maxLength: 128
+              example: "provider1"
+            states:
+              $ref: '#/components/schemas/StateInfo'
+            deployedStatus:
+              description: current deployed status
+              type: string
+              maxLength: 128
+              example: "Instantiated"
+            readyStatus:
+              description: current status of th resource
+              type: string
+              maxLength: 128
+              example: "Ready"
+            deployedCounts:
+              type: object
+            readyCounts:
+              type: object
+            clusters: 
+              type: array
+              items:
+                $ref: '#/components/schemas/ClusterStatus'
+    ClusterStatus:
+      type: object
+      properties:
+        cluster: 
+          description: name of the cluster
+          type: string
+          maxLength: 128
+          example: "edge-cluster-1"
+        clusterProvider:
+          description: name of the cluster provider
+          type: string
+          maxLength: 128
+          example: "provider1"
+        readyStatus:
+          description: current status of th resource
+          type: string
+          maxLength: 128
+          example: "Ready"
+        connectivity:
+          type: string
+          maxLength: 128
+          example: "Available"
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceStatus'
+    ResourceStatus:
+      type: object
+      properties:
+        GVK:
+          $ref: '#/components/schemas/GroupVersionKind'
+        name:
+          description: resource name
+          type: string
+          maxLength: 128
+          example: "ConfigMap"
+        detail:
+          type: object
+        rsyncStatus:
+          description: rsync status
+          type: string
+          maxLength: 128
+          example: "Instantiated"
+        clusterStatus:
+          description: cluster status
+          type: string
+          maxLength: 128
+          example: "Ready"
+        deployedStatus:
+          description: deployed status
+          type: string
+          maxLength: 128
+          example: "Deployed"
+        readyStatus:
+          description: ready status
+          type: string
+          maxLength: 128
+          example: "Ready"
+    GroupVersionKind:
+      type: object
+      properties:
+        Group:
+          description: resource group
+          type: string
+          maxLength: 128
+          example: ""
+        Version:
+          description: resource version
+          type: string
+          maxLength: 128
+          example: "v1"
+        Kind:
+          description: resource kind
+          type: string
+          maxLength: 128
+          example: "ConfigMap"
+    StateInfo:
+      type: object
+      properties:
+        statusctxid:
+          description: context id
+          type: string
+          maxLength: 128
+          example: "123456789"
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionEntry'
+    ActionEntry:
+      type: object
+      properties:
+        state:
+          description: current state value
+          type: string
+          maxLength: 128
+          example: "Approved"
+        instance:
+          description: current context id
+          type: string
+          maxLength: 128
+          example: "Approved"
+        revision:
+          description: state revision
+          type: integer
+          example: 1
+        time:
+          type: object
+############################ PARAMETERS #################################################
   parameters:
     projectName:
       name: project
@@ -8025,6 +9410,31 @@ components:
       name: dependency
       in: path
       description: Name of the dependency resource
+      required: true
+      schema:
+        type: string
+        maxLength: 128
+    ############################ CERTIFICATE AUTHORITY PARAMETERS #################################################
+    caCert:
+      name: caCert
+      in: path
+      description: Name of the Certiifcate Authority
+      required: true
+      schema:
+        type: string
+        maxLength: 128
+    caCertClusterGroup:
+      name: cluster
+      in: path
+      description: Name of the clusterGroup specified by a label or name
+      required: true
+      schema:
+        type: string
+        maxLength: 128
+    caCertLogicalCloud:
+      name: logicalCloud
+      in: path
+      description: Name of the caCert logicalCloud
       required: true
       schema:
         type: string
