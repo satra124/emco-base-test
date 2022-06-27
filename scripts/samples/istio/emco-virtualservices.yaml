@@ -322,6 +322,32 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
+  name: vs-emco-ca-certs
+  namespace: emco
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - emco-gateway
+  http:
+  - match:
+    - uri:
+        regex: /v2/projects/.+/ca-certs
+    - uri:
+        regex: /v2/projects/.+/ca-certs/.*
+    - uri:
+        regex: /v2/cluster-providers/.+/ca-certs
+    - uri:
+        regex: /v2/cluster-providers/.+/ca-certs/.*
+    route:
+    - destination:
+        port:
+          number: 9036
+        host: ca-certs
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
   name: vs-emco-callback
   namespace: emco
 spec:
