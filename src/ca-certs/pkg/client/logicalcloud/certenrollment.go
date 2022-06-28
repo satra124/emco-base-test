@@ -89,12 +89,12 @@ func (c *CaCertEnrollmentClient) Instantiate(cert, project string) error {
 	// get all the clusters associated with these logicalClouds
 	for _, lc := range lcs {
 		// get the logicalCloud
-		l, err := dcm.NewLogicalCloudClient().Get(project, lc.MetaData.Name)
+		l, err := dcm.NewLogicalCloudClient().Get(project, lc.Spec.LogicalCloud)
 		if err != nil {
 			return err
 		}
 
-		eCtx.LogicalCloud = l.MetaData.LogicalCloudName
+		eCtx.LogicalCloud = l.MetaData.Name
 
 		if len(l.Specification.NameSpace) > 0 {
 			eCtx.Namespace = l.Specification.NameSpace
@@ -203,12 +203,12 @@ func (c *CaCertEnrollmentClient) Terminate(cert, project string) error {
 	// get all the clusters associated with these logicalCloud(s)
 	for _, lc := range lcs {
 		// get the logicalCloud
-		l, err := dcm.NewLogicalCloudClient().Get(project, lc.MetaData.Name)
+		l, err := dcm.NewLogicalCloudClient().Get(project, lc.Spec.LogicalCloud)
 		if err != nil {
 			return err
 		}
 
-		eCtx.LogicalCloud = l.MetaData.LogicalCloudName
+		eCtx.LogicalCloud = l.MetaData.Name
 
 		if len(l.Specification.NameSpace) > 0 {
 			eCtx.Namespace = l.Specification.NameSpace
@@ -298,12 +298,12 @@ func (c *CaCertEnrollmentClient) Update(cert, project string) error {
 
 			for _, lc := range lcs {
 				// get the logicalCloud
-				l, err := dcm.NewLogicalCloudClient().Get(project, lc.MetaData.Name)
+				l, err := dcm.NewLogicalCloudClient().Get(project, lc.Spec.LogicalCloud)
 				if err != nil {
 					return err
 				}
 
-				eCtx.LogicalCloud = l.MetaData.LogicalCloudName
+				eCtx.LogicalCloud = l.MetaData.Name
 
 				if len(l.Specification.NameSpace) > 0 {
 					eCtx.Namespace = l.Specification.NameSpace

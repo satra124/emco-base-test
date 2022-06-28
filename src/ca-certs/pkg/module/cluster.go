@@ -103,10 +103,10 @@ func (c *ClusterGroupClient) GetClusterGroup() (ClusterGroup, error) {
 	return ClusterGroup{}, errors.New("Unknown Error")
 }
 
-// GetClusters returns the list of clusters based on the namespace and scope
-func GetClusters(group ClusterGroup, project, namespace string) (clusters []string, err error) {
-	if len(namespace) > 0 {
-		return getLogicalCloudReferencedClusters(group, project, namespace)
+// GetClusters returns the list of clusters based on the logicalcloud and scope
+func GetClusters(group ClusterGroup, project, logicalcloud string) (clusters []string, err error) {
+	if len(logicalcloud) > 0 {
+		return getLogicalCloudReferencedClusters(group, project, logicalcloud)
 	}
 
 	return getClusters(group)

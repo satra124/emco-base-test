@@ -5,6 +5,7 @@ go 1.17
 replace (
 	gitlab.com/project-emco/core/emco-base/src/ca-certs => ../ca-certs
 	gitlab.com/project-emco/core/emco-base/src/clm => ../clm
+	gitlab.com/project-emco/core/emco-base/src/dcm => ../dcm
 	gitlab.com/project-emco/core/emco-base/src/monitor => ../monitor
 	gitlab.com/project-emco/core/emco-base/src/orchestrator => ../orchestrator
 	gitlab.com/project-emco/core/emco-base/src/rsync => ../rsync
@@ -21,7 +22,7 @@ require (
 	github.com/onsi/gomega v1.19.0
 	github.com/pkg/errors v0.9.1
 	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-00010101000000-000000000000
-	gitlab.com/project-emco/core/emco-base/src/dcm v0.0.0-20220518182253-c5f7c495f0c2
+	gitlab.com/project-emco/core/emco-base/src/dcm v0.0.0-00010101000000-000000000000
 	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-00010101000000-000000000000
 	gitlab.com/project-emco/core/emco-base/src/rsync v0.0.0-00010101000000-000000000000
 	k8s.io/api v0.23.4
