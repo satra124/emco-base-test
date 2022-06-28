@@ -9,6 +9,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"time"
 
 	cmv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	cmmetav1 "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
@@ -46,6 +47,15 @@ func CreateCertificateRequest(caCert module.CaCert, name string, request []byte)
 	if err := validateCSR(request); err != nil {
 		return nil, err
 	}
+	// parse certificate duration
+	duration, err := time.ParseDuration(caCert.Spec.Duration)
+	if err != nil {
+		logutils.Error("Failed to parse the certificate duration",
+			logutils.Fields{
+				"Duration": caCert.Spec.Duration,
+				"Error":    err.Error()})
+		return nil, err
+	}
 
 	cr := newCertificateRequest()
 	cr.ObjectMeta = metav1.ObjectMeta{
@@ -55,7 +65,7 @@ func CreateCertificateRequest(caCert module.CaCert, name string, request []byte)
 		Request: request,
 		IsCA:    caCert.Spec.IsCA,
 		Duration: &metav1.Duration{
-			Duration: caCert.Spec.Duration,
+			Duration: duration,
 		},
 		IssuerRef: cmmetav1.ObjectReference{
 			Name:  caCert.Spec.IssuerRef.Name,

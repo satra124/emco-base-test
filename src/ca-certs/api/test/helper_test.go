@@ -34,7 +34,7 @@ func populateCertTestData() []module.CaCert {
 					Kind:  "ClusterIssuer",
 					Group: "cert-manager.io",
 				},
-				Duration: 8760,
+				Duration: "8760h",
 				IssuingCluster: module.IssuingClusterInfo{
 					Cluster:         "issuer1",
 					ClusterProvider: "provider1",
@@ -70,7 +70,7 @@ func populateCertTestData() []module.CaCert {
 					Kind:  "ClusterIssuer",
 					Group: "cert-manager.io",
 				},
-				Duration: 8760,
+				Duration: "8760h",
 				IssuingCluster: module.IssuingClusterInfo{
 					Cluster:         "issuer1",
 					ClusterProvider: "provider1",
@@ -106,7 +106,7 @@ func populateCertTestData() []module.CaCert {
 					Kind:  "ClusterIssuer",
 					Group: "cert-manager.io",
 				},
-				Duration: 8760,
+				Duration: "8760h",
 				IssuingCluster: module.IssuingClusterInfo{
 					Cluster:         "issuer1",
 					ClusterProvider: "provider1",
@@ -142,7 +142,7 @@ func populateCertTestData() []module.CaCert {
 					Kind:  "ClusterIssuer",
 					Group: "cert-manager.io",
 				},
-				Duration: 8760,
+				Duration: "8760h",
 				IssuingCluster: module.IssuingClusterInfo{
 					Cluster:         "issuer1",
 					ClusterProvider: "provider1",
@@ -183,7 +183,7 @@ func certInput(name string) io.Reader {
 				  "kind": "ClusterIssuer",
 				  "group": "cert-manager.io"
 				},
-				"duration": 8760,
+				"duration": "8760h",
 				"issuingCluster": {
 				  "cluster": "issuer1",
 				  "clusterProvider": "provider1"
@@ -233,7 +233,7 @@ func certInput(name string) io.Reader {
 			  "kind": "ClusterIssuer",
 			  "group": "cert-manager.io"
 			},
-			"duration": 8760,
+			"duration": "8760h",
 			"issuingCluster": {
 			  "cluster": "issuer1",
 			  "clusterProvider": "provider1"
@@ -284,7 +284,7 @@ func certResult(name string) module.CaCert {
 				Kind:  "ClusterIssuer",
 				Group: "cert-manager.io",
 			},
-			Duration: 8760,
+			Duration: "8760h",
 			IssuingCluster: module.IssuingClusterInfo{
 				Cluster:         "issuer1",
 				ClusterProvider: "provider1",

@@ -4,8 +4,6 @@
 package module
 
 import (
-	"time"
-
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/certissuer"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
@@ -41,7 +39,7 @@ type CaCert struct {
 // CertSpec holds the caCert signing details
 type CaCertSpec struct {
 	CertificateSigningInfo CertificateSigningInfo `json:"csrInfo" yaml:"csrInfo"`               // represent the certificate signining request(CSR) info
-	Duration               time.Duration          `json:"duration,omitempty"`                   // duration of the certificate
+	Duration               string                 `json:"duration,omitempty"`                   // duration of the certificate
 	IsCA                   bool                   `json:"isCA,omitempty" yaml:"isCA,omitempty"` // specifies the cert is a CA or not
 	IssuerRef              certissuer.IssuerRef   `json:"issuerRef"`                            // the details of the issuer for signing the certificate request
 	IssuingCluster         IssuingClusterInfo     `json:"issuingCluster"`                       // the details of the issuing cluster
