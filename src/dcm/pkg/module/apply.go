@@ -1111,7 +1111,7 @@ func IsGitOpsCluster(clustername string) (bool, error) {
 		log.Debug("Error getting GitOps config", log.Fields{"err": err})
 		return false, nil
 	}
-	if gc.Config.Props.GitOpsType == "fluxcd" || gc.Config.Props.GitOpsType == "azureArc" {
+	if gc.Config.Props.GitOpsType == "fluxcd" || gc.Config.Props.GitOpsType == "azureArcV2" {
 		return true, nil
 	} else {
 		log.Info("GitOps Type not supported:", log.Fields{"GitOpsType": gc.Config.Props.GitOpsType})

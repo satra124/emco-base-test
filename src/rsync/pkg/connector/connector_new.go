@@ -41,7 +41,7 @@ func (p *Provider) GetClientProviders(app, cluster, level, namespace string) (Cl
 	}
 	kc, err := utils.GetKubeConfig(cluster, level, namespace)
 	if err != nil {
-		if !strings.Contains(err.Error(), "Invalid config") {
+		if !strings.Contains(err.Error(), "Invalid kubeconfig") {
 			return nil, err
 		}
 	}

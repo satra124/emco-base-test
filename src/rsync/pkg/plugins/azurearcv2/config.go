@@ -13,6 +13,7 @@ import (
 	"net/url"
 
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 )
 
 const subscriptionURL = "https://management.azure.com/subscriptions/"
@@ -141,8 +142,26 @@ func (p *AzureArcV2Provider) ApplyConfig(ctx context.Context, config interface{}
 		return err
 	}
 
-	gitConfiguration := "config-" + p.gitProvider.Cid
-	operatorScope := "cluster"
+	//Get the Namespace
+	acUtils, err := utils.NewAppContextReference(p.gitProvider.Cid)
+	if err != nil {
+		return nil
+	}
+	_, level := acUtils.GetNamespace()
+	if err != nil {
+		return err
+	}
+	var gitConfiguration, operatorScope string
+
+	// select according to logical cloud level
+	if level == "0" {
+		gitConfiguration = "config-" + p.gitProvider.Cid
+		operatorScope = "cluster"
+	} else {
+		gitConfiguration = p.gitProvider.Namespace
+		operatorScope = "namespace"
+	}
+
 	gitPath := "clusters/" + p.gitProvider.Cluster + "/context/" + p.gitProvider.Cid
 	gitBranch := p.gitProvider.Branch
 
@@ -182,7 +201,23 @@ func (p *AzureArcV2Provider) DeleteConfig(ctx context.Context, config interface{
 		return err
 	}
 
-	gitConfiguration := "config-" + p.gitProvider.Cid
+	//Get the Namespace
+	acUtils, err := utils.NewAppContextReference(p.gitProvider.Cid)
+	if err != nil {
+		return nil
+	}
+	_, level := acUtils.GetNamespace()
+	if err != nil {
+		return err
+	}
+	var gitConfiguration string
+
+	// select according to logical cloud level
+	if level == "0" {
+		gitConfiguration = "config-" + p.gitProvider.Cid
+	} else {
+		gitConfiguration = p.gitProvider.Namespace
+	}
 
 	_, err = p.deleteFluxConfiguration(accessToken, p.subscriptionID, p.arcResourceGroup, p.arcCluster, gitConfiguration)
 

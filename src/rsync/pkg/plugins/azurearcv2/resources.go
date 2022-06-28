@@ -30,7 +30,13 @@ func (p *AzureArcV2Provider) Apply(name string, ref interface{}, content []byte)
 		return nil, err
 	}
 	// Set Namespace
-	unstruct.SetNamespace(p.gitProvider.Namespace)
+	if unstruct.GetNamespace() == "" {
+		if unstruct.GetKind() != "Namespace" {
+			// Set Namespace
+			unstruct.SetNamespace(p.gitProvider.Namespace)
+		}
+	}
+
 	b, err := unstruct.MarshalJSON()
 	if err != nil {
 		return nil, err

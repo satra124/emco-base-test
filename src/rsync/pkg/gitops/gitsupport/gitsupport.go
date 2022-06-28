@@ -44,7 +44,7 @@ func NewGitProvider(cid, app, cluster, level, namespace string) (*GitProvider, e
 
 	result := strings.SplitN(cluster, "+", 2)
 
-	c, err := utils.GetGitOpsConfig(cluster, level, namespace)
+	c, err := utils.GetGitOpsConfig(cluster, "0", "default")
 	if err != nil {
 		return nil, err
 	}
