@@ -616,6 +616,10 @@ func GetURL(anchor string) (string, error) {
 			baseUrl = GetWorkflowMgrURL()
 			break
 		}
+		if len(s) >= 8 && s[7] == "temporal-action-controller" {
+			baseUrl = GetTacURL()
+			break
+		}
 		// All other paths go to Orchestrator
 		baseUrl = GetOrchestratorURL()
 	default:

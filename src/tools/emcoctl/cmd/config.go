@@ -25,6 +25,7 @@ type EmcoConfigurations struct {
 	Sfc          ControllerConfigurations
 	SfcClient    ControllerConfigurations
 	WorkflowMgr  ControllerConfigurations
+	Tac          ControllerConfigurations
 	CaCert       ControllerConfigurations
 }
 
@@ -67,6 +68,8 @@ func SetDefaultConfiguration() {
 	Configurations.SfcClient.Port = 9057
 	Configurations.WorkflowMgr.Host = "localhost"
 	Configurations.WorkflowMgr.Port = 9095
+	Configurations.Tac.Host = "localhost"
+	Configurations.Tac.Port = 9064
 	Configurations.CaCert.Host = "localhost"
 	Configurations.CaCert.Port = 9036
 }
@@ -230,6 +233,20 @@ func GetWorkflowMgrURL() string {
 		os.Exit(1)
 	}
 	return urlPrefix + net.JoinHostPort(Configurations.WorkflowMgr.Host, strconv.Itoa(Configurations.WorkflowMgr.Port)) + "/" + urlVersion
+}
+
+// get the URL for the temporal action controller
+func GetTacURL() string {
+	// If Ingress is available use that url
+	if s := GetIngressURL(); s != "" {
+		return s
+	}
+	if Configurations.Tac.Host == "" || Configurations.Tac.Port == 0 {
+		fmt.Println("Fatal: No TAC Information in Config File!")
+		// Exit executing
+		os.Exit(1)
+	}
+	return urlPrefix + net.JoinHostPort(Configurations.Tac.Host, strconv.Itoa(Configurations.Tac.Port)) + "/" + urlVersion
 }
 
 // GetOrchestratorGrpcEndpoint gRPC endpoint for Orchestrator

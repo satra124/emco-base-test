@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022 Intel Corporation
+
+apiVersion: v2
+name: tac
+description: Temporal Action Controller
+type: application
+version: 1.0.0
+
+dependencies:
+  - name: common
+    version: ~0.x-0
+    repository: 'file://../common'
