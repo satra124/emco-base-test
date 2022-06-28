@@ -47,3 +47,26 @@ func CreateKnccConfig(name, namespace, resourceName, resourceNamespace string,
 
 	return c
 }
+
+// UpdateKnccConfig updates the patch details in the config
+func UpdateKnccConfig(patch []map[string]string, c *Config) {
+	var exists bool
+	for _, p := range patch {
+		for k, v := range p {
+			exists = false
+			for _, cp := range c.Spec.Patch {
+				if cp.Key == k {
+					cp.Value = v
+					exists = true
+					break
+				}
+			}
+			if !exists {
+				c.Spec.Patch = append(c.Spec.Patch, Patch{
+					Key:   k,
+					Value: v,
+				})
+			}
+		}
+	}
+}

@@ -114,9 +114,8 @@ func (ctx *DistributionContext) createKnccConfig(namespace, resourceName, resour
 	patch []map[string]string) error {
 	cName := knccservice.KnccConfigName(ctx.ContextID, ctx.CaCert.MetaData.Name, ctx.ClusterGroup.Spec.Provider, ctx.Cluster)
 	if c, exists := ctx.Resources.KnccConfig[cName]; exists {
-		// a KnccConfig already exists, update the context resource order
-		ctx.ResOrder = append(ctx.ResOrder, module.ResourceName(c.ObjectMeta.Name, c.TypeMeta.Kind))
-		return nil
+		// a KnccConfig already exists, update the config
+		return ctx.updateKnccConfig(patch, c)
 	}
 
 	c := knccservice.CreateKnccConfig(cName, namespace, resourceName, resourceNamespace, patch)
@@ -180,4 +179,20 @@ func (ctx *DistributionContext) retrieveSecret(cluster string) *v1.Secret {
 	}
 
 	return &v1.Secret{}
+}
+
+// updateKnccConfig updates the kncc resource patch
+func (ctx *DistributionContext) updateKnccConfig(patch []map[string]string, c *knccservice.Config) error {
+	// update kncc config
+	knccservice.UpdateKnccConfig(patch, c)
+	// update resource appContext
+	if err := module.AddResource(ctx.AppContext, c, ctx.ClusterHandle, module.ResourceName(c.ObjectMeta.Name, c.TypeMeta.Kind)); err != nil {
+		return err
+	}
+	// store the new config
+	ctx.Resources.KnccConfig[c.ObjectMeta.Name] = c
+	// update the resource order
+	ctx.ResOrder = append(ctx.ResOrder, module.ResourceName(c.ObjectMeta.Name, c.TypeMeta.Kind))
+
+	return nil
 }

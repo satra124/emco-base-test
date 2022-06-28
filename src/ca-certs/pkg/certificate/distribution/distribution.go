@@ -254,7 +254,12 @@ func (ctx *DistributionContext) createIstioServiceResourcess() error {
 
 				if len(ctx.Namespace) == 0 {
 					// use this issuer as the dfault issuer for the cluster
-					// TODO: This needs kncc support
+					key = "mesh:\n  defaultConfig:\n    proxyMetadata:\n      ISTIO_META_CERT_SIGNER\n"
+					value = issuer.ObjectMeta.Name
+					if err := ctx.createKnccConfig("istio-system", "istio", "istio-system",
+						[]map[string]string{{key: value}}); err != nil {
+						return err
+					}
 				}
 
 				return nil
