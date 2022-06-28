@@ -65,6 +65,12 @@
           "example": "istio",
           "maxLength": 128
         },
+	"edgeCNF": {
+          "description": "Edge CNF type",
+          "type": "string",
+          "example": "sdewan",
+          "maxLength": 128
+        },
         "management": {
           "type": "object",
           "required": ["sidecarProxy", "tlsType"],

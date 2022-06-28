@@ -1,5 +1,5 @@
 /// SPDX-License-Identifier: Apache-2.0
-// Copyright (c) 2021 Intel Corporation
+// Copyright (c) 2022 Intel Corporation
 
 package sdewancc
 
@@ -172,7 +172,7 @@ func UpdateAppContext(intentName, appContextId string) error {
 				}
 			}
 		}
-		// check if the server and clients are on the same cluster
+		// create the specified server resources
 		for ci, scd := range servers[index].ClusterData {
 			err = createServerResources(is, scd.ClusterName, servers, namespace, index, ci)
 			if err != nil {
@@ -227,7 +227,6 @@ func UpdateAppContext(intentName, appContextId string) error {
 	return nil
 }
 
-//func addClusterResource(ac appcontext.AppContext, is module.InboundServerIntent, c string)(error) {
 func addClusterResource(ac appcontext.AppContext, appname string, c string, res map[string][]byte) error {
 	ch, err := ac.GetClusterHandle(appname, c)
 	if err != nil {
