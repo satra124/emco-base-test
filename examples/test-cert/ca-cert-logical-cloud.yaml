@@ -13,7 +13,7 @@ spec:
     name: {{.ClusterIssuer1}}
     kind: {{.Kind}}
     group: {{.Group}}
-  duration: 8760
+  duration: "8760h"
   issuingCluster: 
     cluster: {{.IssuingCluster}}
     clusterProvider: {{.ClusterProvider}}
@@ -51,7 +51,7 @@ spec:
     name: {{.ClusterIssuer2}}
     kind: {{.Kind}}
     group: {{.Group}}
-  duration: 8760
+  duration: "8760h"
   issuingCluster: 
     cluster: {{.IssuingCluster}}
     clusterProvider: {{.ClusterProvider}}
