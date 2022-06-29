@@ -1,0 +1,169 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022 Intel Corporation
+
+
+
+# create the pre-install hook
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeApp}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/temporal-action-controller
+metadata :
+  name: "pre-install-workflow-hook"
+  description: "will run first"
+spec:
+  hookType: "pre-install"
+  hookBlocking: true
+  workflowClient:
+     clientEndpointName: {{.WfClientName}}
+     clientEndpointPort: {{.WfClientPort}}
+  temporal:
+     workflowClientName: "migrate_workflowclient"
+     workflowStartOptions:
+       id: "pre-install-1"
+       taskqueue: "GREETING_TASK_QUEUE"
+       retryPolicy: 
+          maximumAttempts: 2
+     workflowParams:
+        startToCloseTimeout: 60000000000
+---
+# create the pre-install hook 2
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeApp}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/temporal-action-controller
+metadata :
+  name: "pre-install-workflow-hook-2"
+  description: "will run second"
+spec:
+  hookType: "pre-install"
+  hookBlocking: true
+  workflowClient:
+     clientEndpointName: {{.WfClientName}}
+     clientEndpointPort: {{.WfClientPort}}
+  temporal:
+     workflowClientName: "migrate_workflowclient"
+     workflowStartOptions:
+       id: "pre-install-2"
+       taskqueue: "GREETING_TASK_QUEUE"
+       retryPolicy: 
+          maximumAttempts: 2
+     workflowParams:
+        startToCloseTimeout: 60000000000
+---
+# Post install hook
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeApp}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/temporal-action-controller
+metadata :
+  name: "post-workflow-intent"
+  description: "Post workflow install"
+spec:
+  hookType: "post-install"
+  hookBlocking: true
+  workflowClient:
+     clientEndpointName: {{.WfClientName}}
+     clientEndpointPort: {{.WfClientPort}}
+  temporal:
+     workflowClientName: "migrate_workflowclient"
+     workflowStartOptions:
+       id: "pre-install-3"
+       taskqueue: "GREETING_TASK_QUEUE"
+       retryPolicy: 
+          maximumAttempts: 2
+     workflowParams:
+        startToCloseTimeout: 60000000000
+---
+# Runs the terminate pre event
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeApp}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/temporal-action-controller
+metadata :
+  name: "pre-termination"
+  description: "Runs before the termination event"
+spec:
+  hookType: "pre-termination"
+  hookBlocking: true
+  workflowClient:
+     clientEndpointName: {{.WfClientName}}
+     clientEndpointPort: {{.WfClientPort}}
+  temporal:
+     workflowClientName: "migrate_workflowclient"
+     workflowStartOptions:
+       id: "pre-terminate-hook"
+       taskqueue: "GREETING_TASK_QUEUE"
+       retryPolicy: 
+          maximumAttempts: 2
+     workflowParams:
+        startToCloseTimeout: 60000000000
+---
+# Terminate post event
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeApp}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/temporal-action-controller
+metadata :
+  name: "post-terminate"
+  description: "Runs after the terminate event"
+spec:
+  hookType: "post-termination"
+  hookBlocking: true
+  workflowClient:
+     clientEndpointName: {{.WfClientName}}
+     clientEndpointPort: {{.WfClientPort}}
+  temporal:
+     workflowClientName: "migrate_workflowclient"
+     workflowStartOptions:
+       id: "post-term-1"
+       taskqueue: "GREETING_TASK_QUEUE"
+       retryPolicy: 
+          maximumAttempts: 2
+     workflowParams:
+        startToCloseTimeout: 60000000000
+---
+# The post update event
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeApp}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/temporal-action-controller
+metadata :
+  name: "post-update-hook"
+  description: "Hook to run after the update event"
+spec:
+  hookType: "post-update"
+  hookBlocking: true
+  workflowClient:
+     clientEndpointName: {{.WfClientName}}
+     clientEndpointPort: {{.WfClientPort}}
+  temporal:
+     workflowClientName: "migrate_workflowclient"
+     workflowStartOptions:
+       id: "post-update-1"
+       taskqueue: "GREETING_TASK_QUEUE"
+       retryPolicy: 
+          maximumAttempts: 2
+     workflowParams:
+        startToCloseTimeout: 60000000000
+---
+# Runs before update
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeApp}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/temporal-action-controller
+metadata :
+  name: "run-before-update"
+  description: "Runs before the update event"
+spec:
+  hookType: "pre-update"
+  hookBlocking: true
+  workflowClient:
+     clientEndpointName: {{.WfClientName}}
+     clientEndpointPort: {{.WfClientPort}}
+  temporal:
+     workflowClientName: "migrate_workflowclient"
+     workflowStartOptions:
+       id: "pre-up-1"
+       taskqueue: "GREETING_TASK_QUEUE"
+       retryPolicy: 
+          maximumAttempts: 2
+     workflowParams:
+        startToCloseTimeout: 60000000000
+
+
+
+          

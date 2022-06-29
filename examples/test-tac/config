@@ -1,0 +1,6 @@
+HOST_IP=
+KUBE_PATH=
+TAC_CONTROL_PORT=30465
+RSYNC_CONTROL_PORT=30431
+WF_CLIENT_NAME=demo-workflowclient.demo.svc.cluster.local
+WF_PORT=9090

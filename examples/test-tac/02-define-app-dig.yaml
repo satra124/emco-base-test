@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022 Intel Corporation
+
+#creating collection composite app entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps
+metadata :
+  name: {{.CompositeApp}}
+  description: test
+spec:
+  compositeAppVersion: v1
+---
+#create deployment intent group
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeApp}}/v1/deployment-intent-groups
+metadata :
+  name: {{.DeploymentIntent}}
+  description: "description"
+spec:
+  compositeProfile: {{.CompositeApp}}-profile
+  version: r1
+  logicalCloud: {{.LogicalCloud}}
+  overrideValues: []
+---
+#create the generic placement intent
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeApp}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/generic-placement-intents
+metadata :
+  name: {{.GenericPlacementIntent}}
+  description: "description for app"
+spec:
+  logicalCloud: {{.LogicalCloud}}
+---
+# create placement intent.
+version: emco/v2
+resourceContext:
+  anchor: projects/{{.ProjectName}}/composite-apps/{{.CompositeApp}}/v1/deployment-intent-groups/{{.DeploymentIntent}}/intents
+metadata :
+  name: collection-deployment-intent
+  description: "description"
+spec:
+  intent:
+    genericPlacementIntent: {{.GenericPlacementIntent}}
+    tac: {{.TacIntent}}

@@ -7232,6 +7232,199 @@ paths:
         '409':
           description: Conflict
 
+############################ Temporal Action Controller ################################
+
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/temporal-action-controller:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/compositeAppName'
+      - $ref: '#/components/parameters/compositeAppVersion'
+      - $ref: '#/components/parameters/deploymentIntentGroupName'
+      
+      
+      
+    post:
+      tags:
+        - Temporal Action Controller
+      summary: Post new workflow hook intent
+      description: Adds a new `workflow hook intent` to emco
+      operationId: addWorkflowHook
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/TemporalActionHookIntent'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: Internal Server Error
+      requestBody:
+        content:
+          application/json: # Media type
+            schema:         # Request payload
+              $ref: '#/components/schemas/TemporalActionHookIntent'
+    get:
+      tags:
+        - Temporal Action Controller
+      summary: Get all workflow hook intents
+      description: Gets all `workflow hook intent` from emco
+      operationId: getWorkflowHooks
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: Internal Server Error
+              
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/temporal-action-controller/{tac-intent}:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/compositeAppName'
+      - $ref: '#/components/parameters/compositeAppVersion'
+      - $ref: '#/components/parameters/deploymentIntentGroupName'
+      - $ref: '#/components/parameters/temporalActionIntentHook'
+      
+    get:
+      tags:
+        - Temporal Action Controller
+      summary: Get specific workflow hook intent
+      description: Gets a specific `workflow hook intent` from emco
+      operationId: getWorkflowHook
+      responses:
+        '200':
+          description: Success
+          
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: Internal Server Error
+    delete:
+      tags:
+        - Temporal Action Controller
+      summary: Get specific workflow hook intent
+      description: Gets a specific `workflow hook intent` from emco
+      operationId: deleteWorkflowHook
+      responses:
+        '204':
+          description: Success
+          
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: Internal Server Error
+    put:
+      tags:
+        - Temporal Action Controller
+      summary: Get specific workflow hook intent
+      description: Gets a specific `workflow hook intent` from emco
+      operationId: updateWorkflowHook
+      responses:
+        '201':
+          description: Success
+          
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: Internal Server Error
+    
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/temporal-action-controller{tac-intent}/cancel:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/compositeAppName'
+      - $ref: '#/components/parameters/compositeAppVersion'
+      - $ref: '#/components/parameters/deploymentIntentGroupName'
+      - $ref: '#/components/parameters/temporalActionIntentHook'
+      
+    post:
+      tags:
+        - Temporal Action Controller
+      summary: Cancel workflow intent
+      description: Cancels a specific `temporal action intent` from emco
+      operationId: cancelWorkflow
+      responses:
+        '204':
+          description: Success
+          content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/TemporalActionControllerCancel'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: Internal Server Error
+  
+  /projects/{project}/composite-apps/{compositeApp}/{compositeAppVersion}/deployment-intent-groups/{deploymentIntentGroup}/temporal-action-controller{tac-intent}/status:
+    parameters:
+      - $ref: '#/components/parameters/projectName'
+      - $ref: '#/components/parameters/compositeAppName'
+      - $ref: '#/components/parameters/compositeAppVersion'
+      - $ref: '#/components/parameters/deploymentIntentGroupName'
+      - $ref: '#/components/parameters/temporalActionIntentHook'
+      
+    get:
+      tags:
+        - Temporal Action Controller
+      summary: Get status workflow intent
+      description: Gets a specific `temporal action intent` status
+      operationId: getStatusOfWorkflow
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json: # operation response mime type
+              schema:
+                $ref: '#/components/schemas/TemporalActionControllerStatus'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        '422':
+          description: Unprocessable Entity
+        '500':
+          description: Internal Server Error
+
+
 #########################SCHEMAS####################################################
 # An object to hold reusable parts that can be used across the definition
 components:
@@ -9123,6 +9316,133 @@ components:
           example: 1
         time:
           type: object
+    TemporalActionHookIntent:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/MetadataBase'
+        spec:
+          type: object
+          properties:
+            hookType:
+              type: string
+              maxLength: 128
+            WfClientSpec:
+              type: object
+              properties:
+                WfClientEndpointName:
+                  type: string
+                  maxLength: 128
+                WfClientEndpointPort:
+                  type: integer
+            WfTemporalSpec:
+              type: object
+              properties:
+                WfClientName:
+                  type: string
+                  maxLength: 128
+                StartWorkflowOptions:
+                  type: object
+                  properties: 
+                    ID:
+                      type: string
+                      maxLength: 128
+                    TaskQueue:
+                      type: string
+                      maxLength: 128
+                    WorkflowExecutionTimeout:
+                      type: integer
+                    WorkflowRunTimeout:
+                      type: integer
+                    WorkflowTaskTimeout:
+                      type: integer
+                    WorkflowIDReusePolicy:
+                      type: integer
+                    WorkflowExecutionErrorWhenAlreadyStarted:
+                      type: boolean
+                    RetryPolicy:
+                      type: object
+                      properties:
+                        InitialInterval:
+                          type: integer
+                        BackoffCoefficient:
+                          type: integer
+                        MaximumInterval:
+                          type: integer
+                        MaximumAttempts:
+                          type: integer
+                        NonRetryableErrorTypes:
+                          type: array
+                          items:
+                            type: string
+                    CronSchedule:
+                      type: string
+                    Memo:
+                      type: array
+                      items:
+                        type: string
+                    SearchAttributes:
+                      type: array
+                      items:
+                        type: string
+                WorkflowParams:
+                  type: object
+                  properties:
+                    ActivityOpts:
+                      type: array
+                      items:
+                        type: string
+                    ActivityParams:
+                      type: array
+                      items:
+                        type: string
+    TemporalActionControllerCancel:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/MetadataBase'
+        spec:
+          type: object
+          properties:
+            details:
+              type: array
+              items:
+                type: string
+            reason:
+              type: string
+            runID:
+              type: string
+            temporalServer:
+              type: string
+            terminate:
+              type: boolean
+            workflowID:
+              type: string
+    TemporalActionControllerStatus:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/MetadataBase'
+        spec:
+          type: object
+          properties:
+            temporalServer:
+              type: string
+            workflowID:
+              type: string
+            runID:
+              type: string
+            waitForResult:
+              type: boolean
+            runDescribeWfExec:
+              type: boolean
+            getWfHistory:
+              type: boolean
+            queryType:
+              type: string
+            queryParams:
+              type: string
+
 ############################ PARAMETERS #################################################
   parameters:
     projectName:
@@ -9474,6 +9794,23 @@ components:
       name: logicalCloud
       in: path
       description: Name of the caCert logicalCloud
+      required: true
+      schema:
+        type: string
+        maxLength: 128
+    ################ Temporal Action Controller
+    temporalActionIntent:
+      name: temporalActionIntent
+      in: path
+      description: Name of Temporal Action Intent
+      required: true
+      schema:
+        type: string
+        maxLength: 128
+    temporalActionIntentHook:
+      name: tac-intent
+      in: path
+      description: Name of Temporal Action Intent Hook
       required: true
       schema:
         type: string
