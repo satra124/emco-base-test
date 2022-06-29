@@ -1,38 +1,38 @@
 ```text
 SPDX-License-Identifier: Apache-2.0
-Copyright (c) 2020-2021 Intel Corporation
+Copyright (c) 2020-2022 Intel Corporation
 ```
 <!-- omit in toc -->
 # Edge Multi-Cluster Orchestrator (EMCO)
 
 - [Background](#background)
-- [EMCO Introduction](#emco-introduction)
-  - [EMCO Terminology](#emco-terminology)
-  - [EMCO Architecture](#emco-architecture)
-    - [Cluster Registration](#cluster-registration)
-    - [Distributed Application Scheduler](#distributed-application-scheduler)
-      - [Lifecycle Operations](#lifecycle-operations)
-    - [Placement and Action Controllers in EMCO](#placement-and-action-controllers-in-emco)
-    - [Network Configuration Management](#network-configuration-management)
-      - [Lifecycle Operations](#lifecycle-operations-1)
-    - [Distributed Cloud Manager](#distributed-cloud-manager)
-- [Lifecycle Operations](#lifecycle-operations-2)
-  - [Standard Logical Clouds](#standard-logical-clouds)
-  - [Admin Logical Clouds](#admin-logical-clouds)
-  - [Privileged Logical Clouds](#privileged-logical-clouds)
-    - [OVN Action Controller](#ovn-action-controller)
-    - [Traffic Controller](#traffic-controller)
-    - [Generic Action Controller](#generic-action-controller)
-  - [EMCO API](#emco-api)
-  - [EMCO Authentication and Authorization](#emco-authentication-and-authorization)
-  - [Resource  (Rsync)](#resource--rsync)
+- [EMCO Terminology and Concepts](#emco-terminology-and-concepts)
+- [EMCO Architecture](#emco-architecture)
+  - [Cluster Registration - `clm`](#cluster-registration-clm)
+  - [Distributed Application Scheduler - `orchestrator`](#distributed-application-scheduler-orchestrator)
+    - [Orchestrator Lifecycle Operations](#orchestrator-lifecycle-operations)
+  - [Placement and Action Controllers in EMCO](#placement-and-action-controllers-in-emco)
+    - [Orchestrator Placement Controllers](#orchestrator-placement-controllers)
+    - [Orchestrator Action Controllers](#orchestrator-action-controllers)
+  - [Network Configuration Management - `ncm`](#network-configuration-management-ncm)
+    - [NCM Lifecycle Operations](#ncm-lifecycle-operations)
+  - [Distributed Cloud Manager - `dcm`](#distributed-cloud-manager-dcm)
+    - [Standard Logical Clouds](#standard-logical-clouds)
+    - [Admin Logical Clouds](#admin-logical-clouds)
+    - [Privileged Logical Clouds](#privileged-logical-clouds)
+    - [DCM Lifecycle Operations](#dcm-lifecycle-operations)
+  - [CA Certificate Distribution - `ca-certs`](#ca-certificate-distribution-ca-certs)
+  - [Temporal Workflow Manager - `workflowmgr`](#temporal-workflow-manager-workflowmgr)
+  - [Resource Synchronization and Monitoring - `rsync`](#resource-synchronization-and-monitoring-rsync)
     - [Instantiation](#instantiation)
     - [Termination](#termination)
     - [Use of Stop flag in Rsync](#use-of-stop-flag-in-rsync)
     - [Update](#update)
     - [Rsync restart logic](#rsync-restart-logic)
     - [Rsync state machine](#rsync-state-machine)
-  - [Status Monitoring and Queries in EMCO](#status-monitoring-and-queries-in-emco)
+- [Status Monitoring and Queries in EMCO](#status-monitoring-and-queries-in-emco)
+- [EMCO API](#emco-api)
+- [EMCO Authentication and Authorization](#emco-authentication-and-authorization)
 
 ## Background
 Edge Multi-Cluster Orchestrator (EMCO), is a geo-distributed application orchestrator for Kubernetes\*. EMCO operates at a higher level than Kubernetes and interacts with multiple edge servers and clouds that are running Kubernetes. EMCO's main objective is to automate  the deployment of applications and services across multiple clusters. It acts as a central orchestrator that can manage edge services and network functions across geographically distributed edge clusters from different third parties.
@@ -61,30 +61,52 @@ Compared with other multiple-cluster orchestration, EMCO focuses on the followin
 - Orchestrating edge services and network functions with deployment intents based on compute, acceleration, and storage requirements.
 - Supporting multiple tenants from different enterprises while ensuring confidentiality and full isolation between the tenants.
 
-## EMCO Introduction
+## EMCO Terminology and Concepts
 
-### EMCO Terminology
+- **Cluster Provider**
+  - The cluster provider is the entity that owns and registers clustesrs with EMCO.
+- **Cluster**
+  - Clusters are registered with EMCO.  Access to a given cluster may be via kubeconfig or via one of the supported gitOps methods.
+- **Project**
+  - The project provides a means of grouping collections of applications.  Multple applications may exist for any project.  Projects
+    allow for defining applications with different tenants - i.e. a given tenant is associated with one or more projects that are
+    distinct from another tenants projects.
+- **Logical Cloud**
+  - The logical cloud is an EMCO concept that groups a number of clusters together and provides a common set of namespace, permissions and quotas.
+    Logical clouds are defined under projects and are the target deployment destination of EMCO Composite Applications.  Placement scheduling 
+    will ultimately determine which cluster(s) in a logical cloud any specific component of a composite application will deployed to.
+- **Composite Application**
+  - The composite application is a combination of multiple applications that work together.  Each application in the composite application is a Helm chart.  Through the use
+    of placement intents, EMCO allows different applications in the composite application to be deployed (and replicated as necessary) to different
+    sets of clusters.  For example, a composite application composed of a user facing application along with a database application could be deployed
+    by EMCO such that the user facing application is deployed to many edge clusters while the database application is deployed on a centralized cluster.
+- **Deployment Intents**
+  - The deployment intents are the various placement and action intents that have been defined to control the deployment of an EMCO composite application.
+    Placement and action intents are defined and handled by various EMCO controllers.  Different composite application deployments may use differents
+    sets of placement and action intents.
+  - EMCO does not expect the Helm charts which are onboarded and comprise a composite application to be editted or modified.  Instead, any customizations
+    or additional resources required to ensure the composite application operates correctly when deployed are defined by the set of deployment intents.
+- **Placement Intents**
+  - Placement intents are used to identify to which clusters the resources of each application of a composite application are to be deployed.  Each
+    composite application is required to define a set of generic placement intents.  Additional placement intents, for more specialized purposes such as
+    hardware capabilities, latency, etc., may be defined as well.  The additional placement intents will refine the results of the generic placement.
+- **Action Intents**
+  - Action intents are provided by special action controllers and are used to perform specific customizations to the EMCO composite application before it is
+    deployed.  After EMCO has processed the placement intents for a specific composite application deployment, the action intents are processed.  The 
+    action intents may do anything from customizing existing application resources to adding new resources that need to be deployed.  EMCO provides
+    many action controllers and additional controllers may be easilly written and used with EMCO.
+- **EMCO Database**
+  - The EMCO data base (currently MongoDB) is used primarily to store the resources onboarded by the EMCO REST APIs (e.g. composite applications, cluster data,
+    all the various deployment intents).
+- **EMCO AppContext**
+  - The EMCO AppContext is a data store (currently `etcd`) that is used by EMCO to prepare and manage the resources that will be deployed to edge clusters.
+    When EMCO is preparing a composite application for deployment by processing the various deployment intents, the results are prepared in the AppContext.
+    Once all placement and action intents have been handled, the AppContext contains the set of resources that need to be applied to the set of target
+    clusters.  The EMCO `rsync` ('resource synchronizer and status collector') microservice then deploys the resources to the edge clusters.
+  - The AppContext is also used to collect status information back from the edge clusters as detected by `rsync`.
 
-|                        |                                                                                                                                  |
-|------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| Cluster Provider       | The cluster provider is someone who owns  and registers clusters.                                                                    |
-| Projects               | The project resource provides means to group a collection of applications.                                              |
-|                        | Several applications can exist under a specific project.                                                                         |
-|                        | Projects allow for defining of the grouping of applications under a common tenant.                                                |
-| Composite Application  | Composite application is a combination of multiple applications.                                                                   |
-|                        | Based on the deployment intent, various applications of the composite application are deployed at various locations.             |
-|                        | Some applications of the composite application can be replicated in multiple locations.                                       |
-| Deployment Intent      | EMCO does not expect the editing of Helm Charts provided by application/Network-function vendors by DevOps admins.               |
-|                        | Any customization and additional K8s resources that need to be present with the application are specified as deployment intents. |
-| Placement Intent       | EMCO supports creating generic placement intents for a given composite application.                                             |
-|                        | Normally, the EMCO scheduler calls placement controllers first to determine the edge/cloud locations for a given application.       |
-|                        | It then works with the 'resource synchronizer & status collector' to deploy K8s resources on various Edge/Cloud clusters.            |
-| AppContext             | The AppContext is a set of records maintained in the EMCO `etcd` data store which maintains the collection of resources & clusters |
-|                        | AppContext is associated with a deployable EMCO resource (e.g. Deployment Intent Group)                                          |
 
-
-
-### EMCO Architecture
+## EMCO Architecture
 The following diagram depicts a high level overview of the EMCO architecture.
 
 
@@ -102,34 +124,38 @@ _Figure 2 - EMCO Architecture_
 - Resource Syncronizer manages instantiation of resources to clusters.
 - Monitoring covers distributed applications.
 
-#### Cluster Registration
-A microservice exposes a RESTful API. Users can register cluster providers and their associated clusters through these APIs. After preparing edge clusters and cloud clusters, which can be any Kubernetes cluster, users can onboard those clusters to EMCO by creating a cluster provider and then adding clusters to the cluster provider. After cluster providers are created, the KubeConfig files of the edge and cloud clusters should be provided to EMCO as part of the multi-part POST call to the Cluster API.
+In addition to the above components, EMCO provides a number of other controllers.  All of the EMCO microservice will be summarized below.  Additional information about some of the EMCO controller designs can be found by looking at the documents available in the [EMCO docs](../../docs) folder.  Additionally, EMCO provides many example use cases in the [EMCO Examples](../../examples) folder and most of these examples provide `Readme` documents that describe how the specific example use case works  - i.e. takes advantage of some subset of EMCO features and controllers.
+
+### Cluster Registration - `clm`
+The `clm` microservice exposes a RESTful API. Users can register cluster providers and their associated clusters through these APIs. After preparing edge clusters and cloud clusters, which can be any Kubernetes cluster, users can onboard those clusters to EMCO by creating a cluster provider and then adding clusters to the cluster provider. After cluster providers are created, the KubeConfig files of the edge and cloud clusters should be provided to EMCO as part of the multi-part POST call to the Cluster API. Alternatively, EMCO supports clusters that are accessed via gitOps.  In this case, appropriate gitOps credential and repository information is provided to the cluster registration.  See [EMCO gitOps Support](gitops_support.md) for more information.
 
 Additionally, after a cluster is created, labels and key value pairs can be added to the cluster via the EMCO API. Clusters can be specified by label when preparing placement intents.
 > **NOTE**: The cluster provider is someone who owns clusters and registers them to EMCO. If an Enterprise has clusters, for example from AWS, then the cluster provider for those clusters from AWS is still considered as from that Enterprise. AWS is not the provider. Here, the provider is someone who owns clusters and registers them to EMCO. Since AWS does not register their clusters to EMCO, AWS is not considered the cluster provider in this context.
 
-#### Distributed Application Scheduler
-The distributed application scheduler microservice functionality includes:
+### Distributed Application Scheduler - `orchestrator`
+The distributed application scheduler microservice, known as the `orchestrator`, functionality includes:
 - Project Management which provides multi-tenancy in the application from a user perspective.
 - Composite App Management manages composite apps that are collections of Helm Charts, one per application.
-- Composite Profile Management manages composite profiles that are collections of profile, one per application.
+- Composite Profile Management manages composite profiles that are collections of profiles, one per application.
 - Deployment Intent Group Management manages Intents for composite applications.
 - Controller Registration manages placement and action controller registration, priorities etc.
 - Status Notifier framework allows user to get on-demand status updates or notifications on status updates.
-- Scheduler:
+- Scheduler for composite application deployements:
   - Placement Controllers: Generic Placement Controller.
   - Action Controllers.
 
-##### Lifecycle Operations
-The Distributed Application Scheduler supports operations on a deployment intent group resource to instantiate the associated composite application with any placement, and action intents performed by the registered placement and action controllers. The basic flow of lifecycle operations on a deployment intent group after all the supporting resources have been created via the APIs are:
+#### Orchestrator Lifecycle Operations
+The Distributed Application Scheduler supports operations on a deployment intent group resource to instantiate the associated composite application with any placement and action intents performed by the registered placement and action controllers. The basic flow of lifecycle operations on a deployment intent group after all the supporting resources have been created via the APIs are:
 - approve: marks that the deployment intent group has been approved and is ready for instantiation.
 - instantiate: the Distributed Application Scheduler prepares the application resourcs for deployment, and applies placement and action intents before invoking the Resource Synchronizer to deploy them to the intended remote clusters. In some cases, if a remote cluster is intermittently unreachable, the instantiate operation will retry the instantiate operation for that cluster until it succeeds.
 - status: (may be invoked at any step) provides information on the status of the deployment intent group.
 - terminate: terminates the application resources of an instantiated application from all of the clusters to which it was deployed.  The terminate operation will cause the instantiate operation to complete (i.e. fail), before the termination operation is performed.
 - stop: In some cases, if the remote cluster is intermittently unreachable, the Resource Synchronizer will continue retrying an instantiate or terminate operation. The stop operation can be used to force the retry operation to stop, and the instantiate or terminate  operation will complete (with a failed status). In the case of terminate, this allows the deployment intent group resource to be deleted via the API, since deletion is prevented until a deployment intent group resource has reached a completed terminate operation status.
-  Refer to [EMCO Resource Lifecycle Operations](https://github.com/otcshare/EMCO/tree/main/docs/design/Resource_Lifecycle_and_Status.md) for more details.
+- update: After a deployment intent group has been instantiated, it may be updated (applications may be modified and/or various deployment intents may be added or modified).  The update operation is used to deploy the changes to the running / deployed composite application.
+- rollback: After a deployment intent group has been instantiated and updated one or more times, it is possible to rollback the composite application to a previously deployed version.
+  Refer to [EMCO Resource Lifecycle Operations](Resource_Lifecycle_and_Status.md) for more details.
 
-#### Placement and Action Controllers in EMCO
+### Placement and Action Controllers in EMCO
 This section illustrates some key aspects of the EMCO controller architecture.  Depending on the needs of a composite application, intents that handle specific operations for application resources (e.g. addition, modification, etc.) can be created via the APIs provided by the corresponding controller API.  The following diagram shows the sequence of interactions to register controllers with EMCO.
 
 ![EMCO](images/emco-register-controllers.png)
@@ -150,23 +176,60 @@ _Figure 5 - Instantiate a Deployment Intent Group_
 
 In this initial release of EMCO, a built-in generic placement controller is provided in the `orchestrator`.  HPA Placement Controller is an example of a Placement Controller. Some action controllers provided with EMCO are the OVN Action, Traffic, and Generic Action controllers.
 
+#### Orchestrator Placement Controllers
 
-#### Network Configuration Management
-The network configuration management (NCM) microservice consists of:
+EMCO currently provides the following placement controllers:
+
+- **Generic Placement Controller** - `orchestrator`
+  - The generic placement controller is built into the orchestrator and is always invoked as the first placement controller.
+- **Hardware Platform Aware Placement Controller** - `hpa-plc`
+  - This placement controller provides intents that can be used to ensure apps are placed on clusters which support specified platform or hardware capabilities.
+
+#### Orchestrator Action Controllers
+
+EMCO currently provides the following action controllers:
+
+- **OVN Action controller** - `ovnaction`
+  - This action controller provides intents that can be used to specify that specific workloads in an application (say the Pod template of a Deployment resource), needs to be attached to an additional network interface in the edge cluster.  On deployment, this action controller will annotate the Pod template with the appropriate annotations to connect the Pod to the identified network in the edge cluster.
+  - `ovnaction` supports specifying interfaces which attach to networks created by the Network Configuration Management microservice.
+- **Generic Action Controller** - `gac`
+  - The Generic Action Controller provides intents which can be used to create new resources or customize resources associated with an app in a deployment intent group.  Changes can be applied to every cluster in a deployment intent group, or to specific clusters.  Customizations to existing
+    resources can be handled via JSON Patching or Kubernetes Strategic Merge.
+- **Hardware Platform Aware Action Controller** - `hpa-ac`
+  - This placement controller provides intents that can be used to ensure apps are configured to request the identified hardware capabilities.
+- **SFC controller** - `sfc`
+  - The Service Function Chaining action controller provides intents that can be used to create a Service Function Chain from a number of the apps in the deployment intent group.  This is a capability supported by the Nodus CNI.  A network-chaining CR will be created and added to the deployment intent group.
+  - Refer to [SFC Overview](sfc-overview.md) and [SFC Example](../../examples/sfc/Readme.md) for more more information about the `sfc` and `sfcclient` action controllers.
+- **SFC Client controller** - `sfcclient`
+  - The SFC Client controller is used to attach components of a composite application to an SFC that has been deployed on the edge cluster(s).  This controller will ensure that the appropriate Pod templates are labelled such that the Nodus CNI on the edge cluster will connect them to the identified SFC upon deployment.
+- **Distributed Traffic Controller** - `dtc`
+  - The Distributed Traffic Controller provides intents which are used to control the network traffic between apps in the composite application, both within a given cluster as well as between clusters.  This covers the range from network policy to the configuration of service mesh resources.  The `dtc` supports a sub-controller architecture, where specific sub-controllers specialize in specific functional areas.
+    **NOTE**:For network policy to work, the edge cluster must have network policy support using a CNI such as calico.
+- **Istio Traffic Subcontroller** - `its` (a DTC sub-controller)
+  - The `its` controller handles DTC intents and ensure the configuration of Istio resources (e.g. Service Entries, Virtual Serives, Routes, etc.) to ensure that composite application workloads are configured to use mTLS, etc. both inter and intra cluster.
+- **Network Policy Subcontroller** - `nps` (a DTC sub-controller)
+  - The `nps` controller handles DTC intents to ensure that Kuberentes NetworkPolicy is applied appropriately in the destination clusters.
+- **Service Discovery Subcontroller** - `sds` (a DTC sub-controller)
+  - The `sds` controller is used to monitor the status of a deployed composite application and find the IP address of identified services once these have been deployed in the edge clusters.
+- **SDEWAN Controller** - `swc` (a DTC sub-controller)
+  - The `swc` is used to ensure appropriate SDEWAN resources are configured in the edge clusters to allow communication between clusters via the SDEWAN CNF.  Refer to [SDEWAN Example](../../examples/dtc/sdewan/Example_sdewan.md) for more information.
+
+### Network Configuration Management - `ncm`
+The `ncm` microservice consists of:
 - Provider Network Management to create provider networks.
 - Virtual Network Management to create dynamic virtual networks.
 - Controller Registration to manage network plugin controllers, priorities etc.
 - Status Notifier framework allows users to get on-demand status updates or notifications on status updates.
-- Scheduler with Built in Controller - Nodus (aka OVN-for-K8s-NFV Plugin) Controller.
+- Scheduler with Built in Controller - Nodus (aka OVN-for-K8s-NFV Plugin) CNI Controller.
 
-##### Lifecycle Operations
+#### NCM Lifecycle Operations
 The Network Configuration Management microservice supports operations on the network intents of a cluster resource to instantiate the associated provider and virtual networks that have been defined via the API for the cluster. The basic lifecycle operations flow on a cluster, after the supporting network resources have been created via the APIs, are:
 - apply: the Network Configuration Management microservice prepares the network resources and invokes the Resource Synchronizer to deploy them to the designated cluster.
 - status: (may be invoked at any step) provides information on the status of the cluster networks.
 - terminate: terminates the network resources from the cluster to which they were deployed. In some cases, if a remote cluster is intermittently unreachable, the Resource Synchronizer may still retry the instantiate operation for that cluster. The terminate operation will cause the instantiate operation to complete (i.e. fail), before the termination operation is performed.
 - stop: In some cases, if the remote cluster is intermittently unreachable, the Resource Synchronizer will continue retrying an instantiate or terminate operation. The stop operation can be used to force the retry operation to stop, and the instantate or terminate  operation will be completed (with a failed status). In the case of terminate, this allows the deployment intent group resource to be deleted via the API, since deletion is prevented until a deployment intent group resource has reached a completed terminate operation status.
 
-#### Distributed Cloud Manager
+### Distributed Cloud Manager - `dcm`
 The Distributed Cloud Manager (DCM) provides the Logical Cloud abstraction and effectively completes the concept of "multi-cloud". One Logical Cloud is a grouping of one or many clusters, each with their own control plane, specific configurations and geo-location, which get partitioned for a particular EMCO project. This partitioning is made via the creation of distinct, isolated namespaces in each of the Kubernetes clusters that thus make up the Logical Cloud.
 
 A Logical Cloud is the overall target of a Deployment Intent Group and is a mandatory parameter (the specific applications under it further refine what gets run and in which location). A Logical Cloud must be explicitly created and instantiated before a Deployment Intent Group can be instantiated.
@@ -177,10 +240,20 @@ Due to the close relationship with Clusters, which are provided by Cluster Regis
 
 _Figure 6 - Mapping between Logical Clouds and Clusters_
 
-## Lifecycle Operations
+#### Standard Logical Clouds
+Logical Clouds were introduced to group and partition clusters in a multi-tenant way and across boundaries, improving flexibility and scalability. A Standard Logical Cloud is the default type of Logical Cloud providing just that much. When projects request a Logical Cloud to be created, they provide what permissions are available, resource quotas and clusters that compose it. The Distributed Cloud Manager, alongside the Resource Synchronizer, sets up all the clusters accordingly, with the necessary credentials, namespace/resources, and finally generating the kubeconfig files used to authenticate and reach each of those clusters in the context of the Logical Cloud.
+
+#### Admin Logical Clouds
+In some use cases, and in the administrative domains where it makes sense, a project may want to access raw, unmodified, administrator-level clusters. For such cases, no namespaces need to be created and no new users need to be created or authenticated in the API. To solve this, the Distributed Cloud Manager introduces Admin Logical Clouds, which offer the same consistent interface as Standard Logical Clouds to the Distributed Application Scheduler. Being of type Admin means this is a Logical Cloud at the Administrator level. As such, no changes will be made to the clusters themselves. Instead, the only operation that takes place is the reuse of credentials already provided via the Cluster Registration API for the clusters assigned to the Logical Cloud (instead of generating new credentials, namespace/resources and kubeconfig files.)
+
+#### Privileged Logical Clouds
+This type of Logical Cloud provides most of the capabilities that an Admin Logical Cloud provides but at the user-level like a Standard Logical Cloud. New namespaces are created, with new user and kubeconfig files. However, the EMCO project can now request an enhanced set of permissions/privileges, including targeting cluster-wide Kubernetes resources.
+
+
+#### DCM Lifecycle Operations
 Prerequisites to using Logical Clouds:
-* With the project-less Cluster Registration API, create the cluster providers, clusters, and optionally cluster labels.
-* With the Distributed Application Scheduler API, create a project which acts as a tenant in EMCO.
+* With the project-less Cluster Registration API (`clm`), create the cluster providers, clusters, and optionally cluster labels.
+* With the Distributed Application Scheduler API (`orchestrator`), create a project which acts as a tenant in EMCO.
 
 The basic flow of lifecycle operations to get a Logical Cloud up and running via the Distributed Cloud Manager API is:
 * Create a Logical Cloud specifying the following attributes:
@@ -196,83 +269,22 @@ Apart from the creation/instantiation of Logical Clouds, the following operation
 * Terminate a Logical Cloud - this removes all of the Logical Cloud related resources from all of the respective Clusters.
 * Delete a Logical Cloud - this eliminates all traces of the Logical Cloud in EMCO.
 
-### Standard Logical Clouds
-Logical Clouds were introduced to group and partition clusters in a multi-tenant way and across boundaries, improving flexibility and scalability. A Standard Logical Cloud is the default type of Logical Cloud providing just that much. When projects request a Logical Cloud to be created, they provide what permissions are available, resource quotas and clusters that compose it. The Distributed Cloud Manager, alongside the Resource Synchronizer, sets up all the clusters accordingly, with the necessary credentials, namespace/resources, and finally generating the kubeconfig files used to authenticate and reach each of those clusters in the context of the Logical Cloud.
+### CA Certificate Distribution - `ca-certs`
 
-### Admin Logical Clouds
-In some use cases, and in the administrative domains where it makes sense, a project may want to access raw, unmodified, administrator-level clusters. For such cases, no namespaces need to be created and no new users need to be created or authenticated in the API. To solve this, the Distributed Cloud Manager introduces Admin Logical Clouds, which offer the same consistent interface as Standard Logical Clouds to the Distributed Application Scheduler. Being of type Admin means this is a Logical Cloud at the Administrator level. As such, no changes will be made to the clusters themselves. Instead, the only operation that takes place is the reuse of credentials already provided via the Cluster Registration API for the clusters assigned to the Logical Cloud (instead of generating new credentials, namespace/resources and kubeconfig files.)
+The `ca-certs` controller provides intents which may be used to distribute Intermediate CA Certificates with common root CA's to sets of clusters.  These intents can be used to either set the default CA Certificate of Istio in the edge clusters or two set up multiple CA Certificates in edge clusters, differentiated by namespace.  This feature is a useful preparatory step that allows the `dtc` controller to configure mTLS connections between workloads on different clusters since the clusters will share a common CA root certificate.
 
-### Privileged Logical Clouds
-This type of Logical Cloud provides most of the capabilities that an Admin Logical Cloud provides but at the user-level like a Standard Logical Cloud. New namespaces are created, with new user and kubeconfig files. However, the EMCO project can now request an enhanced set of permissions/privileges, including targeting cluster-wide Kubernetes resources.
+Refer to [CA Cert Distribution Example](../../examples/test-cert/Readme.md) and [CA Cert Distribution Design](ca_cert_distribution.md) for more information.
 
-#### OVN Action Controller
-The OVN Action Controller (ovnaction) microservice is an action controller which may be registered and added to a deployment intent group to apply specific network intents to resources in the composite application. It provides the following functionalities:
-- Network intent APIs which allow specification of network connection intents for resources within applications.
-- On instantiation of a deployment intent group configured to utilize the ovnaction controller, network interface annotations will be added to the pod template of the identified application resources.
-- ovnaction supports specifying interfaces which attach to networks created by the Network Configuration Management microservice.
+### Temporal Workflow Manager - `workflowmgr`
 
-#### Traffic Controller
-The traffic controller microservice provides a way to create network policy resources across edge clusters. It provides inbound RESTful APIs to create intents to open the traffic from clients, and provides change and delete APIs for update and deletion of traffic intents. Using the information provided through intents, it also creates a network policy resource for each of the application servers on the corresponding edge cluster.
-> **NOTE**:For network policy to work, the edge cluster must have network policy support using a CNI such as calico.
+EMCO provides integration with the Temporal Workflow engine.  Refer to [Temporal Workflows in EMCO](../user/Temporal_Workflows_In_EMCO.md) for more information.
 
-#### Generic Action Controller
-The generic action controller microservice is an action controller which may be registered with the central orchestrator. It can achieve the following usecases:
+### Resource Synchronization and Monitoring - `rsync`
 
-- <b>Create a new Kubernetes object</b> and deploy that along with a specific application which is part of the composite Application. There are two variations here:
+This microservice is the one which deploys the resources in edge/cloud clusters. The 'AppContext' created by various microservices is used by this microservice. It takes care of retrying, in case the remote clusters are temporarily unreachable.
+The `orchestrator` and other controllers like `ncm`, `ca-certs` and `dcm` communicate with `rsync` using gRPC.
 
-  - Default : Apply the new object to every instance of the app in every cluster where the app is deployed.
-  - Cluster-Specific : Apply the new object only where the app is deployed to a specific cluster, denoted by a cluster-name or a list of clusters denoted by a cluster-label.
-
-- <b>Modify an existing Kubernetes object</b> which may have been deployed using the Helm Chart for an app, or may have been newly created by the above mentioned usecase. Modification may correspond to specific fields in the YAML definition of the object.
-
-To achieve both the usecases, the controller exposes RESTful APIs to create, update and delete the following:
-
-- Resource: Specifies the newly defined object or an existing object.
-- Customization: Specifies the modifications (using JSON Patching) to be applied on the objects.
-
-
-### EMCO API
-For user interaction, EMCO provides a [RESTful API](https://github.com/otcshare/EMCO/blob/main/docs/emco_apis.yaml). Apart from that, EMCO also provides a CLI. For detailed usage, refer to [EMCO CLI](https://github.com/otcshare/EMCO/tree/main/src/tools/emcoctl)
-> **NOTE**: The EMCO RESTful API is the foundation for the other interaction facilities like the EMCO CLI, EMCO GUI and other orchestrators.
-
-### EMCO Authentication and Authorization
-EMCO uses Istio* and other open source solutions to provide a Multi-tenancy solution leveraging Istio Authorization and Authentication frameworks. This is achieved without adding any logic to EMCO microservices.
-- Authentication and Authorization for EMCO users is done at the Istio Ingress Gateway, where all the traffic enters the cluster.
-
-- Istio along with authservice (an Istio ecosystem project) enables request-level authentication with JSON Web Token (JWT) validation. Authservice is an entity that works alongside Envoy proxy. It is used to work with external IAM systems (OAUTH2). Many Enterprises have their own OAUTH2 server for authenticating users and providing roles.
-
-- Authservice and Istio can be configured to talk to multiple OAUTH2 servers. Using this capability EMCO can support multiple tenants.
-
-- Using Istio AuthorizationPolicy access for different EMCO resources can be controlled based on roles defined for the users.
-
-The following figure shows various EMCO services running in a cluster with Istio.
-
-![EMCO](images/emco-istio-arch.png)
-
-_Figure 7 - EMCO setup with Istio and Authservice_
-
-The following figure shows the authentication flow with EMCO, Istio and Authservice
-
-![EMCO](images/emco-istio-auth.png)
-
-_Figure 8 - EMCO Authenication with external OATH2 Server_
-
-Detailed steps for configuring EMCO with Istio can be found in the [EMCO Integrity and Access Management](https://github.com/otcshare/EMCO/tree/main/docs/user/Emco_Integrity_Access_Management.md) documentation.
-
-Steps for EMCO Authentication and Authorization Setup:
-- Install and Configure Keycloak Server to be used in the setup. This server runs outside the EMCO cluster.
-  - Create a new realm, add users and roles to Keycloak.
-- Install Istio in the Kubernetes cluster where EMCO is running.
-- Enable Sidecar Injection in EMCO namesapce.
-- Install EMCO in EMCO namespace (with Istio sidecars.)
-- Configure Istio Ingress gateway resources for EMCO Services.
-- Configure Istio Ingress gateway to enable running along with Authservice.
-- Apply EnvoyFilter for Authservice.
-- Apply Authentication and Authorization Policies.
-
-### Resource  (Rsync)
-This microservice is the one which deploys the resources in edge/cloud clusters. 'AppContext' created by various microservices are used by this microservice. It takes care of retrying, in case the remote clusters are temporarily unreachable.
-The orchestrator and other controllers like ncm and dcm communicate with rsync using gRPC.
+An internal plugin architecture is supported in `rsync` to allow support for communicating to edge clusters with a variety of methods.  Currently communcations to clusters can be done via a `kubectl`-like method with `kubeconfig` files, or via a number of gitOps mechanisms.  Each cluster that is onboarded to EMCO will include information appropriate for the access method that `rsync` will use to communicate with that cluster.
 
 Rsync supports following gRPC methods:
 - Instantiation
@@ -280,7 +292,7 @@ Rsync supports following gRPC methods:
 - Update
 - Read
 
-Each gRpc request includes the AppContext on which the operation is requested.
+Each gRPC request includes the AppContext on which the operation is requested.
 AppContextID is copied in the active area in etcd, needed for Restart.
 
 Rsync maintains a queue per AppContext to collect operations requested on that
@@ -341,10 +353,49 @@ If it finds an active AppContextID, it creates the AppContextData and starts the
 | UpdateDeleteEvent | Instantiated                                                                                                             | Instantiated  | Instantiating | InstantiateFailed |
 
 
-### Status Monitoring and Queries in EMCO
-When a resource like a Deployment Intent Group is instantiated, status information about both the deployment and the deployed resources in the cluster are collected and made available for query by the API. The following diagram illustrates the key components involved.  For more information about status queries see [EMCO Resource Lifecycle and Status Operations](https://github.com/otcshare/EMCO/tree/main/docs/design/Resource_Lifecycle_and_Status.md).
+## Status Monitoring and Queries in EMCO
+When a resource like a Deployment Intent Group is instantiated, status information about both the deployment and the deployed resources in the cluster are collected and made available for query by the API. The following diagram illustrates the key components involved.  For more information about status queries see [EMCO Resource Lifecycle and Status Operations](Resource_Lifecycle_and_Status.md).
 
 ![EMCO](images/emco-status-monitoring.png)
 
 _Figure 9 - Status Monitoring and Query Sequence_
+
+## EMCO API
+For user interaction, EMCO provides a [RESTful API](../../docs/swagger-specs-for-APIs/emco_apis.yaml). Apart from that, EMCO also provides a CLI. For detailed usage, refer to [EMCO CLI](../../src/tools/emcoctl)
+> **NOTE**: The EMCO RESTful API is the foundation for the other interaction facilities like the EMCO CLI, EMCO GUI and other orchestrators.
+
+## EMCO Authentication and Authorization
+EMCO uses Istio* and other open source solutions to provide a Multi-tenancy solution leveraging Istio Authorization and Authentication frameworks. This is achieved without adding any logic to EMCO microservices.
+- Authentication and Authorization for EMCO users is done at the Istio Ingress Gateway, where all the traffic enters the cluster.
+
+- Istio along with authservice (an Istio ecosystem project) enables request-level authentication with JSON Web Token (JWT) validation. Authservice is an entity that works alongside Envoy proxy. It is used to work with external IAM systems (OAUTH2). Many Enterprises have their own OAUTH2 server for authenticating users and providing roles.
+
+- Authservice and Istio can be configured to talk to multiple OAUTH2 servers. Using this capability EMCO can support multiple tenants.
+
+- Using Istio AuthorizationPolicy access for different EMCO resources can be controlled based on roles defined for the users.
+
+The following figure shows various EMCO services running in a cluster with Istio.
+
+![EMCO](images/emco-istio-arch.png)
+
+_Figure 7 - EMCO setup with Istio and Authservice_
+
+The following figure shows the authentication flow with EMCO, Istio and Authservice
+
+![EMCO](images/emco-istio-auth.png)
+
+_Figure 8 - EMCO Authenication with external OATH2 Server_
+
+Detailed steps for configuring EMCO with Istio can be found in the [EMCO Integrity and Access Management](Emco_Integrity_Access_Management.md) documentation.
+
+Steps for EMCO Authentication and Authorization Setup:
+- Install and Configure Keycloak Server to be used in the setup. This server runs outside the EMCO cluster.
+  - Create a new realm, add users and roles to Keycloak.
+- Install Istio in the Kubernetes cluster where EMCO is running.
+- Enable Sidecar Injection in EMCO namesapce.
+- Install EMCO in EMCO namespace (with Istio sidecars.)
+- Configure Istio Ingress gateway resources for EMCO Services.
+- Configure Istio Ingress gateway to enable running along with Authservice.
+- Apply EnvoyFilter for Authservice.
+- Apply Authentication and Authorization Policies.
 
