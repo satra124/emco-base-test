@@ -165,18 +165,6 @@ func (sc *StateClient) VerifyState(event LifeCycleEvent) (string, error) {
 			// handle events specific use cases
 			switch event {
 			case InstantiateEvent:
-				// fully delete the old appContext and continue with the Instantiation
-				appContext, err := state.GetAppContextFromId(contextID)
-				if err != nil {
-					return contextID, err
-				}
-				if err := appContext.DeleteCompositeApp(); err != nil {
-					logutils.Error("Failed to delete the app context for the resource",
-						logutils.Fields{
-							"Error":     err.Error(),
-							"ContextID": contextID})
-					return contextID, err
-				}
 				return contextID, nil
 			case TerminateEvent:
 				err := errors.New("The resource is already terminated")
