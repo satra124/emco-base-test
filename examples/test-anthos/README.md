@@ -3,34 +3,9 @@
 
 # Running Google Anthos testcase with emcoctl
 
-This folder contains the collectd testcase to be run with EMCO deployed to Google Anthos clusters. This test assumes that a GKE cluster with Anthos Config Management enabled has been created as mentioned in https://gitlab.com/project-emco/core/emco-base/-/tree/main/docs/design/gitops_support.md. See https://cloud.google.com/anthos-config-management/docs for Google Anthos-specific documentation.
+This folder contains the collectd testcase to be run with EMCO deployed to Google Anthos clusters. This test assumes that a GKE cluster with Anthos Config Management enabled has been created as mentioned in https://gitlab.com/project-emco/core/emco-base/-/tree/main/docs/design/gitops_support.md.
 
-## Organize git repository structure to fit EMCO and Anthos' needs
-Coming later
-
-## Installing monitor
-
-1. fixup monitor helm chart to remove status from RBS CRD template file
-2. ideally should release a monitor 1.0.1 after this
-3. follow steps below:
-
-```
-cd ~/emco-base/deployments/helm
-helm package monitor
-tar -xf monitor-1.0.0.tgz
-CLUSTER_REF="provider-anthos+cluster2"
-GITHUB_OWNER="igordcard"
-GITHUB_TOKEN=""
-GITHUB_REPO="anthosync"
-helm template emco monitor -n emco --set git.token=$GITHUB_TOKEN --set git.repo=$GITHUB_REPO --set git.username=$GITHUB_OWNER --set git.clustername=$CLUSTER_REF --set git.enabled=true > monitor.yaml
-cp monitor.yaml ~/anthosync/rootsync/acm-cluster/
-cd ~/anthosync/rootsync/acm-cluster/
-git add monitor.yaml
-git commit -a
-git push
-```
-
-**Note:** following the steps above for a public GitHub repo will expose the access token to the Internet, thus making the entire deployment vulnerable. Either make sure the repository is private, or install monitor via another method such as a direct `kubectl apply -f [prefix/]monitor.yaml` on the GKE clusters.
+See https://cloud.google.com/anthos-config-management/docs for Google Anthos-specific documentation.
 
 ## Setup Environment variables
 

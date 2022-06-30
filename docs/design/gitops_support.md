@@ -401,3 +401,87 @@ Refer https://gitlab.com/project-emco/core/emco-base/-/tree/main/examples/test-a
 | SYNC_INTERVAL | The interval at which to reconcile the Kustomization. |
 | TIME_OUT | Timeout for apply and health checking operations. |
 | RETRY_INTERVAL | The interval at which to retry a previously failed reconciliation. |
+
+### Google Anthos setup
+
+#### Creating Anthos Cluster
+
+Before proceeding with the creation of Anthos-enabled clusters on GKE, enable the Anthos Config Management: https://cloud.google.com/anthos-config-management/docs/how-to/install-anthos-config-management#enabling.
+
+Then, create a new cluster (https://console.cloud.google.com/kubernetes/list/overview) and for the git repository type, pick ``unstructured``. See more at https://cloud.google.com/anthos-config-management/docs/how-to/unstructured-repo. Set the other fields as appropriate, and for directory name set `rootsync/*name of cluster`. More on this below.
+
+#### Installing Monitor
+
+One way of installing Monitor is by doing it through the same git repository as EMCO API deployed applications.
+
+The steps below build a Monitor package and then extract its template-replaced resources into the git repo so that Anthos can pick them up and automatically install/sync Monitor into the cluster.
+
+```
+cd ~/emco-base/deployments/helm
+helm package monitor
+tar -xf monitor-1.0.0.tgz
+CLUSTER_REF="provider-anthos+cluster2"
+GITHUB_OWNER="REPLACE_WITH_GITHUB_USER"
+GITHUB_TOKEN="REPLACE_WITH_GITHUB_ACCESS_TOKEN"
+GITHUB_REPO="REPLACE_WITH_GITHUB_REPO_NAME"
+helm template emco monitor -n emco --set git.token=$GITHUB_TOKEN --set git.repo=$GITHUB_REPO --set git.username=$GITHUB_OWNER --set git.clustername=$CLUSTER_REF --set git.enabled=true > monitor.yaml
+cp monitor.yaml ~/REPLACE_WITH_GITHUB_REPO_NAME/rootsync/acm-cluster/
+cd ~/REPLACE_WITH_GITHUB_REPO_NAME/rootsync/acm-cluster/
+git add monitor.yaml
+git commit -a
+git push
+```
+
+**Note:** following the steps above for a public GitHub repo will expose the access token to the Internet, thus making the entire deployment vulnerable. Either make sure the repository is private, or install monitor via another method such as a direct `kubectl apply -f [prefix/]monitor.yaml` on the GKE clusters.
+
+
+#### Git repo structure
+
+Here's a sample of the structure of a git repository supporting 1 Anthos-enabled cluster (named `acm-cluster` in GKE, and `provider-anthos+cluster2` in EMCO):
+
+```
+├── clusters
+│   ├── anthos
+│   └── provider-anthos+cluster2
+│       ├── context
+│       │   └── 6044482791265439821
+│       │       ├── app
+│       │       │   └── collectd
+│       │       │       ├── 6044482791265439821-collectd.yaml
+│       │       │       ├── collectd+Service.yaml
+│       │       │       ├── r1-collectd-config+ConfigMap.yaml
+│       │       │       └── r1-collectd+DaemonSet.yaml
+│       │       └── deployed
+│       └── status
+│           └── 5221547608623062846
+│               └── app
+│                   └── collectd
+│                       └── 5221547608623062846-collectd
+└── rootsync
+    └── acm-cluster
+        ├── monitor.yaml
+        └── rootsync.yaml
+```
+
+The `context` and `status` folders are per-cluster and represent deployed composite apps as well the reporting of their respective statuses via Monitor.
+
+The `rootsync` folder contains one folder per cluster, with the non EMCO API deployed resources such as Monitor itself, as well as the `rootsync.yaml` configuration file that further tells Anthos which resources to give to the specified cluster. Here are the contents of the `rootsync.yaml` file above:
+
+```
+apiVersion: configsync.gke.io/v1beta1
+kind: RootSync
+metadata:
+  name: root-sync-emco
+  namespace: config-management-system
+spec:
+  sourceFormat: unstructured
+  git:
+    repo: https://github.com/REPLACE_WITH_GITHUB_USER/REPLACE_WITH_GITHUB_REPO_NAME.git
+    revision: HEAD
+    branch: main
+    dir: "/clusters/provider-anthos+cluster2"
+    auth: none
+    noSSLVerify: false
+```
+
+When configurating an Anthos cluster from the dashboard/console, it must be configured to read from the appropriate `rootsync/*name of cluster*` folder, so the cluster knows where its resources should be read from (within the same repository) and installs Monitor.
