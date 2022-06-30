@@ -290,6 +290,12 @@ func (c *CaCertEnrollmentClient) Update(cert, project string) error {
 				Project: project,
 			}
 
+			// set the issuing cluster handle
+			eCtx.IssuerHandle, err = eCtx.IssuingClusterHandle()
+			if err != nil {
+				return err
+			}
+
 			// get all the logcalCloud(s) associated with this caCert
 			lcs, err := getAllLogicalClouds(cert, project)
 			if err != nil {

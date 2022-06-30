@@ -109,6 +109,11 @@ func (ctx *EnrollmentContext) Update(contextID string) error {
 		return err
 	}
 
+	// add instruction under the given handle and type
+	if err := module.AddInstruction(ctx.AppContext, ctx.IssuerHandle, ctx.ResOrder); err != nil {
+		return err
+	}
+
 	if err := state.UpdateAppContextStatusContextID(ctx.ContextID, contextID); err != nil {
 		logutils.Error("Failed to update appContext status",
 			logutils.Fields{

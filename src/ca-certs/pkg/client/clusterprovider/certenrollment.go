@@ -228,6 +228,13 @@ func (c *CaCertEnrollmentClient) Update(cert, clusterProvider string) error {
 				Resources: enrollment.EnrollmentResource{
 					CertificateRequest: map[string]*cmv1.CertificateRequest{},
 				}}
+
+			// set the issuing cluster handle
+			eCtx.IssuerHandle, err = eCtx.IssuingClusterHandle()
+			if err != nil {
+				return err
+			}
+
 			// update the caCert enrollment app context
 			if err := eCtx.Update(contextID); err != nil {
 				return err
