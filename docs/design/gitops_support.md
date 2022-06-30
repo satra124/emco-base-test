@@ -246,6 +246,24 @@ github.com/emco/
 
 ```
 
+### Logical Cloud Support
+
+In EMCO Logical Cloud is a grouping of one or many clusters to create multi-tenancy at cluster level. A Logical Cloud groups many clusters together but a cluster may also be grouped by multiple Logical Clouds, effectively turning the cluster multi-tenant. This is achieved via the creation of distinct, isolated namespaces in each of the Kubernetes clusters that make up the Logical Cloud.
+
+With GitOps different providers have different ways of achieving multi-tenancy.
+
+#### Flux v2
+
+Flux manages tenants by assigning namespaces, service accounts and role binding to the tenant's apps. During logical cloud creation all the required resources including service account, namespace, roles and rolebindings are created on all the clusters that are part of the Logical Cloud. At the time of application deployment by EMCO, Flux "Kustomization" resource is populated with the related namespace and service account values.
+
+Reference: https://github.com/fluxcd/flux2-multi-tenancy
+
+#### Azure Arc
+
+As Azure Arc is based on Flux so all Flux principles apply to Azure Arc also. Apart from creating logical cloud resources as in Flux case, at the time of application deployment in Azure arc the configuration is created with "Namespace" scope. (as opposed to "Cluster" scope). This configuration is taken care by the Azure Arc plugin in EMCO.
+
+Reference: https://docs.microsoft.com/en-us/azure/azure-arc/kubernetes/tutorial-use-gitops-flux2#multi-tenancy
+
 ### Flux v2 Setup
 
 Install flux using the fluxctl instructions. (https://fluxcd.io/docs/installation/#github-and-github-enterprise). Provide the name of the cluster to be providername+clustername format. For example in the following example the provider name registered with EMCO is provider1flux and the cluster name registerd with EMCO is cluster2.
