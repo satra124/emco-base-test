@@ -16,7 +16,7 @@ resourceContext:
 metadata :
    name: rsync
 spec:
-  host:  {{.HostIP}}
+  host: {{.HostIP}}
   port: {{.RsyncPort}}
 
 ---
@@ -39,7 +39,7 @@ resourceContext:
 metadata :
    name: nps
 spec:
-  host:  {{.HostIP}}
+  host: {{.HostIP}}
   port: {{.NpsPort}}
   type: "action"
   priority: 1

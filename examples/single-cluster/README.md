@@ -15,10 +15,14 @@ This folder contains the following test cases to run with EMCO. These tests assu
   1. ``KUBE_PATH``: points to where the kubeconfig for the edge cluster is located
   2. ``HOST_IP``: IP address of the cluster (or machine) where EMCO is installed
 
+* In a typical installation of EMCO where each service is running in K8s using the default hostnames, you'll want to set the `DNS` variable to ``true`` in the ``config`` file, so that EMCO services can talk to the controller services internally.
+
+---
 * Additionally, you can optionally modify other variables:
   1. ``LOGICAL_CLOUD_LEVEL``: specifies the kind of Logical Cloud to use (choose between ``admin`` (default), ``privileged`` and ``standard``)
   2. the ports where each of the services run
 
+-----
 * For ``HOST_IP``, ``KUBE_PATH`` and ``LOGICAL_CLOUD_LEVEL``, you can also choose to **export** those variables instead of setting them in the ``config`` file. Exporting them takes priority over what's defined in the ``config`` file. Example below:
 
         export HOST_IP=127.0.0.1
@@ -30,6 +34,7 @@ This folder contains the following test cases to run with EMCO. These tests assu
 *NOTE 1: For ``HOST_IP``, assuming here that nodeports are used to access all EMCO services both from outside and between the EMCO services. Otherwise, if EMCO is running directly on baremetal, this will simply be the publicly-reachable address of that machine, or localhost for a local baremetal deployment.*
 *NOTE 2: Relative directories and expansion of certain symbols, such as the tilde (`~`) for the user's home directory, do not work within the config file. Please make sure to specify absolute paths.*
 
+---
 * The setup.sh script
 
     Creates artifacts needed to test EMCO on one cluster. The script will read from the ``config`` file to decide what EMCO resources to create.
@@ -50,7 +55,7 @@ This folder contains the following test cases to run with EMCO. These tests assu
 
     Cleans up all artifacts previously generated.
 
-
+---
 * ``instantiate-lc.yaml``: defines the API call that instantiates a Logical Cloud (required for any usecase)
 
 ## Applying prerequisites to run tests

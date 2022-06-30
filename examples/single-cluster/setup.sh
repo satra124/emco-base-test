@@ -9,6 +9,7 @@ set -o pipefail
 
 # for the Logical Cloud level (LOGICAL_CLOUD_LEVEL), supported values are: admin, privileged and standard.
 echo "Reading config file"
+CONFIG_DNS=$(cat ./config | grep DNS | cut -d'=' -f2)
 CONFIG_HOST_IP=$(cat ./config | grep HOST_IP | cut -d'=' -f2)
 CONFIG_KUBE_PATH=$(cat ./config | grep KUBE_PATH | cut -d'=' -f2)
 CONFIG_LOGICAL_CLOUD_LEVEL=$(cat ./config | grep LOGICAL_CLOUD_LEVEL | cut -d'=' -f2)
@@ -29,6 +30,8 @@ ORCH_STATUS_PORT=$(cat ./config | grep ORCH_STATUS_PORT | cut -d'=' -f2)
 RSYNC_CONTROL_PORT=$(cat ./config | grep RSYNC_CONTROL_PORT | cut -d'=' -f2)
 
 # priority: environment first, config file second, default value third:
+DNS=${DNS:-$CONFIG_DNS}
+DNS=${DNS:-"oops"}
 HOST_IP=${HOST_IP:-$CONFIG_HOST_IP}
 HOST_IP=${HOST_IP:-"oops"}
 KUBE_PATH=${KUBE_PATH:-$CONFIG_KUBE_PATH}
@@ -129,6 +132,14 @@ cat templates/prerequisites-lc-admin.yaml >> prerequisites.yaml
 
 fi
 
+if [ "$DNS" = "true" ]; then
+echo "Replacing controller addresses with hostnames, since DNS service reachability (via internal port) is enabled"
+perl -p0i -e 's/rsync\nspec:\n  host: {{.HostIP}}/rsync\nspec:\n  host: rsync/' prerequisites.yaml
+perl -p0i -e 's/dtc\nspec:\n  host: {{.HostIP}}/dtc\nspec:\n  host: dtc/' prerequisites.yaml
+perl -p0i -e 's/nps\nspec:\n  host: {{.HostIP}}/nps\nspec:\n  host: nps/' prerequisites.yaml
+perl -p0i -e 's/ovnaction\nspec:\n  host: {{.HostIP}}/ovnaction\nspec:\n  host: ovnaction/' test-vfw-deployment.yaml
+fi
+
 }
 
 function usage {
@@ -146,6 +157,11 @@ function cleanup {
     rm -f prerequisites.yaml
     echo "Deleting the output/ folder"
     rm -rf output
+
+    if [ "$DNS" = "true" ]; then
+    echo "Reverting test-vfw-deployment.yaml back to original version"
+    perl -p0i -e 's/ovnaction\nspec:\n  host: ovnaction/ovnaction\nspec:\n  host: {{.HostIP}}/' test-vfw-deployment.yaml
+    fi
 }
 
 if [ "$#" -lt 1 ] ; then
