@@ -8414,6 +8414,45 @@ components:
           type: string
           maxLength: 128
           example: "istio"
+        edgeCNF:
+          description: Edge CNF type
+          type: string
+          maxLength: 128
+          example: "sdewan"
+        management:
+          type: object
+          required:
+            - sidecarProxy
+            - tlsType
+          properties:
+            sidecarProxy:
+              description: service Mesh sidecar proxy
+              type: string
+              example: "yes"
+              maxLength: 4
+            tlsType:
+              description: TLS type
+              type: string
+              example: "MUTUAL"
+              maxLength: 8
+        external:
+          type: object
+          properties:
+            serviceCertificate:
+              description: Service certificate
+              type: string
+              example: "LS0tLS1CRUdJTi.."
+              maxLength: 8192
+            servicePrivateKey:
+              description: Service key
+              type: string
+              example: "LS0tLS1CRUd.."
+              maxLength: 8192
+            caCertificate:
+              description: CA certificate
+              type: string
+              example: "LS0tLS1CRUdJT.."
+              maxLength: 8192
       required:
         - app
         - serviceName
