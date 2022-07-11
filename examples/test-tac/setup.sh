@@ -22,8 +22,8 @@ KUBE_PATH=${KUBE_PATH:-"oops"}
 function create {
 echo "Generating values.yaml"
 cat << NET >> values.yaml
-HostIP: $CONFIG_HOST_IP 
-KubeConfig: $CONFIG_KUBE_PATH
+HostIP: $HOST_IP 
+KubeConfig: $KUBE_PATH
 RsyncPort: $RSYNC_CONTROL_PORT
 TacPort: $TAC_CONTROL_PORT
 WfClientName: $WF_CLIENT_NAME
