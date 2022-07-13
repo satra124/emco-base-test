@@ -53,9 +53,9 @@ helm search repo
 ```
 ```
 NAME                    CHART VERSION   APP VERSION     DESCRIPTION
-emco/emco               1.0.0                           EMCO All-In-One Package
+emco/emco               1.0.1                           EMCO All-In-One Package
 emco/emco-db            1.0.0                           EMCO Database Package
-emco/emco-services      1.0.0                           EMCO Services Package
+emco/emco-services      1.0.1                           EMCO Services Package
 emco/emco-tools         1.0.0                           EMCO Tools Package
 emco/monitor            1.0.0                           EMCO Status Monitoring
 ```
@@ -69,12 +69,14 @@ helm install emco -n emco emco/emco \
   --set global.db.emcoPassword=SETPASS \
   --set global.db.rootPassword=SETPASS \
   --set global.contextdb.rootPassword=SETPASS \
-  --set global.emcoTag=22.03.1
+  --set global.emcoTag=latest
 ```
 
 Replace `SETPASS` with the your choice of passwords for MongoDB and etcd, respectively. You may also choose to not set custom passwords, in which case they will be randomized. If you choose random passwords, make sure to check the [Known issues](#known-issues).
 
-Replace `22.03.1` with the version of EMCO you wish to deploy. If you don't set this field, the `latest` EMCO container images will be installed. Typically, the `latest` tag is updated once a day.
+Replace `latest` with the version of EMCO you wish to deploy, such as `22.06`. If you don't set this field, the `latest` EMCO container images will be installed. Typically, the `latest` tag is updated once a day.
+
+*Keep in mind that different EMCO versions require different Helm chart version in order to unlock to full set of features. For example, installing `emco` chart `1.0.0` while setting the `emcoTag` to `22.06` will not enable the newly-introduced action controllers in 22.06. Equivalently, setting installing `emco` chart `1.0.1` while setting the `emcoTag` to `22.03.1` will result in some pods coming back as `ImagePullBackOff` since EMCO 22.03.1 doesn't contain all of the expected action controllers. See issue #240.*
 
 Release `22.06` introduces an optional database encryption feature, which is not enabled by default.  To enable it, set the following flags to the `helm install` command:
 
@@ -131,10 +133,10 @@ Set your `KUBECONFIG` (or take equivalent actions) according to each of the clus
 ```
 kubectl create namespace emco
 helm install emco -n emco emco/monitor \
-  --set emcoTag=22.03.1
+  --set emcoTag=latest
 ```
 
-Replace `22.03.1` with the version of the EMCO Monitor you wish to deploy. This version must match the version of EMCO installed in the main EMCO cluster, or expect *unexpected* behavior. If you don't set this field, the `latest` EMCO Monitor container image will be installed. Typically, the `latest` tag is updated once a day.
+Replace `latest` with the version of the EMCO Monitor you wish to deploy. This version must match the version of EMCO installed in the main EMCO cluster, or expect *unexpected* behavior. If you don't set this field, the `latest` EMCO Monitor container image will be installed. Typically, the `latest` tag is updated once a day.
 > Notice that for Monitor, the image tag version is specified with `emcoTag` unlike in the main EMCO cluster, where it's specified with `global.emcoTag`.
 
 
@@ -157,7 +159,7 @@ helm install emco -n emco emco/emco \
   --set global.db.emcoPassword=SETPASS \
   --set global.db.rootPassword=SETPASS \
   --set global.contextdb.rootPassword=SETPASS \
-  --set global.emcoTag=22.03.1
+  --set global.emcoTag=latest
 ```
 
 #### Known issues
