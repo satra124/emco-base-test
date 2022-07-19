@@ -11,6 +11,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/service/istioservice"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/service/knccservice"
 	dcm "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 	v1 "k8s.io/api/core/v1"
@@ -43,7 +44,7 @@ func (c *CaCertDistributionClient) Instantiate(cert, project string) error {
 		Distribution: distribution.AppName}
 
 	sc := module.NewStateClient(dk)
-	if _, err := sc.VerifyState(module.InstantiateEvent); err != nil {
+	if _, err := sc.VerifyState(common.Instantiate); err != nil {
 		return err
 	}
 

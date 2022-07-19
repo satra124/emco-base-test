@@ -14,6 +14,7 @@ import (
 	clm "gitlab.com/project-emco/core/emco-base/src/clm/pkg/cluster"
 
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/certissuer/certmanagerissuer"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/notifyclient"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
@@ -92,7 +93,7 @@ func (ctx *DistributionContext) Update(prevContextID string) error {
 func Terminate(dbKey interface{}) error {
 	sc := module.NewStateClient(dbKey)
 	// check the current state of the Instantiation, if any
-	contextID, err := sc.VerifyState(module.TerminateEvent)
+	contextID, err := sc.VerifyState(common.Terminate)
 	if err != nil {
 		return err
 	}

@@ -4,9 +4,10 @@
 package module
 
 import (
+	"fmt"
 	"reflect"
 
-	"github.com/pkg/errors"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common/emcoerror"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
@@ -48,7 +49,10 @@ func (c *CaCertClient) CreateCert(cert CaCert, failIfExists bool) (CaCert, bool,
 
 	if certExists &&
 		failIfExists {
-		return CaCert{}, certExists, errors.New("Certificate already exists")
+		return CaCert{}, certExists, &emcoerror.Error{
+			Message: CaCertAlreadyExists,
+			Reason:  emcoerror.Conflict,
+		}
 	}
 
 	if err := db.DBconn.Insert(c.dbInfo.StoreName, c.dbKey, nil, c.dbInfo.TagMeta, cert); err != nil {
@@ -90,7 +94,10 @@ func (c *CaCertClient) GetCert() (CaCert, error) {
 	}
 
 	if len(value) == 0 {
-		return CaCert{}, errors.New("Certificate not found")
+		return CaCert{}, &emcoerror.Error{
+			Message: CaCertNotFound,
+			Reason:  emcoerror.NotFound,
+		}
 	}
 
 	if value != nil {
@@ -101,7 +108,10 @@ func (c *CaCertClient) GetCert() (CaCert, error) {
 		return cert, nil
 	}
 
-	return CaCert{}, errors.New("Unknown Error")
+	return CaCert{}, &emcoerror.Error{
+		Message: emcoerror.UnknownErrorMessage,
+		Reason:  emcoerror.Unknown,
+	}
 }
 
 // UpdateCert update the caCert
@@ -124,7 +134,10 @@ func (c *CaCertClient) VerifyStateBeforeDelete(cert, lifecycle string) error {
 
 	if cState == state.StateEnum.Instantiated ||
 		cState == state.StateEnum.InstantiateStopped {
-		err := errors.Errorf("%s must be terminated for CaCert %s before it can be deleted", lifecycle, cert)
+		err := &emcoerror.Error{
+			Message: fmt.Sprintf("%s must be terminated for CaCert %s before it can be deleted", lifecycle, cert),
+			Reason:  emcoerror.Conflict,
+		}
 		logutils.Error("",
 			logutils.Fields{
 				"Error": err.Error()})
@@ -139,7 +152,10 @@ func (c *CaCertClient) VerifyStateBeforeDelete(cert, lifecycle string) error {
 		if err == nil &&
 			!(acStatus.Status == appcontext.AppContextStatusEnum.Terminated ||
 				acStatus.Status == appcontext.AppContextStatusEnum.TerminateFailed) {
-			err := errors.Errorf("%s termination has not completed for CaCert %s", lifecycle, cert)
+			err := &emcoerror.Error{
+				Message: fmt.Sprintf("%s termination has not completed for CaCert %s", lifecycle, cert),
+				Reason:  emcoerror.Conflict,
+			}
 			logutils.Error("",
 				logutils.Fields{
 					"Error": err.Error()})
@@ -182,7 +198,10 @@ func (c *CaCertClient) VerifyStateBeforeUpdate(cert, lifecycle string) error {
 	}
 
 	if cState != state.StateEnum.Created {
-		err := errors.Errorf("Failed to update the CaCert. %s for the CaCert %s is in %s state", lifecycle, cert, cState)
+		err := &emcoerror.Error{
+			Message: fmt.Sprintf("Failed to update the CaCert. %s for the CaCert %s is in %s state", lifecycle, cert, cState),
+			Reason:  emcoerror.Conflict,
+		}
 		logutils.Error("",
 			logutils.Fields{
 				"Error": err.Error()})

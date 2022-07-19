@@ -7,6 +7,7 @@ import (
 	cmv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/certificate/enrollment"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/module"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 )
@@ -39,7 +40,7 @@ func (c *CaCertEnrollmentClient) Instantiate(cert, clusterProvider string) error
 		ClusterProvider: clusterProvider,
 		Enrollment:      enrollment.AppName}
 	sc := module.NewStateClient(ek)
-	if _, err := sc.VerifyState(module.InstantiateEvent); err != nil {
+	if _, err := sc.VerifyState(common.Instantiate); err != nil {
 		return err
 	}
 
@@ -130,7 +131,7 @@ func (c *CaCertEnrollmentClient) Terminate(cert, clusterProvider string) error {
 		Enrollment:      enrollment.AppName}
 	sc := module.NewStateClient(ek)
 	// check the current state of the Instantiation, if any
-	contextID, err := sc.VerifyState(module.TerminateEvent)
+	contextID, err := sc.VerifyState(common.Terminate)
 	if err != nil {
 		return err
 	}

@@ -8,6 +8,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/certificate/enrollment"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/module"
 	dcm "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
@@ -42,7 +43,7 @@ func (c *CaCertEnrollmentClient) Instantiate(cert, project string) error {
 		Enrollment: enrollment.AppName}
 
 	sc := module.NewStateClient(ek)
-	if _, err := sc.VerifyState(module.InstantiateEvent); err != nil {
+	if _, err := sc.VerifyState(common.Instantiate); err != nil {
 		return err
 	}
 
@@ -163,7 +164,7 @@ func (c *CaCertEnrollmentClient) Terminate(cert, project string) error {
 
 	sc := module.NewStateClient(ek)
 	// check the current state of the Instantiation, if any
-	contextID, err := sc.VerifyState(module.TerminateEvent)
+	contextID, err := sc.VerifyState(common.Terminate)
 	if err != nil {
 		return err
 	}
