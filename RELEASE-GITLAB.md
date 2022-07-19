@@ -44,4 +44,15 @@ Currently only the `stable` channel of the package registry is being used, but w
 ## Creating release page and tarballs
 
 Go to the [GitLab Releases page](https://gitlab.com/project-emco/core/emco-base/-/releases), and click *New release*.
-Choose the tag name `v22.06` created earlier. Name the release title simply as `22.06`. Choose the corresponding milestone, i.e. 22.06. Finally, write the release notes, add any extra release assets, and click *Create release*.
+Choose the tag name `v22.06` created earlier. Name the release title simply as `22.06`. Choose the corresponding milestone, i.e. 22.06. Finally, write the release notes, add any extra release assets (see subsection below), and click *Create release*.
+
+### Extra release assets
+
+The emcoctl tool should be added as a release asset with the name `emcoctl-${GOOS}-${GOARCH}`, for example `emcoctl-linux-amd64`. The binary and checksum must first be uploaded to the generic package repository, and once uploaded emcoctl will be present in the package registry asset linked on the release page.
+
+    cd bin/emcoctl
+    cp emcoctl emcoctl-linux-amd64
+    sha256sum emcoctl-linux-amd64 >emcoctl-linux-amd64.sha256
+    PROJECT_ACCESS_TOKEN="REPLACE_WITH_GITLAB_PROJECT_ACCESS_TOKEN"
+    curl --header "PRIVATE-TOKEN: $PROJECT_ACCESS_TOKEN" --upload-file emcoctl-linux-amd64 https://gitlab.com/api/v4/projects/29353813/packages/generic/emcoctl/v22.06/emcoctl-linux-amd64
+    curl --header "PRIVATE-TOKEN: $PROJECT_ACCESS_TOKEN" --upload-file emcoctl-linux-amd64.sha256 https://gitlab.com/api/v4/projects/29353813/packages/generic/emcoctl/v22.06/emcoctl-linux-amd64.sha256
