@@ -1,0 +1,72 @@
+# Copyright (c) 2022 Intel Corporation
+@startuml
+package orchestrator #lightgray {
+object controllers  #lightgreen
+controllers : controller : intent
+object projects #lightblue
+object compositeApps #lightblue
+compositeApps : version
+object apps #lightblue
+object compositeProfiles #lightblue
+object appProfiles #lightblue
+object deploymentIntentGroups #lightblue
+object intents #lightblue
+object genericPlacementIntents #lightblue
+object appPlacementIntents #lightblue
+
+projects "1" --> "N<sub>0</sub>" compositeApps
+compositeApps "1" --> "N<sub>1</sub>" apps
+compositeApps "1" --> "N<sub>4</sub>" compositeProfiles
+compositeProfiles "1" --> "N<sub>1</sub>" appProfiles
+compositeApps "1" --> "N<sub>2</sub>" deploymentIntentGroups
+deploymentIntentGroups "1" --> "N<sub>3</sub>" intents
+deploymentIntentGroups "1" --> "N<sub>5</sub>" genericPlacementIntents
+genericPlacementIntents "1" --> "N<sub>1</sub>" appPlacementIntents
+intents ..> controllers::controller
+appPlacementIntents "1" ..> "1" apps
+}
+
+package dcm #lightgray {
+object logicalClouds #lightblue
+object clusterReferences #lightblue
+
+projects "1" --> "L<sub>0</sub>" logicalClouds
+logicalClouds "1" --> "L<sub>1</sub>" clusterReferences
+}
+
+package clm #lightgray {
+object clusterProviders #yellow
+object clusters #yellow
+object clusterSyncObjects #yellow
+object clusterLabels #yellow
+
+clusterProviders "1" --> "C<sub>0</sub>" clusters
+clusters "1" --> "0..C<sub>1</sub>" clusterLabels
+clusterProviders "1" --> "C<sub>2</sub>" clusterSyncObjects
+clusters "1" ..> "0..C<sub>3</sub>" clusterSyncObjects
+}
+
+package gac #gray {
+object genericK8sIntents #lightblue
+object resources #lightblue
+object customizations #lightblue
+
+genericK8sIntents "1" --> "G<sub>1</sub>" resources
+resources "1" --> "G<sub>2</sub>" customizations
+}
+
+package ovnaction #gray {
+object ovnactionIntents #lightblue
+deploymentIntentGroups --> ovnactionIntents : ex. add ovnaction intents
+}
+
+package dtc #gray {
+object dtcIntents #lightblue
+deploymentIntentGroups --> dtcIntents : ex. add dtc intents
+}
+
+clusterReferences "1" ..> "1" clusters
+appProfiles "1" ..> "1" apps
+
+deploymentIntentGroups "1" --> "G<sub>0</sub>" genericK8sIntents
+@enduml
