@@ -12,12 +12,15 @@ import (
 	"time"
 
 	"github.com/gorilla/handlers"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/api"
 	register "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/metrics"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/tracing"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
@@ -25,7 +28,6 @@ import (
 )
 
 func main() {
-
 	rand.Seed(time.Now().UnixNano())
 
 	ctx := context.Background()
@@ -35,6 +37,8 @@ func main() {
 		log.Error("Unable to initialize tracing", log.Fields{"Error": err})
 		os.Exit(1)
 	}
+
+	prometheus.MustRegister(metrics.NewBuildInfoCollector("orchestrator"))
 
 	err = db.InitializeDatabaseConnection(ctx, "emco")
 	if err != nil {
@@ -49,6 +53,7 @@ func main() {
 
 	httpRouter := api.NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	httpRouter.Use(tracing.Middleware)
+	httpRouter.Handle("/metrics", promhttp.Handler())
 	loggedRouter := handlers.LoggingHandler(os.Stdout, httpRouter)
 	log.Info("Starting Kubernetes Multicloud API", log.Fields{"Port": config.GetConfiguration().ServicePort})
 

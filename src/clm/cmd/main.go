@@ -12,11 +12,14 @@ import (
 	"time"
 
 	"github.com/gorilla/handlers"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.com/project-emco/core/emco-base/src/clm/api"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/metrics"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/tracing"
 )
 
@@ -31,6 +34,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	prometheus.MustRegister(metrics.NewBuildInfoCollector("clm"))
+
 	err = db.InitializeDatabaseConnection(ctx, "emco")
 	if err != nil {
 		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
@@ -44,6 +49,7 @@ func main() {
 
 	httpRouter := api.NewRouter(nil)
 	httpRouter.Use(tracing.Middleware)
+	httpRouter.Handle("/metrics", promhttp.Handler())
 	loggedRouter := handlers.LoggingHandler(os.Stdout, httpRouter)
 	log.Info("Starting Cluster Manager", log.Fields{"Port": config.GetConfiguration().ServicePort})
 

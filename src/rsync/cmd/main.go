@@ -10,8 +10,10 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	register "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/metrics"
 	installpb "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/installapp"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/installappserver"
 	readynotifypb "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/readynotify"
@@ -44,6 +46,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	prometheus.MustRegister(metrics.NewBuildInfoCollector("orchestrator"))
+
 	// Initialize the mongodb
 	err = db.InitializeDatabaseConnection(ctx, "emco")
 	if err != nil {
@@ -58,14 +62,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	go func() {
-		err := register.StartGrpcServer("rsync", "RSYNC_NAME", 9031,
-			RegisterRsyncServices, nil)
-		if err != nil {
-			log.Error("GRPC server failed to start", log.Fields{"Error": err})
-			os.Exit(1)
-		}
-	}()
+	grpcServer, err := register.NewGrpcServerWithMetrics("rsync", "RSYNC_NAME", 9031,
+		RegisterRsyncServices, nil)
+	if err != nil {
+		log.Error("Unable to create grpc server", log.Fields{"Error": err})
+		os.Exit(1)
+	}
 
 	err = con.RestoreActiveContext(ctx)
 	if err != nil {
@@ -73,10 +75,16 @@ func main() {
 	}
 
 	connectionsClose := make(chan struct{})
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		<-c
+		grpcServer.Shutdown(context.Background())
+		close(connectionsClose)
+	}()
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	<-c
-	close(connectionsClose)
-
+	err = grpcServer.Serve()
+	if err != nil {
+		log.Error("gRPC server failed", log.Fields{"Error": err})
+	}
 }
