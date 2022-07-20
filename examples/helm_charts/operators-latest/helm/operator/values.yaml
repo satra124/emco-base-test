@@ -1,6 +1,6 @@
 operator:
   name: m3db-operator
 image:
-  repository: quay.io/m3db/m3db-operator
-  tag: v0.13.0
+  repository: quay.io/m3db/m3db-operator@sha256
+  tag: 4aab236136af74adc78cc3df7ffc8fae586a4e8f5a52dd64d76db4a087350e6d
 environment: production
