@@ -11,6 +11,7 @@
       - [Tuning & Compatibility](#tuning--compatibility)
       - [Known issues](#known-issues)
     - [From source](#from-source)
+    - [Client/CLI](#clientcli)
 
 ## Overview
 
@@ -32,6 +33,7 @@ In general, to install and use EMCO, you will need at least **2 Kubernetes clust
 Additionally, each of the Kubernetes where applications (and [Logical Clouds](docs/design/Logical_Clouds.md)) reside also require that the [EMCO Monitor](docs/design/monitor.md) (also known as EMCO Status Monitoring) service be running. Instructions to deploy Monitor are provided in this readme file.
 
 Refer to the [Release Notes](ReleaseNotes.md) for a tested compatibility table between versions of EMCO and versions of Kubernetes, Helm, and others.
+
 
 ### Using Helm
 
@@ -172,3 +174,67 @@ See the [EMCO Helm Tutorial](deployments/helm/Tutorial_Helm.md) for additional i
 ### From source
 
 If you wish to build and deploy EMCO from source and/or customize/build local Helm charts, check [EMCO Build & Deploy](docs/design/emco-design.md).
+
+### Client/CLI
+
+
+When it comes to installing the EMCO Client (a command-line interface), `emcoctl`, there are currently 3 tested options:
+
+**From a downloadable release binary:**
+A pre-built executable binary for EMCO 22.06 (linux/amd64) is hosted on GitLab and ready to use:
+```
+wget https://gitlab.com/project-emco/core/emco-base/-/package_files/46736477/download -O emcoctl-linux-amd64
+wget https://gitlab.com/project-emco/core/emco-base/-/package_files/46736528/download -O emcoctl-linux-amd64.sha256
+sha256sum -c emcoctl-linux-amd64.sha256
+sudo cp emcoctl-linux-amd64 /usr/local/bin/emcoctl
+sudo chmod +x /usr/local/bin/emcoctl
+```
+
+**From source using Go directly:**
+```
+git clone git@gitlab.com:project-emco/core/emco-base.git
+cd emco-base
+MODS=tools/emcoctl make all
+```
+
+**From source with the help of Docker:**
+```
+git clone git@gitlab.com:project-emco/core/emco-base.git
+cd emco-base
+MODS=tools/emcoctl make deploy-compile
+```
+
+Either of the *source* commands above will place the `emcoctl` executable binary in `./emco-base/bin/emcoctl/emcoctl`.
+To make it easy to call `emcoctl`, load it into your `$PATH` or copy into `/usr/local/bin`.
+
+Example for updating the `$PATH`:
+```
+echo 'export PATH=/home/user/emco-base/bin/emcoctl:$PATH' >> /home/user/.profile
+source /home/user/.profile
+```
+
+**Test that `emcoctl` works:**
+```
+# emcoctl help
+Warning: No Configuration File found. Using defaults
+Emcoctl - CLI for EMCO
+
+Usage:
+  emco [flags]
+  emco [command]
+
+Available Commands:
+  apply       apply(Post) the resources from input file or url(without body) from command line
+  completion  Generate the autocompletion script for the specified shell
+  delete      Delete the resources from input file or url(without body) from command line
+  get         Get the resources from input file or url from command line
+  help        Help about any command
+  update      update(Put) the resources from input file or url(without body) from command line
+  watch       Watch for resource status notifications from input file or url from command line
+
+Flags:
+      --config string   config file (default is $HOME/.emco.yaml)
+  -h, --help            help for emco
+
+Use "emco [command] --help" for more information about a command.
+```
