@@ -4,6 +4,7 @@
 package cluster
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -33,8 +34,8 @@ type ClusterProvider struct {
 }
 
 type Cluster struct {
-	Metadata mtypes.Metadata `json:"metadata"`
-	Spec     mtypes.GitOpsSpec      `json:"spec,omitempty"`
+	Metadata mtypes.Metadata   `json:"metadata"`
+	Spec     mtypes.GitOpsSpec `json:"spec,omitempty"`
 }
 
 type ClusterWithLabels struct {
@@ -144,6 +145,7 @@ func NewClusterClient() *ClusterClient {
 
 // CreateClusterProvider - create a new Cluster Provider
 func (v *ClusterClient) CreateClusterProvider(p ClusterProvider, exists bool) (ClusterProvider, error) {
+	ctx := context.Background()
 
 	//Construct key and tag to select the entry
 	key := ClusterProviderKey{
@@ -156,7 +158,7 @@ func (v *ClusterClient) CreateClusterProvider(p ClusterProvider, exists bool) (C
 		return ClusterProvider{}, pkgerrors.New("ClusterProvider already exists")
 	}
 
-	err = db.DBconn.Insert(v.db.storeName, key, nil, v.db.tagMeta, p)
+	err = db.DBconn.Insert(ctx, v.db.storeName, key, nil, v.db.tagMeta, p)
 	if err != nil {
 		return ClusterProvider{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -172,7 +174,7 @@ func (v *ClusterClient) GetClusterProvider(name string) (ClusterProvider, error)
 		ClusterProviderName: name,
 	}
 
-	value, err := db.DBconn.Find(v.db.storeName, key, v.db.tagMeta)
+	value, err := db.DBconn.Find(context.Background(), v.db.storeName, key, v.db.tagMeta)
 	if err != nil {
 		return ClusterProvider{}, err
 	} else if len(value) == 0 {
@@ -200,7 +202,7 @@ func (v *ClusterClient) GetClusterProviders() ([]ClusterProvider, error) {
 		ClusterProviderName: "",
 	}
 
-	values, err := db.DBconn.Find(v.db.storeName, key, v.db.tagMeta)
+	values, err := db.DBconn.Find(context.Background(), v.db.storeName, key, v.db.tagMeta)
 	if err != nil {
 		return []ClusterProvider{}, err
 	}
@@ -220,18 +222,20 @@ func (v *ClusterClient) GetClusterProviders() ([]ClusterProvider, error) {
 
 // DeleteClusterProvider the  ClusterProvider from database
 func (v *ClusterClient) DeleteClusterProvider(name string) error {
+	ctx := context.Background()
 
 	//Construct key and tag to select the entry
 	key := ClusterProviderKey{
 		ClusterProviderName: name,
 	}
 
-	err := db.DBconn.Remove(v.db.storeName, key)
+	err := db.DBconn.Remove(ctx, v.db.storeName, key)
 	return err
 }
 
 // CreateCluster - create a new Cluster for a cluster-provider
 func (v *ClusterClient) CreateCluster(provider string, p Cluster, q ClusterContent) (Cluster, error) {
+	ctx := context.Background()
 
 	//Construct key and tag to select the entry
 	key := ClusterKey{
@@ -245,7 +249,7 @@ func (v *ClusterClient) CreateCluster(provider string, p Cluster, q ClusterConte
 		return Cluster{}, pkgerrors.New("Cluster already exists")
 	}
 
-	err = db.DBconn.Insert(v.db.storeName, key, nil, v.db.tagMeta, p)
+	err = db.DBconn.Insert(ctx, v.db.storeName, key, nil, v.db.tagMeta, p)
 	if err != nil {
 		return Cluster{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -259,7 +263,7 @@ func (v *ClusterClient) CreateCluster(provider string, p Cluster, q ClusterConte
 	}
 	s.Actions = append(s.Actions, a)
 
-	err = db.DBconn.Insert(v.db.storeName, key, nil, v.db.tagState, s)
+	err = db.DBconn.Insert(ctx, v.db.storeName, key, nil, v.db.tagState, s)
 	if err != nil {
 		return Cluster{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -301,7 +305,7 @@ func (v *ClusterClient) GetCluster(provider, name string) (Cluster, error) {
 		ClusterName:         name,
 	}
 
-	value, err := db.DBconn.Find(v.db.storeName, key, v.db.tagMeta)
+	value, err := db.DBconn.Find(context.Background(), v.db.storeName, key, v.db.tagMeta)
 	if err != nil {
 		return Cluster{}, err
 	} else if len(value) == 0 {
@@ -350,7 +354,7 @@ func (v *ClusterClient) GetClusterState(provider, name string) (state.StateInfo,
 		ClusterName:         name,
 	}
 
-	result, err := db.DBconn.Find(v.db.storeName, key, v.db.tagState)
+	result, err := db.DBconn.Find(context.Background(), v.db.storeName, key, v.db.tagState)
 	if err != nil {
 		return state.StateInfo{}, err
 	} else if len(result) == 0 {
@@ -383,7 +387,7 @@ func (v *ClusterClient) GetClusters(provider string) ([]Cluster, error) {
 		return []Cluster{}, err
 	}
 
-	values, err := db.DBconn.Find(v.db.storeName, key, v.db.tagMeta)
+	values, err := db.DBconn.Find(context.Background(), v.db.storeName, key, v.db.tagMeta)
 	if err != nil {
 		return []Cluster{}, err
 	}
@@ -438,7 +442,7 @@ func (v *ClusterClient) GetClustersWithLabel(provider, label string) ([]string, 
 		return []string{}, err
 	}
 
-	values, err := db.DBconn.Find(v.db.storeName, key, "cluster")
+	values, err := db.DBconn.Find(context.Background(), v.db.storeName, key, "cluster")
 	if err != nil {
 		return []string{}, err
 	}
@@ -454,6 +458,8 @@ func (v *ClusterClient) GetClustersWithLabel(provider, label string) ([]string, 
 
 // DeleteCluster the  Cluster from database
 func (v *ClusterClient) DeleteCluster(provider, name string) error {
+	ctx := context.Background()
+
 	//Construct key and tag to select the entry
 	key := ClusterKey{
 		ClusterProviderName: provider,
@@ -464,7 +470,7 @@ func (v *ClusterClient) DeleteCluster(provider, name string) error {
 	if err != nil {
 		// If the StateInfo cannot be found, then a proper cluster record is not present.
 		// Call the DB delete to clean up any errant record without a StateInfo element that may exist.
-		err = db.DBconn.Remove(v.db.storeName, key)
+		err = db.DBconn.Remove(ctx, v.db.storeName, key)
 		return err
 	}
 
@@ -481,19 +487,19 @@ func (v *ClusterClient) DeleteCluster(provider, name string) error {
 	if stateVal == state.StateEnum.Terminated || stateVal == state.StateEnum.TerminateStopped {
 		// Verify that the appcontext has completed terminating
 		ctxid := state.GetLastContextIdFromStateInfo(s)
-		acStatus, err := state.GetAppContextStatus(ctxid)
+		acStatus, err := state.GetAppContextStatus(ctx, ctxid)
 		if err == nil &&
 			!(acStatus.Status == appcontext.AppContextStatusEnum.Terminated || acStatus.Status == appcontext.AppContextStatusEnum.TerminateFailed) {
 			return pkgerrors.Errorf("Network intents for cluster have not completed terminating " + name)
 		}
 
 		for _, id := range state.GetContextIdsFromStateInfo(s) {
-			context, err := state.GetAppContextFromId(id)
+			context, err := state.GetAppContextFromId(ctx, id)
 			if err != nil {
 				log.Info("Delete Cluster .. appcontext not found", log.Fields{"clusterProvider": provider, "cluster": name, "appContext": id})
 				continue
 			}
-			err = context.DeleteCompositeApp()
+			err = context.DeleteCompositeApp(ctx)
 			if err != nil {
 				return pkgerrors.Wrap(err, "Error deleting appcontext for Cluster")
 			}
@@ -501,7 +507,7 @@ func (v *ClusterClient) DeleteCluster(provider, name string) error {
 	}
 
 	// Remove the cluster resource
-	err = db.DBconn.Remove(v.db.storeName, key)
+	err = db.DBconn.Remove(ctx, v.db.storeName, key)
 	if err != nil {
 		return pkgerrors.Wrap(err, "Delete Cluster Entry;")
 	}
@@ -530,6 +536,8 @@ func (v *ClusterClient) DeleteCluster(provider, name string) error {
 
 // CreateClusterLabel - create a new Cluster Label mongo document for a cluster-provider/cluster
 func (v *ClusterClient) CreateClusterLabel(provider string, cluster string, p ClusterLabel, exists bool) (ClusterLabel, error) {
+	ctx := context.Background()
+
 	//Construct key and tag to select the entry
 	key := ClusterLabelKey{
 		ClusterProviderName: provider,
@@ -543,7 +551,7 @@ func (v *ClusterClient) CreateClusterLabel(provider string, cluster string, p Cl
 		return ClusterLabel{}, pkgerrors.New("Cluster Label already exists")
 	}
 
-	err = db.DBconn.Insert(v.db.storeName, key, nil, v.db.tagMeta, p)
+	err = db.DBconn.Insert(ctx, v.db.storeName, key, nil, v.db.tagMeta, p)
 	if err != nil {
 		return ClusterLabel{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -560,7 +568,7 @@ func (v *ClusterClient) GetClusterLabel(provider, cluster, label string) (Cluste
 		ClusterLabelName:    label,
 	}
 
-	value, err := db.DBconn.Find(v.db.storeName, key, v.db.tagMeta)
+	value, err := db.DBconn.Find(context.Background(), v.db.storeName, key, v.db.tagMeta)
 	if err != nil {
 		return ClusterLabel{}, err
 	} else if len(value) == 0 {
@@ -595,7 +603,7 @@ func (v *ClusterClient) GetClusterLabels(provider, cluster string) ([]ClusterLab
 		return []ClusterLabel{}, err
 	}
 
-	values, err := db.DBconn.Find(v.db.storeName, key, v.db.tagMeta)
+	values, err := db.DBconn.Find(context.Background(), v.db.storeName, key, v.db.tagMeta)
 	if err != nil {
 		return []ClusterLabel{}, err
 	}
@@ -615,6 +623,8 @@ func (v *ClusterClient) GetClusterLabels(provider, cluster string) ([]ClusterLab
 
 // DeleteClusterLabel ... Delete the Cluster Label from database
 func (v *ClusterClient) DeleteClusterLabel(provider, cluster, label string) error {
+	ctx := context.Background()
+
 	//Construct key and tag to select the entry
 	key := ClusterLabelKey{
 		ClusterProviderName: provider,
@@ -622,12 +632,14 @@ func (v *ClusterClient) DeleteClusterLabel(provider, cluster, label string) erro
 		ClusterLabelName:    label,
 	}
 
-	err := db.DBconn.Remove(v.db.storeName, key)
+	err := db.DBconn.Remove(ctx, v.db.storeName, key)
 	return err
 }
 
 // CreateClusterKvPairs - Create a New Cluster KV pairs document
 func (v *ClusterClient) CreateClusterKvPairs(provider string, cluster string, p ClusterKvPairs, exists bool) (ClusterKvPairs, error) {
+	ctx := context.Background()
+
 	key := ClusterKvPairsKey{
 		ClusterProviderName: provider,
 		ClusterName:         cluster,
@@ -640,7 +652,7 @@ func (v *ClusterClient) CreateClusterKvPairs(provider string, cluster string, p 
 		return ClusterKvPairs{}, pkgerrors.New("Cluster KV Pair already exists")
 	}
 
-	err = db.DBconn.Insert(v.db.storeName, key, nil, v.db.tagMeta, p)
+	err = db.DBconn.Insert(ctx, v.db.storeName, key, nil, v.db.tagMeta, p)
 	if err != nil {
 		return ClusterKvPairs{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -657,7 +669,7 @@ func (v *ClusterClient) GetClusterKvPairs(provider, cluster, kvpair string) (Clu
 		ClusterKvPairsName:  kvpair,
 	}
 
-	value, err := db.DBconn.Find(v.db.storeName, key, v.db.tagMeta)
+	value, err := db.DBconn.Find(context.Background(), v.db.storeName, key, v.db.tagMeta)
 	if err != nil {
 		return ClusterKvPairs{}, err
 	} else if len(value) == 0 {
@@ -686,7 +698,7 @@ func (v *ClusterClient) GetClusterKvPairsValue(provider, cluster, kvpair, kvkey 
 		ClusterKvPairsName:  kvpair,
 	}
 
-	value, err := db.DBconn.Find(v.db.storeName, key, v.db.tagMeta)
+	value, err := db.DBconn.Find(context.Background(), v.db.storeName, key, v.db.tagMeta)
 	if err != nil {
 		return ClusterKvPairs{}, err
 	} else if len(value) == 0 {
@@ -729,7 +741,7 @@ func (v *ClusterClient) GetAllClusterKvPairs(provider, cluster string) ([]Cluste
 		return []ClusterKvPairs{}, err
 	}
 
-	values, err := db.DBconn.Find(v.db.storeName, key, v.db.tagMeta)
+	values, err := db.DBconn.Find(context.Background(), v.db.storeName, key, v.db.tagMeta)
 	if err != nil {
 		return []ClusterKvPairs{}, err
 	}
@@ -749,6 +761,8 @@ func (v *ClusterClient) GetAllClusterKvPairs(provider, cluster string) ([]Cluste
 
 // DeleteClusterKvPairs the  ClusterKvPairs from database
 func (v *ClusterClient) DeleteClusterKvPairs(provider, cluster, kvpair string) error {
+	ctx := context.Background()
+
 	//Construct key and tag to select entry
 	key := ClusterKvPairsKey{
 		ClusterProviderName: provider,
@@ -756,7 +770,7 @@ func (v *ClusterClient) DeleteClusterKvPairs(provider, cluster, kvpair string) e
 		ClusterKvPairsName:  kvpair,
 	}
 
-	err := db.DBconn.Remove(v.db.storeName, key)
+	err := db.DBconn.Remove(ctx, v.db.storeName, key)
 	return err
 }
 

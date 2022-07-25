@@ -5,6 +5,7 @@ package context
 
 import (
 	//	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -20,31 +21,31 @@ func CreateCompApp(ca CompositeApp) (string, error) {
 	var compositeHandle interface{}
 	var err error
 
-	context := appcontext.AppContext{}
-	ctxval, err := context.InitAppContext()
+	appCtx := appcontext.AppContext{}
+	ctxval, err := appCtx.InitAppContext()
 	if err != nil {
 		return "", pkgerrors.Wrap(err, "Error creating AppContext CompositeApp")
 	}
 	contextID := fmt.Sprintf("%v", ctxval)
 
-	if compositeHandle, err = context.CreateCompositeApp(); err != nil {
+	if compositeHandle, err = appCtx.CreateCompositeApp(context.Background()); err != nil {
 		return "", pkgerrors.Wrap(err, "Error creating CompositeApp handle")
 	}
 
-	if err = context.AddCompositeAppMeta(ca.CompMetadata); err != nil {
+	if err = appCtx.AddCompositeAppMeta(context.Background(), ca.CompMetadata); err != nil {
 		return "", pkgerrors.Wrap(err, "Error Adding CompositeAppMeta")
 	}
 	appOrder, err := json.Marshal(map[string][]string{"apporder": ca.AppOrder})
 	if err != nil {
 		return "", pkgerrors.Wrap(err, "Error adding app order instruction")
 	}
-	_, err = context.AddInstruction(compositeHandle, "app", "order", string(appOrder))
+	_, err = appCtx.AddInstruction(context.Background(), compositeHandle, "app", "order", string(appOrder))
 	if err != nil {
 		return "", pkgerrors.Wrap(err, "Error adding app order instruction")
 	}
 
 	for _, app := range ca.Apps {
-		a, err := context.AddApp(compositeHandle, app.Name)
+		a, err := appCtx.AddApp(context.Background(), compositeHandle, app.Name)
 		if err != nil {
 			return "", pkgerrors.Wrap(err, "Error Adding App")
 		}
@@ -58,28 +59,28 @@ func CreateCompApp(ca CompositeApp) (string, error) {
 			if err != nil {
 				return "", pkgerrors.Wrap(err, "Error adding depencency instruction")
 			}
-			_, err = context.AddLevelValue(a, "instruction/dependency", string(dependency))
+			_, err = appCtx.AddLevelValue(context.Background(), a, "instruction/dependency", string(dependency))
 			if err != nil {
 				return "", pkgerrors.Wrap(err, "Error Adding depencency instruction")
 			}
 		}
 		for _, cluster := range app.Clusters {
-			c, err := context.AddCluster(a, cluster.Name)
+			c, err := appCtx.AddCluster(context.Background(), a, cluster.Name)
 			if err != nil {
 				return "", pkgerrors.Wrap(err, "Error Adding Cluster")
 			}
 			resOrder, err := json.Marshal(map[string][]string{"resorder": cluster.ResOrder})
-			_, err = context.AddInstruction(c, "resource", "order", string(resOrder))
+			_, err = appCtx.AddInstruction(context.Background(), c, "resource", "order", string(resOrder))
 			if err != nil {
 				return "", pkgerrors.Wrap(err, "Error Adding resorder")
 			}
 			resdependency, err := json.Marshal(map[string]map[string][]string{"resdependency": cluster.Dependency})
-			_, err = context.AddInstruction(c, "resource", "dependency", string(resdependency))
+			_, err = appCtx.AddInstruction(context.Background(), c, "resource", "dependency", string(resdependency))
 			if err != nil {
 				return "", pkgerrors.Wrap(err, "Error Adding resdependency")
 			}
 			for _, res := range cluster.Resources {
-				_, err = context.AddResource(c, res.Name, res.Data)
+				_, err = appCtx.AddResource(context.Background(), c, res.Name, res.Data)
 				if err != nil {
 					return "", pkgerrors.Wrap(err, "Error Adding Resource")
 				}
@@ -95,19 +96,19 @@ func ReadAppContext(contextID interface{}) (CompositeApp, error) {
 
 	acID := fmt.Sprintf("%v", contextID)
 	ac := appcontext.AppContext{}
-	_, err := ac.LoadAppContext(acID)
+	_, err := ac.LoadAppContext(context.Background(), acID)
 	if err != nil {
 		logutils.Error("", logutils.Fields{"err": err})
 		return CompositeApp{}, err
 	}
 
-	caMeta, err := ac.GetCompositeAppMeta()
+	caMeta, err := ac.GetCompositeAppMeta(context.Background())
 	// ignore error (in case appcontext has no metadata) VERIFY
 	if err == nil {
 		ca.CompMetadata = caMeta
 	}
 
-	appsOrder, err := ac.GetAppInstruction("order")
+	appsOrder, err := ac.GetAppInstruction(context.Background(), "order")
 	if err != nil {
 		return CompositeApp{}, err
 	}
@@ -116,7 +117,7 @@ func ReadAppContext(contextID interface{}) (CompositeApp, error) {
 	ca.AppOrder = appList["apporder"]
 	appsList := make(map[string]*App)
 	for _, app := range appList["apporder"] {
-		clusterNames, err := ac.GetClusterNames(app)
+		clusterNames, err := ac.GetClusterNames(context.Background(), app)
 		if err != nil {
 			return CompositeApp{}, err
 		}
@@ -124,7 +125,7 @@ func ReadAppContext(contextID interface{}) (CompositeApp, error) {
 		clusterList := make(map[string]*Cluster)
 		for k := 0; k < len(clusterNames); k++ {
 			cluster := clusterNames[k]
-			resorder, err := ac.GetResourceInstruction(app, cluster, "order")
+			resorder, err := ac.GetResourceInstruction(context.Background(), app, cluster, "order")
 			if err != nil {
 				logutils.Error("Resorder not found for cluster ", logutils.Fields{"cluster": cluster})
 				// In Status AppContext some clusters may not have resorder
@@ -139,7 +140,7 @@ func ReadAppContext(contextID interface{}) (CompositeApp, error) {
 				resList[res] = r
 			}
 			clusterList[cluster] = &Cluster{Name: cluster, Resources: resList, ResOrder: aov["resorder"]}
-			resdependency, err := ac.GetResourceInstruction(app, cluster, "dependency")
+			resdependency, err := ac.GetResourceInstruction(context.Background(), app, cluster, "dependency")
 			if err != nil {
 				// Not all applications have dependency
 				continue
@@ -159,7 +160,7 @@ func ReadAppContext(contextID interface{}) (CompositeApp, error) {
 			}
 			clusterList[cluster] = &Cluster{Name: cluster, Resources: resList, ResOrder: aov["resorder"], Dependency: dov["resdependency"]}
 		}
-		dep, err := ac.GetAppLevelInstruction(app, "dependency")
+		dep, err := ac.GetAppLevelInstruction(context.Background(), app, "dependency")
 		depList := make(map[string]*Criteria)
 		if err == nil {
 			var a []AppCriteria

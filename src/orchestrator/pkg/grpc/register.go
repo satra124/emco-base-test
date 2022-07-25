@@ -14,6 +14,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/statusnotify"
 	statusnotifypb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/statusnotify"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 )
 
@@ -35,7 +36,10 @@ func StartGrpcServer(defaultName, envName string, defaultPort int, registerFn fu
 		return err
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
+		grpc.StreamInterceptor(otelgrpc.StreamServerInterceptor()),
+	)
 	registerFn(grpcServer, srv)
 
 	err = grpcServer.Serve(lis)

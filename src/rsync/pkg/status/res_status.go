@@ -4,6 +4,7 @@
 package status
 
 import (
+	"context"
 	"encoding/json"
 
 	yaml "github.com/ghodss/yaml"
@@ -23,10 +24,11 @@ var PreInstallHookLabel string = "emco/preinstallHook"
 
 // Update status for the App ready on a cluster and check if app ready on all clusters
 func HandleResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleState) {
+	ctx := context.Background()
 
 	// Look up the contextId
 	var ac appcontext.AppContext
-	_, err := ac.LoadAppContext(acID)
+	_, err := ac.LoadAppContext(ctx, acID)
 	if err != nil {
 		log.Error("::App context not found::", log.Fields{"acID": acID, "app": app, "cluster": cluster, "err": err})
 		return
@@ -37,19 +39,19 @@ func HandleResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 		log.Error("::Error marshalling status information::", log.Fields{"acID": acID, "app": app, "cluster": cluster, "err": err})
 		return
 	}
-	chandle, err := ac.GetClusterHandle(app, cluster)
+	chandle, err := ac.GetClusterHandle(ctx, app, cluster)
 	if err != nil {
 		log.Error("::Error getting cluster handle::", log.Fields{"acID": acID, "app": app, "cluster": cluster, "err": err})
 		return
 	}
 	// Get the handle for the context/app/cluster status object
-	handle, _ := ac.GetLevelHandle(chandle, "status")
+	handle, _ := ac.GetLevelHandle(ctx, chandle, "status")
 
 	// If status handle was not found, then create the status object in the appcontext
 	if handle == nil {
-		ac.AddLevelValue(chandle, "status", string(vjson))
+		ac.AddLevelValue(ctx, chandle, "status", string(vjson))
 	} else {
-		ac.UpdateStatusValue(handle, string(vjson))
+		ac.UpdateStatusValue(ctx, handle, string(vjson))
 	}
 
 	UpdateAppReadyStatus(acID, app, cluster, rbData)

@@ -22,7 +22,9 @@ import (
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	err := db.InitializeDatabaseConnection("emco")
+	ctx := context.Background()
+
+	err := db.InitializeDatabaseConnection(ctx, "emco")
 	if err != nil {
 		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
 		os.Exit(1)
@@ -47,7 +49,7 @@ func main() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
 		<-c
-		httpServer.Shutdown(context.Background())
+		httpServer.Shutdown(ctx)
 		close(connectionsClose)
 	}()
 

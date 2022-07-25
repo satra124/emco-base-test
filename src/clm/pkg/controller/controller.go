@@ -4,6 +4,8 @@
 package controller
 
 import (
+	"context"
+
 	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
@@ -44,6 +46,8 @@ func (mc *ControllerClient) CreateController(m clmModel.Controller, mayExist boo
 
 	log.Info("CLM CreateController .. start", log.Fields{"Controller": m, "exists": mayExist})
 
+	ctx := context.Background()
+
 	//Construct the composite key to select the entry
 	key := clmModel.ControllerKey{
 		ControllerName:  m.Metadata.Name,
@@ -56,7 +60,7 @@ func (mc *ControllerClient) CreateController(m clmModel.Controller, mayExist boo
 		return clmModel.Controller{}, pkgerrors.New("ClmController already exists")
 	}
 
-	err = db.DBconn.Insert(mc.collectionName, key, nil, mc.tagMeta, m)
+	err = db.DBconn.Insert(ctx, mc.collectionName, key, nil, mc.tagMeta, m)
 	if err != nil {
 		return clmModel.Controller{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -76,7 +80,7 @@ func (mc *ControllerClient) GetController(name string) (clmModel.Controller, err
 		ControllerName:  name,
 		ControllerGroup: mc.tagGroup,
 	}
-	value, err := db.DBconn.Find(mc.collectionName, key, mc.tagMeta)
+	value, err := db.DBconn.Find(context.Background(), mc.collectionName, key, mc.tagMeta)
 	if err != nil {
 		return clmModel.Controller{}, err
 	}
@@ -107,7 +111,7 @@ func (mc *ControllerClient) GetControllers() ([]clmModel.Controller, error) {
 	}
 
 	var resp []clmModel.Controller
-	values, err := db.DBconn.Find(mc.collectionName, key, mc.tagMeta)
+	values, err := db.DBconn.Find(context.Background(), mc.collectionName, key, mc.tagMeta)
 	if err != nil {
 		return []clmModel.Controller{}, err
 	}
@@ -127,13 +131,14 @@ func (mc *ControllerClient) GetControllers() ([]clmModel.Controller, error) {
 
 // DeleteController the  Controller from database
 func (mc *ControllerClient) DeleteController(name string) error {
+	ctx := context.Background()
 
 	//Construct the composite key to select the entry
 	key := clmModel.ControllerKey{
 		ControllerName:  name,
 		ControllerGroup: mc.tagGroup,
 	}
-	err := db.DBconn.Remove(mc.collectionName, key)
+	err := db.DBconn.Remove(ctx, mc.collectionName, key)
 	if err != nil {
 		return err
 	}

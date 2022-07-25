@@ -265,17 +265,17 @@ func CompareMaps(m, n map[string]string) bool {
 func GetAppContextStatus(cid interface{}, key string) (string, error) {
 	//var acStatus appcontext.AppContextStatus = appcontext.AppContextStatus{}
 	ac := appcontext.AppContext{}
-	_, err := ac.LoadAppContext(cid)
+	_, err := ac.LoadAppContext(context.Background(), cid)
 	if err != nil {
 		return "", err
 	}
-	hc, err := ac.GetCompositeAppHandle()
+	hc, err := ac.GetCompositeAppHandle(context.Background())
 	if err != nil {
 		return "", err
 	}
-	dsh, err := ac.GetLevelHandle(hc, key)
+	dsh, err := ac.GetLevelHandle(context.Background(), hc, key)
 	if dsh != nil {
-		v, err := ac.GetValue(dsh)
+		v, err := ac.GetValue(context.Background(), dsh)
 		if err != nil {
 			return "", err
 		}
@@ -287,20 +287,20 @@ func GetAppContextStatus(cid interface{}, key string) (string, error) {
 
 func UpdateAppContextFlag(cid interface{}, key string, b bool) error {
 	ac := appcontext.AppContext{}
-	_, err := ac.LoadAppContext(cid)
+	_, err := ac.LoadAppContext(context.Background(), cid)
 	if err != nil {
 		return err
 	}
-	h, err := ac.GetCompositeAppHandle()
+	h, err := ac.GetCompositeAppHandle(context.Background())
 	if err != nil {
 
 		return err
 	}
-	sh, err := ac.GetLevelHandle(h, key)
+	sh, err := ac.GetLevelHandle(context.Background(), h, key)
 	if sh == nil {
-		_, err = ac.AddLevelValue(h, key, b)
+		_, err = ac.AddLevelValue(context.Background(), h, key, b)
 	} else {
-		err = ac.UpdateValue(sh, b)
+		err = ac.UpdateValue(context.Background(), sh, b)
 	}
 	return err
 }

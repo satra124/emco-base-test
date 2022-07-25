@@ -7,11 +7,11 @@ import (
 	"context"
 	"time"
 
+	pkgerrors "github.com/pkg/errors"
 	clmcontrollerpb "gitlab.com/project-emco/core/emco-base/src/clm/pkg/grpc/controller-eventchannel"
 	clmModel "gitlab.com/project-emco/core/emco-base/src/clm/pkg/model"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
-	pkgerrors "github.com/pkg/errors"
 )
 
 // SendControllerEvent ..  will make the grpc call to the specified controller
@@ -25,7 +25,7 @@ func SendControllerEvent(providerName string, clusterName string, event clmcontr
 	defer cancel()
 
 	// Fetch Grpc Connection handle
-	conn := rpc.GetRpcConn(clmCtrl.Metadata.Name)
+	conn := rpc.GetRpcConn(ctx, clmCtrl.Metadata.Name)
 	if conn != nil {
 		rpcClient = clmcontrollerpb.NewClmControllerEventChannelClient(conn)
 		ctrlReq := new(clmcontrollerpb.ClmControllerEventRequest)

@@ -8,6 +8,7 @@ restart.go contains all the functions required for resuming the RYSNC once it re
 */
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -30,7 +31,7 @@ func RecordActiveContext(acID string) (bool, error) {
 	}
 
 	k := prefix + acID + "/"
-	err := contextdb.Db.Put(k, acID)
+	err := contextdb.Db.Put(context.Background(), k, acID)
 	if err != nil {
 		logutils.Info("Error saving the active contextID", logutils.Fields{"err": err.Error(), "contextID": acID})
 		return false, pkgerrors.Errorf("Error:: %s saving contextID:: %s", err.Error(), acID)
@@ -41,7 +42,7 @@ func RecordActiveContext(acID string) (bool, error) {
 
 // GetAllActiveContext shall return all the active contextIDs
 func GetAllActiveContext() ([]string, error) {
-	aContexts, err := contextdb.Db.GetAllKeys(prefix)
+	aContexts, err := contextdb.Db.GetAllKeys(context.Background(), prefix)
 	if err != nil {
 		logutils.Info("No active context handles for restart", logutils.Fields{})
 		return nil, nil
@@ -62,7 +63,7 @@ func ifContextIDActive(acID string) (bool, error) {
 
 	k := prefix + acID + "/"
 	var value string
-	err := contextdb.Db.Get(k, &value)
+	err := contextdb.Db.Get(context.Background(), k, &value)
 	if err != nil {
 		return false, nil
 	}
@@ -79,7 +80,7 @@ func DeleteActiveContextRecord(acID string) (bool, error) {
 		return false, pkgerrors.Errorf("Error deleting, contextID:: %s not active", acID)
 	}
 	k := prefix + acID + "/"
-	err := contextdb.Db.Delete(k)
+	err := contextdb.Db.Delete(context.Background(), k)
 	if err != nil {
 		logutils.Info("Error deleting the contextID", logutils.Fields{"acID": acID, "Error": err.Error()})
 		return false, pkgerrors.Errorf("Error:: %s deleting contextID:: %s ", err.Error(), acID)

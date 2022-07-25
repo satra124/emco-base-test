@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -20,7 +21,7 @@ import (
 
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
-	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/context"
+	con "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/context"
 	"google.golang.org/grpc"
 )
 
@@ -34,8 +35,10 @@ func main() {
 
 	rand.Seed(time.Now().UnixNano())
 
+	ctx := context.Background()
+
 	// Initialize the mongodb
-	err := db.InitializeDatabaseConnection("emco")
+	err := db.InitializeDatabaseConnection(ctx, "emco")
 	if err != nil {
 		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
 		os.Exit(1)
@@ -57,7 +60,7 @@ func main() {
 		}
 	}()
 
-	err = context.RestoreActiveContext()
+	err = con.RestoreActiveContext()
 	if err != nil {
 		log.Error("RestoreActiveContext failed", log.Fields{"Error": err})
 	}
