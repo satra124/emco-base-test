@@ -20,6 +20,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/utils/helm"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // ManifestFileName is the name given to the manifest file in the profile package
@@ -390,6 +391,9 @@ func (c InstantiationClient) Instantiate(ctx context.Context, p string, ca strin
 
 	log.Info(":: Orchestrator Instantiate ::", log.Fields{"project": p, "composite-app": ca, "composite-app-ver": v, "dep-group": di})
 
+	span := trace.SpanFromContext(ctx)
+	span.AddEvent("retrieve-info")
+
 	// in case of migrate dig comes from JSON body
 	dIGrp, err := NewDeploymentIntentGroupClient().GetDeploymentIntentGroup(ctx, di, p, ca, v)
 	if err != nil {
@@ -403,6 +407,7 @@ func (c InstantiationClient) Instantiate(ctx context.Context, p string, ca strin
 	}
 
 	// BEGIN : Make app context
+	span.AddEvent("create-app-context")
 	instantiator := Instantiator{p, ca, v, di, dIGrp}
 	cca, err := instantiator.MakeAppContext(ctx)
 	if err != nil {

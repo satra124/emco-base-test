@@ -18,6 +18,7 @@ import (
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
 	mtypes "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // ControllerTypePlacement denotes "placement" Controller Type
@@ -232,6 +233,9 @@ func queryDBAndSetRsyncInfo(ctx context.Context) (rsyncclient.RsyncInfo, error) 
 callRsyncInstall method shall take in the app context id and invokes the rsync service via grpc
 */
 func callRsyncInstall(ctx context.Context, contextid interface{}) error {
+	span := trace.SpanFromContext(ctx)
+	span.AddEvent("invoke-rsync")
+
 	rsyncInfo, err := queryDBAndSetRsyncInfo(ctx)
 	log.Info("Calling the Rsync ", log.Fields{
 		"RsyncName": rsyncInfo.RsyncName,
@@ -307,8 +311,10 @@ func deleteExtraClusters(ctx context.Context, apps []App, ct appcontext.AppConte
 
 // callScheduler instantiates based on the controller priority list
 func callScheduler(ctx context.Context, appCtx appcontext.AppContext, ctxval, ctxUpdateFromval interface{}, p, ca, v, di string) error {
-	// BEGIN: scheduler code
+	span := trace.SpanFromContext(ctx)
 
+	// BEGIN: scheduler code
+	span.AddEvent("retrieve-controllers")
 	allApps, err := NewAppClient().GetApps(ctx, p, ca, v)
 	if err != nil {
 		return pkgerrors.Wrap(err, "Error in getting all Apps")
@@ -321,7 +327,9 @@ func callScheduler(ctx context.Context, appCtx appcontext.AppContext, ctxval, ct
 
 	log.Info("Orchestrator Instantiate .. Priority Based List ", log.Fields{"PlacementControllers::": pl.pPlaCont,
 		"ActionControllers::": pl.pActCont, "mapOfControllers::": mapOfControllers})
+
 	// Invoke all Placement Controllers communication interface in loop
+	span.AddEvent("invoke-placement-controllers")
 	err = callGrpcForPlacementControllerList(ctx, pl.pPlaCont, ctxval)
 	if err != nil {
 		deleteAppContext(ctx, appCtx)
@@ -337,6 +345,7 @@ func callScheduler(ctx context.Context, appCtx appcontext.AppContext, ctxval, ct
 	}
 
 	// Invoke all Action Controllers communication interface
+	span.AddEvent("invoke-action-controllers")
 	err = callGrpcForControllerList(ctx, pl.pActCont, mapOfControllers, ctxval, ctxUpdateFromval)
 	log.Warn("", log.Fields{"pl.pActCont::": pl.pActCont})
 	log.Warn("", log.Fields{"mapOfControllers::": mapOfControllers})
