@@ -1,0 +1,20 @@
+FROM ubuntu:20.04
+
+ARG MYSQL_DBUSER
+ARG MYSQL_DBPASS
+ARG MYSQL_SERVER
+
+ENV MYSQL_DBUSER_ENV=${MYSQL_DBUSER}
+ENV MYSQL_DBPASS_ENV=${MYSQL_DBPASS}
+ENV MYSQL_SERVER_ENV=${MYSQL_SERVER}
+
+COPY ./mysql.sh /app/mysql.sh
+
+WORKDIR /app
+
+RUN apt update
+
+RUN apt install mysql-client -y
+
+ENTRYPOINT ["/app/mysql.sh"]
+

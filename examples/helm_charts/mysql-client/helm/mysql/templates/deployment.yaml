@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2021 Intel Corporation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysqlclient
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysqlclient
+  template:
+    metadata:
+      labels:
+        app: mysqlclient
+    spec:
+      containers:
+      - name: mysqlclient
+        image: {{ .Values.clientservice.image.repository }}:{{ .Values.clientservice.image.tag | default .Chart.AppVersion }}
+        imagePullPolicy: {{ .Values.clientservice.image.pullPolicy }}
+        resources: {{- toYaml .Values.clientservice.resources | nindent 10 }}
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5 
