@@ -18,6 +18,8 @@ import (
 	emcogit "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type GitProvider struct {
@@ -40,17 +42,17 @@ type GitProvider struct {
 	params : cid, app, cluster, level, namespace string
 	return : GitProvider, error
 */
-func NewGitProvider(cid, app, cluster, level, namespace string) (*GitProvider, error) {
+func NewGitProvider(ctx context.Context, cid, app, cluster, level, namespace string) (*GitProvider, error) {
 
 	result := strings.SplitN(cluster, "+", 2)
 
-	c, err := utils.GetGitOpsConfig(cluster, "0", "default")
+	c, err := utils.GetGitOpsConfig(ctx, cluster, "0", "default")
 	if err != nil {
 		return nil, err
 	}
 	// Read from database
 	ccc := db.NewCloudConfigClient()
-	refObject, err := ccc.GetClusterSyncObjects(result[0], c.Props.GitOpsReferenceObject)
+	refObject, err := ccc.GetClusterSyncObjects(ctx, result[0], c.Props.GitOpsReferenceObject)
 
 	if err != nil {
 		log.Error("Invalid refObject :", log.Fields{"refObj": c.Props.GitOpsReferenceObject, "error": err})
@@ -143,7 +145,7 @@ func (p *GitProvider) Create(name string, ref interface{}, content []byte) (inte
 	params : name string, ref interface{}, content []byte
 	return : interface{}, error
 */
-func (p *GitProvider) Apply(name string, ref interface{}, content []byte) (interface{}, error) {
+func (p *GitProvider) Apply(ctx context.Context, name string, ref interface{}, content []byte) (interface{}, error) {
 
 	path := p.GetPath("context") + name + ".yaml"
 	ref = emcogit.Add(path, string(content), ref, p.GitType)
@@ -215,11 +217,9 @@ var waitTime int = 60
 // StartClusterWatcher watches for CR changes in git location
 // go routine starts and reads after waitTime
 // Thread exists when the AppContext is deleted
-func (p *GitProvider) StartClusterWatcher() error {
+func (p *GitProvider) StartClusterWatcher(ctx context.Context) error {
 	// obtain the sha key for main
 	//obtain shaake
-	ctx := context.Background()
-
 	latestSHA, err := emcogit.GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, p.Branch, "", p.GitType)
 	if err != nil {
 		return err
@@ -235,7 +235,17 @@ func (p *GitProvider) StartClusterWatcher() error {
 
 	// Start thread to sync monitor CR
 	go func() error {
-		ctx := context.Background()
+		// This function is executed asynchronously, so we must create
+		// a new (not derived) context to prevent the context from
+		// being cancelled when the caller completes: a cancelled
+		// context will cause the below work to exit early.  A link is
+		// used so that the traces can be associated.
+		tracer := otel.Tracer("rsync")
+		ctx, span := tracer.Start(context.Background(), "StartClusterWatcher",
+			trace.WithLinks(trace.LinkFromContext(ctx)),
+		)
+		defer span.End()
+
 		var lastCommitSHA string
 		for {
 			select {
@@ -244,10 +254,10 @@ func (p *GitProvider) StartClusterWatcher() error {
 					return ctx.Err()
 				}
 				// Check if AppContext doesn't exist then exit the thread
-				if _, err := utils.NewAppContextReference(p.Cid); err != nil {
+				if _, err := utils.NewAppContextReference(ctx, p.Cid); err != nil {
 					// Delete the Status CR updated by Monitor running on the cluster
 					log.Info("Deleting cluster StatusCR", log.Fields{})
-					p.DeleteClusterStatusCR()
+					p.DeleteClusterStatusCR(ctx)
 					// AppContext deleted - Exit thread
 					return nil
 				}
@@ -278,7 +288,7 @@ func (p *GitProvider) StartClusterWatcher() error {
 							log.Error("", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
 							return err
 						}
-						status.HandleResourcesStatus(p.Cid, p.App, p.Cluster, content)
+						status.HandleResourcesStatus(ctx, p.Cid, p.App, p.Cluster, content)
 					}
 					lastCommitSHA = latestCommitSHA
 				}
@@ -293,12 +303,10 @@ func (p *GitProvider) StartClusterWatcher() error {
 }
 
 // DeleteClusterStatusCR deletes the status CR provided by the monitor on the cluster
-func (p *GitProvider) DeleteClusterStatusCR() error {
+func (p *GitProvider) DeleteClusterStatusCR(ctx context.Context) error {
 	// Delete the status CR
 	// branch to track
 	branch := p.Cluster + "-" + p.Cid + "-" + p.App
-
-	ctx := context.Background()
 
 	// Delete the branch
 	err := emcogit.DeleteBranch(ctx, p.Client, p.UserName, p.RepoName, branch, p.GitType)

@@ -20,7 +20,7 @@ func (p *AnthosProvider) Create(name string, ref interface{}, content []byte) (i
 }
 
 // Apply resource to the cluster
-func (p *AnthosProvider) Apply(name string, ref interface{}, content []byte) (interface{}, error) {
+func (p *AnthosProvider) Apply(ctx context.Context, name string, ref interface{}, content []byte) (interface{}, error) {
 
 	//Decode the yaml to create a runtime.Object
 	unstruct := &unstructured.Unstructured{}
@@ -37,7 +37,7 @@ func (p *AnthosProvider) Apply(name string, ref interface{}, content []byte) (in
 	if err != nil {
 		return nil, err
 	}
-	res, err := p.gitProvider.Apply(name, ref, unstructJson)
+	res, err := p.gitProvider.Apply(ctx, name, ref, unstructJson)
 	return res, err
 
 }
@@ -51,7 +51,7 @@ func (p *AnthosProvider) Delete(name string, ref interface{}, content []byte) (i
 }
 
 // Get resource from the cluster
-func (p *AnthosProvider) Get(name string, gvkRes []byte) ([]byte, error) {
+func (p *AnthosProvider) Get(ctx context.Context, name string, gvkRes []byte) ([]byte, error) {
 
 	return []byte{}, nil
 }

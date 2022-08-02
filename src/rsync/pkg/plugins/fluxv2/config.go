@@ -21,12 +21,12 @@ import (
 func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) error {
 
 	var sa string
-	acUtils, err := utils.NewAppContextReference(p.gitProvider.Cid)
+	acUtils, err := utils.NewAppContextReference(ctx, p.gitProvider.Cid)
 	if err != nil {
 		return nil
 	}
-	_, level := acUtils.GetNamespace()
-	_, _, lcn, err := acUtils.GetLogicalCloudInfo()
+	_, level := acUtils.GetNamespace(ctx)
+	_, _, lcn, err := acUtils.GetLogicalCloudInfo(ctx)
 	if err != nil {
 		return err
 	}
@@ -83,11 +83,11 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 			Namespace: namespace,
 		},
 		Spec: kustomize.KustomizationSpec{
-			Interval: metav1.Duration{Duration: time.Second * time.Duration(p.syncInterval)},
+			Interval:      metav1.Duration{Duration: time.Second * time.Duration(p.syncInterval)},
 			RetryInterval: &metav1.Duration{Duration: time.Second * time.Duration(p.retryInterval)},
-			Timeout: &metav1.Duration{Duration: time.Second * time.Duration(p.timeOut)},
-			Path:     "clusters/" + p.gitProvider.Cluster + "/context/" + p.gitProvider.Cid,
-			Prune:    true,
+			Timeout:       &metav1.Duration{Duration: time.Second * time.Duration(p.timeOut)},
+			Path:          "clusters/" + p.gitProvider.Cluster + "/context/" + p.gitProvider.Cid,
+			Prune:         true,
 			SourceRef: kustomize.CrossNamespaceSourceReference{
 				Kind: "GitRepository",
 				Name: kName,

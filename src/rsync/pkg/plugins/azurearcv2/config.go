@@ -143,11 +143,11 @@ func (p *AzureArcV2Provider) ApplyConfig(ctx context.Context, config interface{}
 	}
 
 	//Get the Namespace
-	acUtils, err := utils.NewAppContextReference(p.gitProvider.Cid)
+	acUtils, err := utils.NewAppContextReference(ctx, p.gitProvider.Cid)
 	if err != nil {
 		return nil
 	}
-	_, level := acUtils.GetNamespace()
+	_, level := acUtils.GetNamespace(ctx)
 	if err != nil {
 		return err
 	}
@@ -202,11 +202,11 @@ func (p *AzureArcV2Provider) DeleteConfig(ctx context.Context, config interface{
 	}
 
 	//Get the Namespace
-	acUtils, err := utils.NewAppContextReference(p.gitProvider.Cid)
+	acUtils, err := utils.NewAppContextReference(ctx, p.gitProvider.Cid)
 	if err != nil {
 		return nil
 	}
-	_, level := acUtils.GetNamespace()
+	_, level := acUtils.GetNamespace(ctx)
 	if err != nil {
 		return err
 	}

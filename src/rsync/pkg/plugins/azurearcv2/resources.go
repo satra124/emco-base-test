@@ -20,7 +20,7 @@ func (p *AzureArcV2Provider) Create(name string, ref interface{}, content []byte
 }
 
 // Apply resource to the cluster
-func (p *AzureArcV2Provider) Apply(name string, ref interface{}, content []byte) (interface{}, error) {
+func (p *AzureArcV2Provider) Apply(ctx context.Context, name string, ref interface{}, content []byte) (interface{}, error) {
 
 	//Decode the yaml to create a runtime.Object
 	unstruct := &unstructured.Unstructured{}
@@ -42,7 +42,7 @@ func (p *AzureArcV2Provider) Apply(name string, ref interface{}, content []byte)
 		return nil, err
 	}
 
-	res, err := p.gitProvider.Apply(name, ref, b)
+	res, err := p.gitProvider.Apply(ctx, name, ref, b)
 	return res, err
 }
 
@@ -54,7 +54,7 @@ func (p *AzureArcV2Provider) Delete(name string, ref interface{}, content []byte
 }
 
 // Get resource from the cluster
-func (p *AzureArcV2Provider) Get(name string, gvkRes []byte) ([]byte, error) {
+func (p *AzureArcV2Provider) Get(ctx context.Context, name string, gvkRes []byte) ([]byte, error) {
 
 	return []byte{}, nil
 }

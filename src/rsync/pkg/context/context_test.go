@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"context"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/context"
@@ -53,7 +54,7 @@ var TestCA CompositeApp = CompositeApp{
 
 func TestInstantiateTerminate(t *testing.T) {
 
-	cid, _ := CreateCompApp(TestCA)
+	cid, _ := CreateCompApp(context.Background(), TestCA)
 	con := NewProvider(cid)
 
 	testCases := []struct {
@@ -88,7 +89,7 @@ func TestInstantiateTerminate(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			_ = HandleAppContext(cid, nil, testCase.event, &con)
+			_ = HandleAppContext(context.Background(), cid, nil, testCase.event, &con)
 			time.Sleep(2 * time.Second)
 			if !CompareMaps(testCase.expectedApply, LoadMap("apply")) {
 				t.Error("Apply resources doesn't match", LoadMap("apply"))
@@ -201,12 +202,12 @@ func TestUpdate(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			cid, _ := CreateCompApp(testCase.original)
-			ucid, _ := CreateCompApp(testCase.updated)
+			cid, _ := CreateCompApp(context.Background(), testCase.original)
+			ucid, _ := CreateCompApp(context.Background(), testCase.updated)
 			con := NewProvider(cid)
 
-			_ = HandleAppContext(cid, nil, InstantiateEvent, &con)
-			_ = HandleAppContext(ucid, cid, UpdateEvent, &con)
+			_ = HandleAppContext(context.Background(), cid, nil, InstantiateEvent, &con)
+			_ = HandleAppContext(context.Background(), ucid, cid, UpdateEvent, &con)
 			time.Sleep(2 * time.Second)
 
 			if !CompareMaps(testCase.expectedApply, LoadMap("apply")) {
@@ -284,27 +285,27 @@ func TestRollbackUpdate(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			cid, _ := CreateCompApp(original)
-			ucid, _ := CreateCompApp(updated)
+			cid, _ := CreateCompApp(context.Background(), original)
+			ucid, _ := CreateCompApp(context.Background(), updated)
 			con := NewProvider(cid)
 
-			_ = HandleAppContext(cid, nil, InstantiateEvent, &con)
+			_ = HandleAppContext(context.Background(), cid, nil, InstantiateEvent, &con)
 			// UPDATE
-			_ = HandleAppContext(ucid, cid, UpdateEvent, &con)
+			_ = HandleAppContext(context.Background(), ucid, cid, UpdateEvent, &con)
 			//Update before previous is completed is not supported
 			time.Sleep(1 * time.Second)
 			if !CompareMaps(testCase.expectedUpdatedResources, LoadMap("resource")) {
 				t.Error("Resources doesn't match", LoadMap("resource"))
 			}
 			// ROLLBACK 1
-			_ = HandleAppContext(cid, ucid, UpdateEvent, &con)
+			_ = HandleAppContext(context.Background(), cid, ucid, UpdateEvent, &con)
 			//Update before previous is completed is not supported
 			time.Sleep(1 * time.Second)
 			if !CompareMaps(testCase.expectedOriginalResources, LoadMap("resource")) {
 				t.Error("Resources doesn't match", LoadMap("resource"))
 			}
 			// ROLLBACK 2
-			_ = HandleAppContext(ucid, cid, UpdateEvent, &con)
+			_ = HandleAppContext(context.Background(), ucid, cid, UpdateEvent, &con)
 			time.Sleep(1 * time.Second)
 			if !CompareMaps(testCase.expectedUpdatedResources, LoadMap("resource")) {
 				t.Error("Resources doesn't match", LoadMap("resource"))
@@ -315,7 +316,7 @@ func TestRollbackUpdate(t *testing.T) {
 
 func TestStop(t *testing.T) {
 
-	cid, _ := CreateCompApp(TestCA)
+	cid, _ := CreateCompApp(context.Background(), TestCA)
 	con := NewProvider(cid)
 
 	testCases := []struct {
@@ -335,11 +336,11 @@ func TestStop(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			_ = HandleAppContext(cid, nil, InstantiateEvent, &con)
+			_ = HandleAppContext(context.Background(), cid, nil, InstantiateEvent, &con)
 			time.Sleep(2 * time.Second)
 			// Set AppContextFlag stop to true
-			UpdateAppContextFlag(cid, StopFlagKey, true)
-			_ = HandleAppContext(cid, nil, TerminateEvent, &con)
+			UpdateAppContextFlag(context.Background(), cid, StopFlagKey, true)
+			_ = HandleAppContext(context.Background(), cid, nil, TerminateEvent, &con)
 			time.Sleep(1 * time.Second)
 			if !CompareMaps(testCase.expectedApply, LoadMap("apply")) {
 				t.Error("Apply resources doesn't match", LoadMap("apply"))
@@ -353,7 +354,7 @@ func TestStop(t *testing.T) {
 
 func TestInstantiateRestart(t *testing.T) {
 
-	cid, _ := CreateCompApp(TestCA)
+	cid, _ := CreateCompApp(context.Background(), TestCA)
 	con := NewProvider(cid)
 
 	testCases := []struct {
@@ -375,8 +376,8 @@ func TestInstantiateRestart(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
 			_, c := CreateAppContextData(cid)
-			_ = c.EnqueueToAppContext(cid, nil, testCase.event)
-			_ = RestartAppContext(cid, &con)
+			_ = c.EnqueueToAppContext(context.Background(), cid, nil, testCase.event)
+			_ = RestartAppContext(context.Background(), cid, &con)
 			time.Sleep(1 * time.Second)
 			if !CompareMaps(testCase.expectedApply, LoadMap("apply")) {
 				t.Error("Apply resources doesn't match", LoadMap("apply"))
@@ -387,7 +388,7 @@ func TestInstantiateRestart(t *testing.T) {
 
 func TestTerminateWithInstantiate(t *testing.T) {
 
-	cid, _ := CreateCompApp(TestCA)
+	cid, _ := CreateCompApp(context.Background(), TestCA)
 	con := NewProvider(cid)
 
 	testCases := []struct {
@@ -407,9 +408,9 @@ func TestTerminateWithInstantiate(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			_ = HandleAppContext(cid, nil, InstantiateEvent, &con)
+			_ = HandleAppContext(context.Background(), cid, nil, InstantiateEvent, &con)
 			time.Sleep(1 * time.Millisecond)
-			_ = HandleAppContext(cid, nil, TerminateEvent, &con)
+			_ = HandleAppContext(context.Background(), cid, nil, TerminateEvent, &con)
 			time.Sleep(2 * time.Second)
 			if !CompareMaps(testCase.expectedApply, LoadMap("apply")) {
 				t.Error("Apply resources doesn't match", LoadMap("apply"))
@@ -448,7 +449,7 @@ func TestAppDependency(t *testing.T) {
 		},
 	}
 
-	cid, _ := CreateCompApp(ca)
+	cid, _ := CreateCompApp(context.Background(), ca)
 	con := NewProvider(cid)
 
 	testCases := []struct {
@@ -467,7 +468,7 @@ func TestAppDependency(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			_ = HandleAppContext(cid, nil, testCase.event, &con)
+			_ = HandleAppContext(context.Background(), cid, nil, testCase.event, &con)
 			time.Sleep(5 * time.Second)
 			if !CompareMaps(testCase.expectedResources, LoadMap("resource")) {
 				t.Error("Apply resources doesn't match", LoadMap("resource"), testCase.expectedResources)
@@ -477,12 +478,12 @@ func TestAppDependency(t *testing.T) {
 }
 
 func setSuccessForAllHooks(cid string, ca CompositeApp) {
-	acUtils, _ := utils.NewAppContextReference(cid)
+	acUtils, _ := utils.NewAppContextReference(context.Background(), cid)
 	for _, a := range ca.Apps {
 		for _, c := range a.Clusters {
 			for _, d := range c.Dependency {
 				for _, r := range d {
-					acUtils.SetResourceReadyStatus(a.Name, c.Name, r, string(SuccessStatus), true)
+					acUtils.SetResourceReadyStatus(context.Background(), a.Name, c.Name, r, string(SuccessStatus), true)
 				}
 			}
 		}
@@ -512,7 +513,7 @@ func TestHooks(t *testing.T) {
 		},
 	}
 
-	cid, _ := CreateCompApp(ca)
+	cid, _ := CreateCompApp(context.Background(), ca)
 	con := NewProvider(cid)
 
 	testCases := []struct {
@@ -531,7 +532,7 @@ func TestHooks(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			_ = HandleAppContext(cid, nil, testCase.event, &con)
+			_ = HandleAppContext(context.Background(), cid, nil, testCase.event, &con)
 			setSuccessForAllHooks(cid, ca)
 			time.Sleep(5 * time.Second)
 			if !CompareMaps(testCase.expectedResources, LoadMap("resource")) {
@@ -543,7 +544,7 @@ func TestHooks(t *testing.T) {
 
 func TestGetAllActiveContext(t *testing.T) {
 
-	cid, _ := CreateCompApp(TestCA)
+	cid, _ := CreateCompApp(context.Background(), TestCA)
 	_ = NewProvider(cid)
 
 	testCases := []struct {
@@ -562,9 +563,9 @@ func TestGetAllActiveContext(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
 			_, c := CreateAppContextData(cid)
-			_ = c.EnqueueToAppContext(cid, nil, testCase.event)
-			UpdateAppContextFlag(cid, StopFlagKey, true)
-			cids, _ := GetAllActiveContext()
+			_ = c.EnqueueToAppContext(context.Background(), cid, nil, testCase.event)
+			UpdateAppContextFlag(context.Background(), cid, StopFlagKey, true)
+			cids, _ := GetAllActiveContext(context.Background())
 			time.Sleep(1 * time.Second)
 			if len(testCase.expectedArray) == len(cids) {
 				for i, v := range testCase.expectedArray {

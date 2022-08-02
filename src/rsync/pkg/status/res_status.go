@@ -23,9 +23,7 @@ import (
 var PreInstallHookLabel string = "emco/preinstallHook"
 
 // Update status for the App ready on a cluster and check if app ready on all clusters
-func HandleResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleState) {
-	ctx := context.Background()
-
+func HandleResourcesStatus(ctx context.Context, acID, app, cluster string, rbData *rb.ResourceBundleState) {
 	// Look up the contextId
 	var ac appcontext.AppContext
 	_, err := ac.LoadAppContext(ctx, acID)
@@ -54,10 +52,10 @@ func HandleResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 		ac.UpdateStatusValue(ctx, handle, string(vjson))
 	}
 
-	UpdateAppReadyStatus(acID, app, cluster, rbData)
+	UpdateAppReadyStatus(ctx, acID, app, cluster, rbData)
 
 	// Inform Rsync dependency management of the update
-	go depend.ResourcesReady(acID, app, cluster)
+	go depend.ResourcesReady(ctx, acID, app, cluster)
 
 	// Send notification to the subscribers
 	err = readynotifyserver.SendAppContextNotification(acID, app, cluster)
@@ -66,12 +64,12 @@ func HandleResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 	}
 }
 
-func updateResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleState) bool {
+func updateResourcesStatus(ctx context.Context, acID, app, cluster string, rbData *rb.ResourceBundleState) bool {
 	var Ready bool = true
 	// Default is ready status
 	// In case of Hook resoureces if Pod and Job it is success status
 	var statusType types.ResourceStatusType = types.ReadyStatus
-	acUtils, err := utils.NewAppContextReference(acID)
+	acUtils, err := utils.NewAppContextReference(ctx, acID)
 	if err != nil {
 		return false
 	}
@@ -85,7 +83,7 @@ func updateResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 		if !b {
 			Ready = false
 		}
-		acUtils.SetResourceReadyStatus(app, cluster, name, string(types.ReadyStatus), b)
+		acUtils.SetResourceReadyStatus(ctx, app, cluster, name, string(types.ReadyStatus), b)
 	}
 	for _, d := range rbData.Status.DeploymentStatuses {
 		avail = true
@@ -95,7 +93,7 @@ func updateResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 		if !b {
 			Ready = false
 		}
-		acUtils.SetResourceReadyStatus(app, cluster, name, string(statusType), b)
+		acUtils.SetResourceReadyStatus(ctx, app, cluster, name, string(statusType), b)
 	}
 	for _, d := range rbData.Status.DaemonSetStatuses {
 		avail = true
@@ -105,7 +103,7 @@ func updateResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 		if !b {
 			Ready = false
 		}
-		acUtils.SetResourceReadyStatus(app, cluster, name, string(statusType), b)
+		acUtils.SetResourceReadyStatus(ctx, app, cluster, name, string(statusType), b)
 	}
 	for _, s := range rbData.Status.StatefulSetStatuses {
 		avail = true
@@ -115,7 +113,7 @@ func updateResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 		if !b {
 			Ready = false
 		}
-		acUtils.SetResourceReadyStatus(app, cluster, name, string(types.ReadyStatus), b)
+		acUtils.SetResourceReadyStatus(ctx, app, cluster, name, string(types.ReadyStatus), b)
 	}
 	for _, j := range rbData.Status.JobStatuses {
 		name := j.Name + "+" + "Job"
@@ -124,7 +122,7 @@ func updateResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 		_, ok := annoMap["helm.sh/hook"]
 		if ok {
 			// Hooks are checked for Success Status
-			acUtils.SetResourceReadyStatus(app, cluster, name, string(types.SuccessStatus), readyChecker.JobSuccess(&j))
+			acUtils.SetResourceReadyStatus(ctx, app, cluster, name, string(types.SuccessStatus), readyChecker.JobSuccess(&j))
 			// No need to consider hook resources for ready status
 			continue
 		}
@@ -134,7 +132,7 @@ func updateResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 		if !b {
 			Ready = false
 		}
-		acUtils.SetResourceReadyStatus(app, cluster, name, string(types.ReadyStatus), b)
+		acUtils.SetResourceReadyStatus(ctx, app, cluster, name, string(types.ReadyStatus), b)
 	}
 
 	for _, p := range rbData.Status.PodStatuses {
@@ -145,7 +143,7 @@ func updateResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 		_, ok := annoMap["helm.sh/hook"]
 		if ok {
 			// Hooks are checked for Success Status
-			acUtils.SetResourceReadyStatus(app, cluster, name, string(types.SuccessStatus), readyChecker.PodSuccess(&p))
+			acUtils.SetResourceReadyStatus(ctx, app, cluster, name, string(types.SuccessStatus), readyChecker.PodSuccess(&p))
 			// No need to consider hook resources for ready status
 			continue
 		}
@@ -154,7 +152,7 @@ func updateResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 		labels := p.GetLabels()
 		_, job := labels["job-name"]
 		if job {
-			acUtils.SetResourceReadyStatus(app, cluster, name, string(types.SuccessStatus), readyChecker.PodSuccess(&p))
+			acUtils.SetResourceReadyStatus(ctx, app, cluster, name, string(types.SuccessStatus), readyChecker.PodSuccess(&p))
 			continue
 		}
 		avail = true
@@ -163,7 +161,7 @@ func updateResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 		if !b {
 			Ready = false
 		}
-		acUtils.SetResourceReadyStatus(app, cluster, name, string(statusType), b)
+		acUtils.SetResourceReadyStatus(ctx, app, cluster, name, string(statusType), b)
 	}
 	if !avail {
 		return false
@@ -172,7 +170,7 @@ func updateResourcesStatus(acID, app, cluster string, rbData *rb.ResourceBundleS
 	return Ready
 
 }
-func UpdateAppReadyStatus(acID, app string, cluster string, rbData *rb.ResourceBundleState) bool {
+func UpdateAppReadyStatus(ctx context.Context, acID, app string, cluster string, rbData *rb.ResourceBundleState) bool {
 
 	// Check if hook label is present
 	labels := rbData.GetLabels()
@@ -180,23 +178,23 @@ func UpdateAppReadyStatus(acID, app string, cluster string, rbData *rb.ResourceB
 	// At the time of preinstall hook installation cluster
 	// ready status should not be updated
 	_, hookCR := labels[PreInstallHookLabel]
-	acUtils, err := utils.NewAppContextReference(acID)
+	acUtils, err := utils.NewAppContextReference(ctx, acID)
 	if err != nil {
 		return false
 	}
 	if hookCR {
 		// If hookCR label, no need to update the ready status
 		// Main resources not installed yet
-		return updateResourcesStatus(acID, app, cluster, rbData)
+		return updateResourcesStatus(ctx, acID, app, cluster, rbData)
 	}
 	//  Update AppContext to flase
 	// If the application is not ready stop processing
-	if !updateResourcesStatus(acID, app, cluster, rbData) {
-		acUtils.SetClusterResourcesReady(app, cluster, false)
+	if !updateResourcesStatus(ctx, acID, app, cluster, rbData) {
+		acUtils.SetClusterResourcesReady(ctx, app, cluster, false)
 		return false
 	}
 	// If Application is ready on the cluster, Update AppContext
-	acUtils.SetClusterResourcesReady(app, cluster, true)
+	acUtils.SetClusterResourcesReady(ctx, app, cluster, true)
 	log.Info(" UpdateAppReadyStatus:: App is ready on cluster", log.Fields{"acID": acID, "app": app, "cluster": cluster})
 	return true
 }

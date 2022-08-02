@@ -2,5 +2,6 @@
     "database-type": "mongo",
     "database-ip": "emco-mongo",
     "etcd-ip": "emco-etcd",
+    "zipkin-ip": "zipkin.istio-system",
     "log-level": {{ .Values.global.loglevel | quote }}
 }

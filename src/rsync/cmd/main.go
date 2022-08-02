@@ -6,11 +6,13 @@ package main
 import (
 	"context"
 	"math/rand"
+	"net"
 	"os"
 	"os/signal"
 	"time"
 
 	register "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	installpb "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/installapp"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/installappserver"
@@ -22,6 +24,12 @@ import (
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	con "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/context"
+	"go.opentelemetry.io/contrib/propagators/b3"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/zipkin"
+	"go.opentelemetry.io/otel/sdk/resource"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"google.golang.org/grpc"
 )
 
@@ -31,14 +39,44 @@ func RegisterRsyncServices(grpcServer *grpc.Server, srv interface{}) {
 	updatepb.RegisterUpdateappServer(grpcServer, updateappserver.NewUpdateAppServer())
 }
 
+func createTracerProvider() (*tracesdk.TracerProvider, error) {
+	endpoint := "http://" + net.JoinHostPort(config.GetConfiguration().ZipkinIP, "9411") + "/api/v2/spans"
+	exp, err := zipkin.New(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	name := "unknown"
+	name, _ = os.LookupEnv("APP_NAME")
+	namespace := "default"
+	namespace, _ = os.LookupEnv("POD_NAMESPACE")
+	tp := tracesdk.NewTracerProvider(
+		tracesdk.WithBatcher(exp),
+		tracesdk.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceNameKey.String(name+"."+namespace),
+		)),
+	)
+	return tp, nil
+}
+
 func main() {
 
 	rand.Seed(time.Now().UnixNano())
 
+	tp, err := createTracerProvider()
+	if err != nil {
+		log.Error("Unable to initialize tracing provider", log.Fields{"Error": err})
+		os.Exit(1)
+	}
+	otel.SetTracerProvider(tp)
+
+	// Istio uses b3 propagation
+	otel.SetTextMapPropagator(b3.New())
+
 	ctx := context.Background()
 
 	// Initialize the mongodb
-	err := db.InitializeDatabaseConnection(ctx, "emco")
+	err = db.InitializeDatabaseConnection(ctx, "emco")
 	if err != nil {
 		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
 		os.Exit(1)
@@ -60,7 +98,7 @@ func main() {
 		}
 	}()
 
-	err = con.RestoreActiveContext()
+	err = con.RestoreActiveContext(ctx)
 	if err != nil {
 		log.Error("RestoreActiveContext failed", log.Fields{"Error": err})
 	}

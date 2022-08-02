@@ -18,9 +18,9 @@ func (p *AzureArcProvider) Create(name string, ref interface{}, content []byte) 
 }
 
 // Apply resource to the cluster
-func (p *AzureArcProvider) Apply(name string, ref interface{}, content []byte) (interface{}, error) {
+func (p *AzureArcProvider) Apply(ctx context.Context, name string, ref interface{}, content []byte) (interface{}, error) {
 
-	res, err := p.gitProvider.Apply(name, ref, content)
+	res, err := p.gitProvider.Apply(ctx, name, ref, content)
 	return res, err
 }
 
@@ -32,7 +32,7 @@ func (p *AzureArcProvider) Delete(name string, ref interface{}, content []byte) 
 }
 
 // Get resource from the cluster
-func (p *AzureArcProvider) Get(name string, gvkRes []byte) ([]byte, error) {
+func (p *AzureArcProvider) Get(ctx context.Context, name string, gvkRes []byte) ([]byte, error) {
 
 	return []byte{}, nil
 }

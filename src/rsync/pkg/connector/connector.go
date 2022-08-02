@@ -4,10 +4,12 @@
 package connector
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"sync"
+
 	//types "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
 
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
@@ -36,7 +38,7 @@ func (c *Connection) Init(id interface{}) error {
 }
 
 // GetClient returns client for the cluster
-func (c *Connection) GetClient(cluster string, level string, namespace string) (*kubeclient.Client, error) {
+func (c *Connection) GetClient(ctx context.Context, cluster string, level string, namespace string) (*kubeclient.Client, error) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -49,7 +51,7 @@ func (c *Connection) GetClient(cluster string, level string, namespace string) (
 	client, ok := c.Clients[cluster]
 	if !ok {
 		// Get file from DB
-		dec, err := utils.GetKubeConfig(cluster, level, namespace)
+		dec, err := utils.GetKubeConfig(ctx, cluster, level, namespace)
 		if err != nil {
 			return nil, err
 		}

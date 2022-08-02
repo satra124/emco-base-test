@@ -270,13 +270,13 @@ func (v *ClusterClient) CreateCluster(provider string, p Cluster, q ClusterConte
 
 	ccc := rsync.NewCloudConfigClient()
 
-	_, err = ccc.CreateCloudConfig(provider, p.Metadata.Name, "0", "default", q.Kubeconfig)
+	_, err = ccc.CreateCloudConfig(ctx, provider, p.Metadata.Name, "0", "default", q.Kubeconfig)
 	if err != nil {
 		return Cluster{}, pkgerrors.Wrap(err, "Error creating cloud config")
 	}
 
 	if p.Spec.Props.GitOpsType != "" {
-		_, err = ccc.CreateGitOpsConfig(provider, p.Metadata.Name, p.Spec, "0", "default")
+		_, err = ccc.CreateGitOpsConfig(ctx, provider, p.Metadata.Name, p.Spec, "0", "default")
 		if err != nil {
 			return Cluster{}, pkgerrors.Wrap(err, "Error creating cloud config")
 		}
@@ -331,7 +331,7 @@ func (v *ClusterClient) GetClusterContent(provider, name string) (ClusterContent
 	// Fetch the kubeconfig from rsync according to new workflow
 	ccc := rsync.NewCloudConfigClient()
 
-	cconfig, err := ccc.GetCloudConfig(provider, name, "0", "")
+	cconfig, err := ccc.GetCloudConfig(context.Background(), provider, name, "0", "")
 	if err != nil {
 		if strings.Contains(err.Error(), "Finding CloudConfig failed") {
 			return ClusterContent{}, pkgerrors.Wrap(err, "GetCloudConfig error - not found")
@@ -526,7 +526,7 @@ func (v *ClusterClient) DeleteCluster(provider, name string) error {
 	// Delete the Cloud Config resource associated with this cluster
 	ccc := rsync.NewCloudConfigClient()
 
-	err = ccc.DeleteCloudConfig(provider, name, "0", "default")
+	err = ccc.DeleteCloudConfig(ctx, provider, name, "0", "default")
 	if err != nil {
 		log.Warn("DeleteCluster .. error deleting cloud config", log.Fields{"clusterProvider": provider, "cluster": name, "error": err})
 	}
@@ -784,7 +784,7 @@ func (v *ClusterClient) CreateClusterSyncObjects(provider string, p mtypes.Clust
 	}
 	ccc := rsync.NewCloudConfigClient()
 	// Add to the rsync database
-	return ccc.CreateClusterSyncObjects(provider, p, exists)
+	return ccc.CreateClusterSyncObjects(context.Background(), provider, p, exists)
 
 }
 
@@ -798,7 +798,7 @@ func (v *ClusterClient) GetClusterSyncObjects(provider, syncobject string) (mtyp
 	}
 	ccc := rsync.NewCloudConfigClient()
 	// Get from rysn db
-	return ccc.GetClusterSyncObjects(provider, syncobject)
+	return ccc.GetClusterSyncObjects(context.Background(), provider, syncobject)
 }
 
 // DeleteClusterSyncObjects the  ClusterSyncObjects from database
@@ -810,7 +810,7 @@ func (v *ClusterClient) DeleteClusterSyncObjects(provider, syncobject string) er
 	}
 	ccc := rsync.NewCloudConfigClient()
 	// Get from rysn db
-	return ccc.DeleteClusterSyncObjects(provider, syncobject)
+	return ccc.DeleteClusterSyncObjects(context.Background(), provider, syncobject)
 }
 
 // GetClusterSyncObjectsValue returns the value of the key from the corresponding provider and Sync Object name
@@ -822,7 +822,7 @@ func (v *ClusterClient) GetClusterSyncObjectsValue(provider, syncobject, syncobj
 	}
 	ccc := rsync.NewCloudConfigClient()
 	// Get from rysn db
-	return ccc.GetClusterSyncObjectsValue(provider, syncobject, syncobjectkey)
+	return ccc.GetClusterSyncObjectsValue(context.Background(), provider, syncobject, syncobjectkey)
 }
 
 // GetAllClusterSyncObjects returns the Cluster Sync Objects for corresponding provider
@@ -834,5 +834,5 @@ func (v *ClusterClient) GetAllClusterSyncObjects(provider string) ([]mtypes.Clus
 	}
 	ccc := rsync.NewCloudConfigClient()
 	// Get from rysn db
-	return ccc.GetAllClusterSyncObjects(provider)
+	return ccc.GetAllClusterSyncObjects(context.Background(), provider)
 }

@@ -1,5 +1,6 @@
 {
     "database-type": "mongo",
     "database-ip": "mongo",
-    "etcd-ip": "etcd"
+    "etcd-ip": "etcd",
+    "zipkin-ip": "zipkin.istio-system"
 }

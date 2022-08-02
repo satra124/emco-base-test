@@ -20,9 +20,7 @@ type AppContextReference struct {
 	ac   appcontext.AppContext
 }
 
-func NewAppContextReference(acID string) (AppContextReference, error) {
-	ctx := context.Background()
-
+func NewAppContextReference(ctx context.Context, acID string) (AppContextReference, error) {
 	ac := appcontext.AppContext{}
 	if len(acID) == 0 {
 		log.Error("Error loading AppContext - appContexID is nil", log.Fields{})
@@ -40,9 +38,7 @@ func (a *AppContextReference) GetAppContextHandle() appcontext.AppContext {
 }
 
 //GetAppContextFlag gets the stop flag
-func (a *AppContextReference) GetAppContextFlag(key string) (bool, error) {
-	ctx := context.Background()
-
+func (a *AppContextReference) GetAppContextFlag(ctx context.Context, key string) (bool, error) {
 	h, err := a.ac.GetCompositeAppHandle(ctx)
 	if err != nil {
 		// Treat an error as stop
@@ -58,9 +54,7 @@ func (a *AppContextReference) GetAppContextFlag(key string) (bool, error) {
 }
 
 //UpdateAppContextFlag to update flags
-func (a *AppContextReference) UpdateAppContextFlag(key string, b bool) error {
-	ctx := context.Background()
-
+func (a *AppContextReference) UpdateAppContextFlag(ctx context.Context, key string, b bool) error {
 	h, err := a.ac.GetCompositeAppHandle(ctx)
 	if err != nil {
 		log.Error("Error UpdateAppContextFlag", log.Fields{"err": err})
@@ -80,9 +74,7 @@ func (a *AppContextReference) UpdateAppContextFlag(key string, b bool) error {
 }
 
 //UpdateAppContextStatus updates a field in AppContext
-func (a *AppContextReference) UpdateAppContextStatus(key string, status interface{}) error {
-	ctx := context.Background()
-
+func (a *AppContextReference) UpdateAppContextStatus(ctx context.Context, key string, status interface{}) error {
 	//var acStatus appcontext.AppContextStatus = appcontext.AppContextStatus{}
 	hc, err := a.ac.GetCompositeAppHandle(ctx)
 	if err != nil {
@@ -103,9 +95,7 @@ func (a *AppContextReference) UpdateAppContextStatus(key string, status interfac
 }
 
 //GetAppContextStatus gets the status
-func (a *AppContextReference) GetAppContextStatus(key string) (appcontext.AppContextStatus, error) {
-	ctx := context.Background()
-
+func (a *AppContextReference) GetAppContextStatus(ctx context.Context, key string) (appcontext.AppContextStatus, error) {
 	var acStatus appcontext.AppContextStatus = appcontext.AppContextStatus{}
 
 	hc, err := a.ac.GetCompositeAppHandle(ctx)
@@ -138,9 +128,7 @@ func (a *AppContextReference) GetAppContextStatus(key string) (appcontext.AppCon
 }
 
 // SetClusterAvailableStatus sets the cluster available status
-func (a *AppContextReference) SetClusterAvailableStatus(app, cluster string, status appcontext.StatusValue) {
-	ctx := context.Background()
-
+func (a *AppContextReference) SetClusterAvailableStatus(ctx context.Context, app, cluster string, status appcontext.StatusValue) {
 	ch, err := a.ac.GetClusterHandle(ctx, app, cluster)
 	if err != nil {
 		return
@@ -157,9 +145,7 @@ func (a *AppContextReference) SetClusterAvailableStatus(app, cluster string, sta
 // GetClusterAvailableStatus sets the cluster ready status
 // does not return an error, just a status of Unknown if the cluster readystatus key does
 // not exist or any other error occurs.
-func (a *AppContextReference) GetClusterAvailableStatus(app, cluster string) appcontext.StatusValue {
-	ctx := context.Background()
-
+func (a *AppContextReference) GetClusterAvailableStatus(ctx context.Context, app, cluster string) appcontext.StatusValue {
 	ch, err := a.ac.GetClusterHandle(ctx, app, cluster)
 	if err != nil {
 		return appcontext.ClusterReadyStatusEnum.Unknown
@@ -177,10 +163,8 @@ func (a *AppContextReference) GetClusterAvailableStatus(app, cluster string) app
 }
 
 // GetRes Reads resource
-func (a *AppContextReference) GetRes(name string, app string, cluster string) ([]byte, interface{}, error) {
+func (a *AppContextReference) GetRes(ctx context.Context, name string, app string, cluster string) ([]byte, interface{}, error) {
 	var byteRes []byte
-
-	ctx := context.Background()
 
 	rh, err := a.ac.GetResourceHandle(ctx, app, cluster, name)
 	if err != nil {
@@ -218,9 +202,7 @@ func (a *AppContextReference) GetRes(name string, app string, cluster string) ([
 }
 
 //GetNamespace reads namespace from metadata
-func (a *AppContextReference) GetNamespace() (string, string) {
-	ctx := context.Background()
-
+func (a *AppContextReference) GetNamespace(ctx context.Context) (string, string) {
 	namespace := "default"
 	level := "0"
 	appmeta, err := a.ac.GetCompositeAppMeta(ctx)
@@ -236,9 +218,7 @@ func (a *AppContextReference) GetNamespace() (string, string) {
 }
 
 //GetLogicalCloudInfo reads logical cloud releated info from metadata
-func (a *AppContextReference) GetLogicalCloudInfo() (string, string, string, error) {
-	ctx := context.Background()
-
+func (a *AppContextReference) GetLogicalCloudInfo(ctx context.Context) (string, string, string, error) {
 	appmeta, err := a.ac.GetCompositeAppMeta(ctx)
 	if err != nil {
 		log.Error("Error GetLogicalCloudInfo", log.Fields{"err": err})
@@ -248,9 +228,7 @@ func (a *AppContextReference) GetLogicalCloudInfo() (string, string, string, err
 }
 
 // PutRes copies resource into appContext
-func (a *AppContextReference) PutRes(name string, app string, cluster string, data []byte) error {
-	ctx := context.Background()
-
+func (a *AppContextReference) PutRes(ctx context.Context, name string, app string, cluster string, data []byte) error {
 	rh, err := a.ac.GetResourceHandle(ctx, app, cluster, name)
 	if err != nil {
 		log.Error("Error GetResourceHandle", log.Fields{"err": err})
@@ -267,9 +245,7 @@ func (a *AppContextReference) PutRes(name string, app string, cluster string, da
 }
 
 //GetAppContextFlag gets the statusappctxid
-func (a *AppContextReference) GetStatusAppContext(key string) (string, error) {
-	ctx := context.Background()
-
+func (a *AppContextReference) GetStatusAppContext(ctx context.Context, key string) (string, error) {
 	h, err := a.ac.GetCompositeAppHandle(ctx)
 	if err != nil {
 		log.Error("Error GetAppContextFlag", log.Fields{"err": err})
@@ -286,10 +262,8 @@ func (a *AppContextReference) GetStatusAppContext(key string) (string, error) {
 
 // Add resource level for a status
 // Function adds any missing levels to AppContext
-func (a *AppContextReference) AddResourceStatus(name string, app string, cluster string, status interface{}, acID string) error {
+func (a *AppContextReference) AddResourceStatus(ctx context.Context, name string, app string, cluster string, status interface{}, acID string) error {
 	var rh, ch, ah interface{}
-
-	ctx := context.Background()
 
 	rh, err := a.ac.GetResourceHandle(ctx, app, cluster, name)
 	if err != nil {
@@ -364,9 +338,7 @@ func (a *AppContextReference) AddResourceStatus(name string, app string, cluster
 }
 
 // SetClusterResourceReady sets the cluster ready status
-func (a *AppContextReference) SetClusterResourcesReady(app, cluster string, value bool) error {
-	ctx := context.Background()
-
+func (a *AppContextReference) SetClusterResourcesReady(ctx context.Context, app, cluster string, value bool) error {
 	ch, err := a.ac.GetClusterHandle(ctx, app, cluster)
 	if err != nil {
 		return err
@@ -382,9 +354,7 @@ func (a *AppContextReference) SetClusterResourcesReady(app, cluster string, valu
 }
 
 // GetClusterResourceReady gets the cluster ready status
-func (a *AppContextReference) GetClusterResourcesReady(app, cluster string) bool {
-	ctx := context.Background()
-
+func (a *AppContextReference) GetClusterResourcesReady(ctx context.Context, app, cluster string) bool {
 	ch, err := a.ac.GetClusterHandle(ctx, app, cluster)
 	if err != nil {
 		return false
@@ -401,9 +371,7 @@ func (a *AppContextReference) GetClusterResourcesReady(app, cluster string) bool
 }
 
 // SetResourceReadyStatus sets the resource ready status
-func (a *AppContextReference) SetResourceReadyStatus(app, cluster, res string, readyType string, value bool) error {
-	ctx := context.Background()
-
+func (a *AppContextReference) SetResourceReadyStatus(ctx context.Context, app, cluster, res string, readyType string, value bool) error {
 	rh, err := a.ac.GetResourceHandle(ctx, app, cluster, res)
 	if err != nil {
 		return err
@@ -419,9 +387,7 @@ func (a *AppContextReference) SetResourceReadyStatus(app, cluster, res string, r
 }
 
 // GetClusterResourceReady gets the resources ready status
-func (a *AppContextReference) GetResourceReadyStatus(app, cluster, res string, readyType string) bool {
-	ctx := context.Background()
-
+func (a *AppContextReference) GetResourceReadyStatus(ctx context.Context, app, cluster, res string, readyType string) bool {
 	rh, err := a.ac.GetResourceHandle(ctx, app, cluster, res)
 	if err != nil {
 		return false
@@ -438,16 +404,14 @@ func (a *AppContextReference) GetResourceReadyStatus(app, cluster, res string, r
 }
 
 // CheckAppReadyOnAllClusters checks if App is ready on all clusters
-func (a *AppContextReference) CheckAppReadyOnAllClusters(app string) bool {
-	ctx := context.Background()
-
+func (a *AppContextReference) CheckAppReadyOnAllClusters(ctx context.Context, app string) bool {
 	// Check if all the clusters are ready
 	cl, err := a.ac.GetClusterNames(ctx, app)
 	if err != nil {
 		return false
 	}
 	for _, cn := range cl {
-		if !a.GetClusterResourcesReady(app, cn) {
+		if !a.GetClusterResourcesReady(ctx, app, cn) {
 			// Some cluster is not ready
 			return false
 		}
@@ -455,10 +419,8 @@ func (a *AppContextReference) CheckAppReadyOnAllClusters(app string) bool {
 	return true
 }
 
-func (a *AppContextReference) GetSubResApprove(name, app, cluster string) ([]byte, interface{}, error) {
+func (a *AppContextReference) GetSubResApprove(ctx context.Context, name, app, cluster string) ([]byte, interface{}, error) {
 	var byteRes []byte
-
-	ctx := context.Background()
 
 	rh, err := a.ac.GetResourceHandle(ctx, app, cluster, name)
 	if err != nil {

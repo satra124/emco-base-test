@@ -106,8 +106,7 @@ func unmarshal(values [][]byte) (KubeConfig, error) {
 }
 
 // GetCloudConfig allows to get an existing cloud config entry
-func (c *CloudConfigClient) GetCloudConfig(provider string, cluster string, level string, namespace string) (CloudConfig, error) {
-
+func (c *CloudConfigClient) GetCloudConfig(ctx context.Context, provider string, cluster string, level string, namespace string) (CloudConfig, error) {
 	key := CloudConfigKey{
 		Provider:  provider,
 		Cluster:   cluster,
@@ -115,7 +114,7 @@ func (c *CloudConfigClient) GetCloudConfig(provider string, cluster string, leve
 		Namespace: namespace,
 	}
 
-	values, err := db.DBconn.Find(context.Background(), c.db.storeName, key, c.db.tagConfig)
+	values, err := db.DBconn.Find(ctx, c.db.storeName, key, c.db.tagConfig)
 	if err != nil {
 		log.Error("Finding CloudConfig failed", log.Fields{})
 		return CloudConfig{}, pkgerrors.Wrap(err, "Finding CloudConfig failed")
@@ -138,10 +137,7 @@ func (c *CloudConfigClient) GetCloudConfig(provider string, cluster string, leve
 }
 
 // CreateCloudConfig allows to create a new cloud config entry to hold a kubeconfig for access
-func (c *CloudConfigClient) CreateCloudConfig(provider string, cluster string, level string, namespace string, config string) (CloudConfig, error) {
-
-	ctx := context.Background()
-
+func (c *CloudConfigClient) CreateCloudConfig(ctx context.Context, provider string, cluster string, level string, namespace string, config string) (CloudConfig, error) {
 	key := CloudConfigKey{
 		Provider:  provider,
 		Cluster:   cluster,
@@ -154,7 +150,7 @@ func (c *CloudConfigClient) CreateCloudConfig(provider string, cluster string, l
 	}
 
 	// check if it already exists
-	_, err := c.GetCloudConfig(provider, cluster, level, namespace)
+	_, err := c.GetCloudConfig(ctx, provider, cluster, level, namespace)
 	if err == nil {
 		log.Error("CloudConfig already exists", log.Fields{})
 		return CloudConfig{}, pkgerrors.New("CloudConfig already exists")
@@ -178,9 +174,7 @@ func (c *CloudConfigClient) CreateCloudConfig(provider string, cluster string, l
 }
 
 // SetNamespace is only for L0 cloud configs and allows to set/reset current namespace name
-func (c *CloudConfigClient) SetNamespace(provider string, cluster string, namespace string) error {
-	ctx := context.Background()
-
+func (c *CloudConfigClient) SetNamespace(ctx context.Context, provider string, cluster string, namespace string) error {
 	key := CloudConfigKey{
 		Provider:  provider,
 		Cluster:   cluster,
@@ -189,7 +183,7 @@ func (c *CloudConfigClient) SetNamespace(provider string, cluster string, namesp
 	}
 
 	// check if CloudConfig exists and also get the current namespace name
-	values, err := db.DBconn.Find(context.Background(), c.db.storeName, key, c.db.tagNamespace)
+	values, err := db.DBconn.Find(ctx, c.db.storeName, key, c.db.tagNamespace)
 	if err != nil {
 		log.Error("Could not fetch the CloudConfig so not updating", log.Fields{})
 		return pkgerrors.Wrap(err, "Could not fetch the CloudConfig so not updating")
@@ -211,7 +205,7 @@ func (c *CloudConfigClient) SetNamespace(provider string, cluster string, namesp
 }
 
 // GetNamespace is only for L0 cloud configs and allows fetching the current namespace name
-func (c *CloudConfigClient) GetNamespace(provider string, cluster string) (string, error) {
+func (c *CloudConfigClient) GetNamespace(ctx context.Context, provider string, cluster string) (string, error) {
 	key := CloudConfigKey{
 		Provider:  provider,
 		Cluster:   cluster,
@@ -220,7 +214,7 @@ func (c *CloudConfigClient) GetNamespace(provider string, cluster string) (strin
 	}
 
 	// check if CloudConfig exists and also get the current namespace name
-	values, err := db.DBconn.Find(context.Background(), c.db.storeName, key, c.db.tagNamespace)
+	values, err := db.DBconn.Find(ctx, c.db.storeName, key, c.db.tagNamespace)
 	if err != nil {
 		log.Error("Could not fetch the CloudConfig so can't return namespace", log.Fields{})
 		return "", pkgerrors.Wrap(err, "Could not fetch the CloudConfig so can't return namespace")
@@ -239,9 +233,7 @@ func (c *CloudConfigClient) GetNamespace(provider string, cluster string) (strin
 }
 
 // DeleteCloudConfig deletes a cloud config entry
-func (c *CloudConfigClient) DeleteCloudConfig(provider string, cluster string, level string, namespace string) error {
-	ctx := context.Background()
-
+func (c *CloudConfigClient) DeleteCloudConfig(ctx context.Context, provider string, cluster string, level string, namespace string) error {
 	key := CloudConfigKey{
 		Provider:  provider,
 		Cluster:   cluster,
@@ -250,7 +242,7 @@ func (c *CloudConfigClient) DeleteCloudConfig(provider string, cluster string, l
 	}
 
 	// check if it doesn't exist
-	_, err := c.GetCloudConfig(provider, cluster, level, namespace)
+	_, err := c.GetCloudConfig(ctx, provider, cluster, level, namespace)
 	if err != nil {
 		log.Error("Could not fetch the CloudConfig so not deleting", log.Fields{})
 		return pkgerrors.New("Could not fetch the CloudConfig so not deleting")
@@ -265,16 +257,14 @@ func (c *CloudConfigClient) DeleteCloudConfig(provider string, cluster string, l
 	return nil
 }
 
-func (c *CloudConfigClient) CreateClusterSyncObjects(provider string, p mtypes.ClusterSyncObjects, exists bool) (mtypes.ClusterSyncObjects, error) {
-	ctx := context.Background()
-
+func (c *CloudConfigClient) CreateClusterSyncObjects(ctx context.Context, provider string, p mtypes.ClusterSyncObjects, exists bool) (mtypes.ClusterSyncObjects, error) {
 	key := ClusterSyncObjectsKey{
 		ClusterProviderName:    provider,
 		ClusterSyncObjectsName: p.Metadata.Name,
 	}
 
 	//Check if this ClusterSyncObjects already exists
-	_, err := c.GetClusterSyncObjects(provider, p.Metadata.Name)
+	_, err := c.GetClusterSyncObjects(ctx, provider, p.Metadata.Name)
 	if err == nil && !exists {
 		return mtypes.ClusterSyncObjects{}, pkgerrors.New("Cluster Sync Objects already exists")
 	}
@@ -288,14 +278,14 @@ func (c *CloudConfigClient) CreateClusterSyncObjects(provider string, p mtypes.C
 }
 
 // GetClusterSyncObjects returns the Cluster Sync objects for corresponding provider and sync object name
-func (c *CloudConfigClient) GetClusterSyncObjects(provider, syncobject string) (mtypes.ClusterSyncObjects, error) {
+func (c *CloudConfigClient) GetClusterSyncObjects(ctx context.Context, provider, syncobject string) (mtypes.ClusterSyncObjects, error) {
 	//Construct key and tag to select entry
 	key := ClusterSyncObjectsKey{
 		ClusterProviderName:    provider,
 		ClusterSyncObjectsName: syncobject,
 	}
 
-	value, err := db.DBconn.Find(context.Background(), c.db.storeName, key, c.db.tagMeta)
+	value, err := db.DBconn.Find(ctx, c.db.storeName, key, c.db.tagMeta)
 	if err != nil {
 		return mtypes.ClusterSyncObjects{}, err
 	} else if len(value) == 0 {
@@ -316,9 +306,7 @@ func (c *CloudConfigClient) GetClusterSyncObjects(provider, syncobject string) (
 }
 
 // DeleteClusterSyncObjects the  ClusterSyncObjects from database
-func (c *CloudConfigClient) DeleteClusterSyncObjects(provider, syncobject string) error {
-	ctx := context.Background()
-
+func (c *CloudConfigClient) DeleteClusterSyncObjects(ctx context.Context, provider, syncobject string) error {
 	//Construct key and tag to select entry
 	key := ClusterSyncObjectsKey{
 		ClusterProviderName:    provider,
@@ -330,14 +318,14 @@ func (c *CloudConfigClient) DeleteClusterSyncObjects(provider, syncobject string
 }
 
 // GetClusterSyncObjectsValue returns the value of the key from the corresponding provider and Sync Object name
-func (c *CloudConfigClient) GetClusterSyncObjectsValue(provider, syncobject, syncobjectkey string) (interface{}, error) {
+func (c *CloudConfigClient) GetClusterSyncObjectsValue(ctx context.Context, provider, syncobject, syncobjectkey string) (interface{}, error) {
 	//Construct key and tag to select entry
 	key := ClusterSyncObjectsKey{
 		ClusterProviderName:    provider,
 		ClusterSyncObjectsName: syncobject,
 	}
 
-	value, err := db.DBconn.Find(context.Background(), c.db.storeName, key, c.db.tagMeta)
+	value, err := db.DBconn.Find(ctx, c.db.storeName, key, c.db.tagMeta)
 	if err != nil {
 		return mtypes.ClusterSyncObjects{}, err
 	} else if len(value) == 0 {
@@ -366,13 +354,13 @@ func (c *CloudConfigClient) GetClusterSyncObjectsValue(provider, syncobject, syn
 }
 
 // GetAllClusterSyncObjects returns the Cluster Sync Objects for corresponding provider
-func (c *CloudConfigClient) GetAllClusterSyncObjects(provider string) ([]mtypes.ClusterSyncObjects, error) {
+func (c *CloudConfigClient) GetAllClusterSyncObjects(ctx context.Context, provider string) ([]mtypes.ClusterSyncObjects, error) {
 	//Construct key and tag to select the entry
 	key := ClusterSyncObjectsKey{
 		ClusterProviderName:    provider,
 		ClusterSyncObjectsName: "",
 	}
-	values, err := db.DBconn.Find(context.Background(), c.db.storeName, key, c.db.tagMeta)
+	values, err := db.DBconn.Find(ctx, c.db.storeName, key, c.db.tagMeta)
 	if err != nil {
 		return []mtypes.ClusterSyncObjects{}, err
 	}
@@ -391,9 +379,7 @@ func (c *CloudConfigClient) GetAllClusterSyncObjects(provider string) ([]mtypes.
 }
 
 // CreateGitOpsConfig allows to create a new cloud config entry to hold a kubeconfig for access
-func (c *CloudConfigClient) CreateGitOpsConfig(provider string, cluster string, gs mtypes.GitOpsSpec, level string, namespace string) (CloudGitOpsConfig, error) {
-	ctx := context.Background()
-
+func (c *CloudConfigClient) CreateGitOpsConfig(ctx context.Context, provider string, cluster string, gs mtypes.GitOpsSpec, level string, namespace string) (CloudGitOpsConfig, error) {
 	key := CloudConfigKey{
 		Provider:  provider,
 		Cluster:   cluster,
@@ -402,7 +388,7 @@ func (c *CloudConfigClient) CreateGitOpsConfig(provider string, cluster string, 
 	}
 
 	// check if it already exists
-	_, err := c.GetGitOpsConfig(provider, cluster, level, namespace)
+	_, err := c.GetGitOpsConfig(ctx, provider, cluster, level, namespace)
 	if err == nil {
 		log.Error("CloudConfig already exists", log.Fields{})
 		return CloudGitOpsConfig{}, pkgerrors.New("CloudConfig already exists")
@@ -426,8 +412,7 @@ func (c *CloudConfigClient) CreateGitOpsConfig(provider string, cluster string, 
 }
 
 // GetGitOpsConfig allows to create a new cloud config entry to hold a kubeconfig for access
-func (c *CloudConfigClient) GetGitOpsConfig(provider string, cluster string, level string, namespace string) (CloudGitOpsConfig, error) {
-
+func (c *CloudConfigClient) GetGitOpsConfig(ctx context.Context, provider string, cluster string, level string, namespace string) (CloudGitOpsConfig, error) {
 	key := CloudConfigKey{
 		Provider:  provider,
 		Cluster:   cluster,
@@ -435,7 +420,7 @@ func (c *CloudConfigClient) GetGitOpsConfig(provider string, cluster string, lev
 		Namespace: namespace,
 	}
 
-	value, err := db.DBconn.Find(context.Background(), c.db.storeName, key, c.db.tagMeta)
+	value, err := db.DBconn.Find(ctx, c.db.storeName, key, c.db.tagMeta)
 	if err != nil {
 		return CloudGitOpsConfig{}, pkgerrors.Wrap(err, "GitOps Config not found")
 	}

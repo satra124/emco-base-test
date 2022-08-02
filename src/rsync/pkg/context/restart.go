@@ -22,16 +22,16 @@ const prefix string = "/activecontext/"
 
 // RecordActiveContext shall insert into contextDB a key and value like /activecontext/99999999888/->99999999888. 99999999888 is sample AppcontextID
 // It shall take in activeContextID
-func RecordActiveContext(acID string) (bool, error) {
+func RecordActiveContext(ctx context.Context, acID string) (bool, error) {
 
-	exists, _ := ifContextIDActive(acID)
+	exists, _ := ifContextIDActive(ctx, acID)
 	if exists {
 		logutils.Info("ContextID already active", logutils.Fields{"acID": acID})
 		return false, nil
 	}
 
 	k := prefix + acID + "/"
-	err := contextdb.Db.Put(context.Background(), k, acID)
+	err := contextdb.Db.Put(ctx, k, acID)
 	if err != nil {
 		logutils.Info("Error saving the active contextID", logutils.Fields{"err": err.Error(), "contextID": acID})
 		return false, pkgerrors.Errorf("Error:: %s saving contextID:: %s", err.Error(), acID)
@@ -41,8 +41,8 @@ func RecordActiveContext(acID string) (bool, error) {
 }
 
 // GetAllActiveContext shall return all the active contextIDs
-func GetAllActiveContext() ([]string, error) {
-	aContexts, err := contextdb.Db.GetAllKeys(context.Background(), prefix)
+func GetAllActiveContext(ctx context.Context) ([]string, error) {
+	aContexts, err := contextdb.Db.GetAllKeys(ctx, prefix)
 	if err != nil {
 		logutils.Info("No active context handles for restart", logutils.Fields{})
 		return nil, nil
@@ -59,11 +59,11 @@ func GetAllActiveContext() ([]string, error) {
 }
 
 // ifContextIDActive takes in a contextID and checks if its active or not
-func ifContextIDActive(acID string) (bool, error) {
+func ifContextIDActive(ctx context.Context, acID string) (bool, error) {
 
 	k := prefix + acID + "/"
 	var value string
-	err := contextdb.Db.Get(context.Background(), k, &value)
+	err := contextdb.Db.Get(ctx, k, &value)
 	if err != nil {
 		return false, nil
 	}
@@ -73,14 +73,14 @@ func ifContextIDActive(acID string) (bool, error) {
 }
 
 // DeleteActiveContextRecord deletes an active contextID
-func DeleteActiveContextRecord(acID string) (bool, error) {
-	exists, _ := ifContextIDActive(acID)
+func DeleteActiveContextRecord(ctx context.Context, acID string) (bool, error) {
+	exists, _ := ifContextIDActive(ctx, acID)
 	if !exists {
 		logutils.Info("ContextID not active", logutils.Fields{"acID": acID})
 		return false, pkgerrors.Errorf("Error deleting, contextID:: %s not active", acID)
 	}
 	k := prefix + acID + "/"
-	err := contextdb.Db.Delete(context.Background(), k)
+	err := contextdb.Db.Delete(ctx, k)
 	if err != nil {
 		logutils.Info("Error deleting the contextID", logutils.Fields{"acID": acID, "Error": err.Error()})
 		return false, pkgerrors.Errorf("Error:: %s deleting contextID:: %s ", err.Error(), acID)
@@ -91,9 +91,9 @@ func DeleteActiveContextRecord(acID string) (bool, error) {
 // RestoreActiveContext shall be called everytime the rsync restarts.
 // It makes sure that the AppContexts which were in active state before rsync
 // got cancelled, are restored and queued up again for processing.
-func RestoreActiveContext() error {
+func RestoreActiveContext(ctx context.Context) error {
 	logutils.Info("Restoring active context....", logutils.Fields{})
-	acIDs, err := GetAllActiveContext()
+	acIDs, err := GetAllActiveContext(ctx)
 	if err != nil {
 		logutils.Info("Error getting all active contextIDs while restoring", logutils.Fields{})
 		return nil
@@ -103,7 +103,7 @@ func RestoreActiveContext() error {
 
 	for _, acID := range acIDs {
 		con := connector.NewProvider(acID)
-		err = RestartAppContext(acID, &con)
+		err = RestartAppContext(ctx, acID, &con)
 		if err != nil {
 			logutils.Info("Error in restoring active contextID in HandleAppContext", logutils.Fields{"acID": acID, "Error": err})
 			return nil
