@@ -10,6 +10,8 @@ import (
 
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/module"
 
+	"context"
+
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/notifyclient"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
@@ -56,7 +58,7 @@ func (ctx *EnrollmentContext) Instantiate() error {
 
 // Status provides the caCert enrollment status
 func Status(stateInfo state.StateInfo, qInstance, qType, qOutput string, fApps, fClusters, fResources []string) (module.CaCertStatus, error) {
-	statusResult, err := status.PrepareCaCertStatusResult(stateInfo, qInstance, qType, qOutput, fApps, fClusters, fResources)
+	statusResult, err := status.PrepareCaCertStatusResult(context.Background(), stateInfo, qInstance, qType, qOutput, fApps, fClusters, fResources)
 	if err != nil {
 		logutils.Error("Failed to get the enrollemnt status",
 			logutils.Fields{
@@ -114,7 +116,7 @@ func (ctx *EnrollmentContext) Update(contextID string) error {
 		return err
 	}
 
-	if err := state.UpdateAppContextStatusContextID(ctx.ContextID, contextID); err != nil {
+	if err := state.UpdateAppContextStatusContextID(context.Background(), ctx.ContextID, contextID); err != nil {
 		logutils.Error("Failed to update appContext status",
 			logutils.Fields{
 				"ContextID": ctx.ContextID,
@@ -123,7 +125,7 @@ func (ctx *EnrollmentContext) Update(contextID string) error {
 		return err
 	}
 
-	if err := notifyclient.CallRsyncUpdate(contextID, ctx.ContextID); err != nil {
+	if err := notifyclient.CallRsyncUpdate(context.Background(), contextID, ctx.ContextID); err != nil {
 		logutils.Error("Rsync update failed",
 			logutils.Fields{
 				"ContextID": ctx.ContextID,
@@ -133,7 +135,7 @@ func (ctx *EnrollmentContext) Update(contextID string) error {
 	}
 
 	// subscribe to alerts
-	stream, _, err := notifyclient.InvokeReadyNotify(ctx.ContextID, ctx.ClientName)
+	stream, _, err := notifyclient.InvokeReadyNotify(context.Background(), ctx.ContextID, ctx.ClientName)
 	if err != nil {
 		logutils.Error("Failed to subscribe to alerts",
 			logutils.Fields{
@@ -165,14 +167,14 @@ func (ctx *EnrollmentContext) IssuingClusterHandle() (interface{}, error) {
 	)
 
 	// add handle for the issuing cluster
-	handle, err = ctx.AppContext.AddCluster(ctx.AppHandle,
+	handle, err = ctx.AppContext.AddCluster(context.Background(), ctx.AppHandle,
 		strings.Join([]string{ctx.CaCert.Spec.IssuingCluster.ClusterProvider, ctx.CaCert.Spec.IssuingCluster.Cluster}, "+"))
 	if err != nil {
 		logutils.Error("Failed to add the issuing cluster",
 			logutils.Fields{
 				"Error": err.Error()})
 
-		if er := ctx.AppContext.DeleteCompositeApp(); er != nil {
+		if er := ctx.AppContext.DeleteCompositeApp(context.Background()); er != nil {
 			logutils.Error("Failed to delete the compositeApp",
 				logutils.Fields{
 					"ContextID": ctx.ContextID,
@@ -199,7 +201,7 @@ func VerifyEnrollmentState(stateInfo state.StateInfo) (enrollmentContextID strin
 		return "", err
 	}
 
-	status, err := state.GetAppContextStatus(enrollmentContextID)
+	status, err := state.GetAppContextStatus(context.Background(), enrollmentContextID)
 	if err != nil {
 		logutils.Error("Failed to get the appContext status",
 			logutils.Fields{

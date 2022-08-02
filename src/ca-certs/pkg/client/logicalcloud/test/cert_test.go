@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 
+	"context"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/client/logicalcloud"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
@@ -141,20 +142,20 @@ func populateCertTestData() {
 	cpKey := logicalcloud.CaCertKey{
 		Cert:    cert.MetaData.Name,
 		Project: "proj1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", cert)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", cert)
 
 	// cert 2
 	cert = mockCert("test-cert-2")
 	cpKey = logicalcloud.CaCertKey{
 		Cert:    cert.MetaData.Name,
 		Project: "proj1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", cert)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", cert)
 
 	// cert 3
 	cert = mockCert("test-cert-3")
 	cpKey = logicalcloud.CaCertKey{
 		Cert:    cert.MetaData.Name,
 		Project: "proj1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", cert)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", cert)
 
 }

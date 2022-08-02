@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 
+	"context"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/client/logicalcloud"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
@@ -149,7 +150,7 @@ func populateLogicalCloudTestData() {
 		Cert:               "cert1",
 		CaCertLogicalCloud: lc.MetaData.Name,
 		Project:            "proj1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", lc)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", lc)
 
 	// caCertLogicalCloud 2
 	lc = mockLogicalCloud("test-caCertLogicalCloud-2")
@@ -157,7 +158,7 @@ func populateLogicalCloudTestData() {
 		Cert:               "cert1",
 		CaCertLogicalCloud: lc.MetaData.Name,
 		Project:            "proj1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", lc)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", lc)
 
 	// caCertLogicalCloud 3
 	lc = mockLogicalCloud("test-caCertLogicalCloud-3")
@@ -165,7 +166,7 @@ func populateLogicalCloudTestData() {
 		Cert:               "cert1",
 		CaCertLogicalCloud: lc.MetaData.Name,
 		Project:            "proj1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", lc)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", lc)
 }
 
 func validateError(err error, message string) {

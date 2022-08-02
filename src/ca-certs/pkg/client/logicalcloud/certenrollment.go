@@ -4,6 +4,8 @@
 package logicalcloud
 
 import (
+	"context"
+
 	cmv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/certificate/enrollment"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/module"
@@ -262,7 +264,7 @@ func (c *CaCertEnrollmentClient) Update(cert, project string) error {
 	contextID := state.GetLastContextIdFromStateInfo(stateInfo)
 	if len(contextID) > 0 {
 		// get the existing appContext
-		status, err := state.GetAppContextStatus(contextID)
+		status, err := state.GetAppContextStatus(context.Background(), contextID)
 		if err != nil {
 			logutils.Error("Failed to get the appContext status",
 				logutils.Fields{

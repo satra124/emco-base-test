@@ -4,13 +4,12 @@
 package controller
 
 import (
-	"context"
-
 	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	rpc "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
 
+	"context"
 	clmModel "gitlab.com/project-emco/core/emco-base/src/clm/pkg/model"
 )
 
@@ -46,8 +45,6 @@ func (mc *ControllerClient) CreateController(m clmModel.Controller, mayExist boo
 
 	log.Info("CLM CreateController .. start", log.Fields{"Controller": m, "exists": mayExist})
 
-	ctx := context.Background()
-
 	//Construct the composite key to select the entry
 	key := clmModel.ControllerKey{
 		ControllerName:  m.Metadata.Name,
@@ -60,7 +57,7 @@ func (mc *ControllerClient) CreateController(m clmModel.Controller, mayExist boo
 		return clmModel.Controller{}, pkgerrors.New("ClmController already exists")
 	}
 
-	err = db.DBconn.Insert(ctx, mc.collectionName, key, nil, mc.tagMeta, m)
+	err = db.DBconn.Insert(context.Background(), mc.collectionName, key, nil, mc.tagMeta, m)
 	if err != nil {
 		return clmModel.Controller{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -131,14 +128,13 @@ func (mc *ControllerClient) GetControllers() ([]clmModel.Controller, error) {
 
 // DeleteController the  Controller from database
 func (mc *ControllerClient) DeleteController(name string) error {
-	ctx := context.Background()
 
 	//Construct the composite key to select the entry
 	key := clmModel.ControllerKey{
 		ControllerName:  name,
 		ControllerGroup: mc.tagGroup,
 	}
-	err := db.DBconn.Remove(ctx, mc.collectionName, key)
+	err := db.DBconn.Remove(context.Background(), mc.collectionName, key)
 	if err != nil {
 		return err
 	}

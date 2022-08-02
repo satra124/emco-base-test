@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 
+	"context"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/client/logicalcloud"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
@@ -143,7 +144,7 @@ func populateClusterGroupTestData() {
 		Project:            "proj1",
 		CaCertLogicalCloud: "lc1",
 		Cert:               "cert1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", cluster)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", cluster)
 
 	// clusterGroup 2
 	cluster = mockClusterGroup("test-clusterGroup-2")
@@ -152,7 +153,7 @@ func populateClusterGroupTestData() {
 		Project:            "proj1",
 		CaCertLogicalCloud: "lc1",
 		Cert:               "cert1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", cluster)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", cluster)
 
 	// clusterGroup 3
 	cluster = mockClusterGroup("test-clusterGroup-3")
@@ -161,5 +162,5 @@ func populateClusterGroupTestData() {
 		Project:            "proj1",
 		CaCertLogicalCloud: "lc1",
 		Cert:               "cert1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", cluster)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", cluster)
 }

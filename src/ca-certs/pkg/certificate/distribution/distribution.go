@@ -19,6 +19,8 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 
+	"context"
+
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -46,7 +48,7 @@ func (ctx *DistributionContext) Instantiate() error {
 
 // Update the caCert distribution appContext
 func (ctx *DistributionContext) Update(prevContextID string) error {
-	if err := state.UpdateAppContextStatusContextID(ctx.ContextID, prevContextID); err != nil {
+	if err := state.UpdateAppContextStatusContextID(context.Background(), ctx.ContextID, prevContextID); err != nil {
 		logutils.Error("Failed to update appContext status",
 			logutils.Fields{
 				"ContextID": ctx.ContextID,
@@ -55,7 +57,7 @@ func (ctx *DistributionContext) Update(prevContextID string) error {
 		return err
 	}
 
-	if err := notifyclient.CallRsyncUpdate(prevContextID, ctx.ContextID); err != nil {
+	if err := notifyclient.CallRsyncUpdate(context.Background(), prevContextID, ctx.ContextID); err != nil {
 		logutils.Error("Rsync update failed",
 			logutils.Fields{
 				"ContextID": ctx.ContextID,
@@ -65,7 +67,7 @@ func (ctx *DistributionContext) Update(prevContextID string) error {
 	}
 
 	// subscribe to alerts
-	stream, _, err := notifyclient.InvokeReadyNotify(ctx.ContextID, ctx.ClientName)
+	stream, _, err := notifyclient.InvokeReadyNotify(context.Background(), ctx.ContextID, ctx.ClientName)
 	if err != nil {
 		logutils.Error("Failed to subscribe to alerts",
 			logutils.Fields{
@@ -133,14 +135,14 @@ func (ctx *DistributionContext) createCertManagerIssuerResources() error {
 
 		for _, ctx.Cluster = range clusters {
 			ctx.ResOrder = []string{}
-			ctx.ClusterHandle, err = ctx.AppContext.AddCluster(ctx.AppHandle,
+			ctx.ClusterHandle, err = ctx.AppContext.AddCluster(context.Background(), ctx.AppHandle,
 				strings.Join([]string{ctx.ClusterGroup.Spec.Provider, ctx.Cluster}, "+"))
 			if err != nil {
 				logutils.Error("Failed to add the cluster",
 					logutils.Fields{
 						"Error": err.Error()})
 
-				if er := ctx.AppContext.DeleteCompositeApp(); er != nil {
+				if er := ctx.AppContext.DeleteCompositeApp(context.Background()); er != nil {
 					logutils.Error("Failed to delete the compositeApp",
 						logutils.Fields{
 							"ContextID": ctx.ContextID,

@@ -4,6 +4,7 @@
 package logicalcloud
 
 import (
+	"context"
 	"reflect"
 
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/module"
@@ -60,7 +61,7 @@ func (c *CaCertLogicalCloudClient) CreateLogicalCloud(logicalCloud CaCertLogical
 		)
 	}
 
-	if err := db.DBconn.Insert(c.dbInfo.StoreName, key, nil, c.dbInfo.TagMeta, logicalCloud); err != nil {
+	if err := db.DBconn.Insert(context.Background(), c.dbInfo.StoreName, key, nil, c.dbInfo.TagMeta, logicalCloud); err != nil {
 		return CaCertLogicalCloud{}, lcExists, err
 	}
 
@@ -74,7 +75,7 @@ func (c *CaCertLogicalCloudClient) DeleteLogicalCloud(logicalCloud, cert, projec
 		CaCertLogicalCloud: logicalCloud,
 		Project:            project}
 
-	return db.DBconn.Remove(c.dbInfo.StoreName, key)
+	return db.DBconn.Remove(context.Background(), c.dbInfo.StoreName, key)
 }
 
 // GetAllLogicalClouds returns all the caCert logicalCloud
@@ -83,7 +84,7 @@ func (c *CaCertLogicalCloudClient) GetAllLogicalClouds(cert, project string) ([]
 		Cert:    cert,
 		Project: project}
 
-	values, err := db.DBconn.Find(c.dbInfo.StoreName, key, c.dbInfo.TagMeta)
+	values, err := db.DBconn.Find(context.Background(), c.dbInfo.StoreName, key, c.dbInfo.TagMeta)
 	if err != nil {
 		return []CaCertLogicalCloud{}, err
 	}
@@ -107,7 +108,7 @@ func (c *CaCertLogicalCloudClient) GetLogicalCloud(logicalCloud, cert, project s
 		CaCertLogicalCloud: logicalCloud,
 		Project:            project}
 
-	value, err := db.DBconn.Find(c.dbInfo.StoreName, key, c.dbInfo.TagMeta)
+	value, err := db.DBconn.Find(context.Background(), c.dbInfo.StoreName, key, c.dbInfo.TagMeta)
 	if err != nil {
 		return CaCertLogicalCloud{}, err
 	}

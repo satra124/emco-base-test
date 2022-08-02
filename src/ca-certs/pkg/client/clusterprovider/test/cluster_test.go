@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"context"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/client/clusterprovider"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
@@ -143,7 +144,7 @@ func populateClusterGroupTestData() {
 		Cert:            "cert1",
 		ClusterGroup:    "test-clusterGroup-1",
 		ClusterProvider: "provider1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", cluster)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", cluster)
 
 	// cluster 2
 	cluster = mockClusterGroup("test-clusterGroup-2")
@@ -151,7 +152,7 @@ func populateClusterGroupTestData() {
 		Cert:            "cert1",
 		ClusterGroup:    "test-clusterGroup-2",
 		ClusterProvider: "provider1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", cluster)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", cluster)
 
 	// cluster 3
 	cluster = mockClusterGroup("test-clusterGroup-3")
@@ -159,7 +160,7 @@ func populateClusterGroupTestData() {
 		Cert:            "cert1",
 		ClusterGroup:    "test-clusterGroup-3",
 		ClusterProvider: "provider1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", cluster)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", cluster)
 }
 
 func validateError(err error, message string) {

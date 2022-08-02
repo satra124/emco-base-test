@@ -12,8 +12,8 @@ import (
 	"log"
 	"strconv"
 
-	"gitlab.com/project-emco/core/emco-base/src/clm/pkg/cluster"
 	pkgerrors "github.com/pkg/errors"
+	"gitlab.com/project-emco/core/emco-base/src/clm/pkg/cluster"
 )
 
 // ClusterList consists of mandatoryClusters and OptionalClusters

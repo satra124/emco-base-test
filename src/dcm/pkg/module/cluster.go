@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"strings"
 
+	"context"
+
 	pkgerrors "github.com/pkg/errors"
 	rb "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
@@ -64,9 +66,9 @@ func (v *ClusterClient) CreateCluster(project, logicalCloud string, clusterRefer
 	cid := state.GetLastContextIdFromStateInfo(s)
 
 	if cid != "" {
-		// Since there's a context associated, if the logical cloud isn't fully
+		// Since there's a appCtx associated, if the logical cloud isn't fully
 		// Terminated or fully Instantiated, then prevent clusters from being added
-		acStatus, err := state.GetAppContextStatus(cid) // new from state
+		acStatus, err := state.GetAppContextStatus(context.Background(), cid) // new from state
 		if err != nil {
 			return common.Cluster{}, err
 		}
@@ -82,7 +84,7 @@ func (v *ClusterClient) CreateCluster(project, logicalCloud string, clusterRefer
 	}
 
 	log.Info("Adding cluster-reference. Changes won't take effect until the respective Logical Cloud is updated.", log.Fields{"clusterreference": clusterReference, "logicalcloud": logicalCloud})
-	err = db.DBconn.Insert(v.storeName, key, nil, v.tagMeta, clusterReference)
+	err = db.DBconn.Insert(context.Background(), v.storeName, key, nil, v.tagMeta, clusterReference)
 	if err != nil {
 		return common.Cluster{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -100,7 +102,7 @@ func (v *ClusterClient) GetCluster(project, logicalCloud, clusterReference strin
 		ClusterReference: clusterReference,
 	}
 
-	value, err := db.DBconn.Find(v.storeName, key, v.tagMeta)
+	value, err := db.DBconn.Find(context.Background(), v.storeName, key, v.tagMeta)
 	if err != nil {
 		return common.Cluster{}, err
 	}
@@ -131,7 +133,7 @@ func (v *ClusterClient) GetAllClusters(project, logicalCloud string) ([]common.C
 		ClusterReference: "",
 	}
 	var resp []common.Cluster
-	values, err := db.DBconn.Find(v.storeName, key, v.tagMeta)
+	values, err := db.DBconn.Find(context.Background(), v.storeName, key, v.tagMeta)
 	if err != nil {
 		return []common.Cluster{}, err
 	}
@@ -169,17 +171,17 @@ func (v *ClusterClient) DeleteCluster(project, logicalCloud, clusterReference st
 	cid := state.GetLastContextIdFromStateInfo(s)
 
 	if cid == "" {
-		// Just go ahead and delete the reference if there is no logical cloud context yet
-		err := db.DBconn.Remove(v.storeName, key)
+		// Just go ahead and delete the reference if there is no logical cloud appCtx yet
+		err := db.DBconn.Remove(context.Background(), v.storeName, key)
 		if err != nil {
 			return pkgerrors.Wrap(err, "Failed deleting Cluster Reference")
 		}
 		return nil
 	}
 
-	// Since there's a context associated, if the logical cloud isn't fully
+	// Since there's a appCtx associated, if the logical cloud isn't fully
 	// Terminated or fully Instantiated, then prevent clusters from being added
-	acStatus, err := state.GetAppContextStatus(cid) // new from state
+	acStatus, err := state.GetAppContextStatus(context.Background(), cid) // new from state
 	if err != nil {
 		return pkgerrors.Wrap(err, "Error getting app context status")
 	}
@@ -201,7 +203,7 @@ func (v *ClusterClient) DeleteCluster(project, logicalCloud, clusterReference st
 		log.Error("Removing cluster-reference. Changes won't take effect until the respective Logical Cloud is updated.", log.Fields{"clusterreference": clusterReference, "logicalcloud": logicalCloud})
 		fallthrough
 	case appcontext.AppContextStatusEnum.Terminated:
-		err := db.DBconn.Remove(v.storeName, key)
+		err := db.DBconn.Remove(context.Background(), v.storeName, key)
 		if err != nil {
 			return pkgerrors.Wrap(err, "Error deleting Cluster Reference")
 		}
@@ -232,7 +234,7 @@ func (v *ClusterClient) UpdateCluster(project, logicalCloud, clusterReference st
 	if err != nil {
 		return common.Cluster{}, err
 	}
-	err = db.DBconn.Insert(v.storeName, key, nil, v.tagMeta, c)
+	err = db.DBconn.Insert(context.Background(), v.storeName, key, nil, v.tagMeta, c)
 	if err != nil {
 		return common.Cluster{}, pkgerrors.Wrap(err, "Updating DB Entry")
 	}
@@ -256,7 +258,7 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 		return "", pkgerrors.New("Logical Cloud hasn't been instantiated yet")
 	}
 
-	ac, err := state.GetAppContextFromId(cid)
+	ac, err := state.GetAppContextFromId(context.Background(), cid)
 	if err != nil {
 		return "", err
 	}
@@ -280,6 +282,7 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 
 		// Create a record in Rsync for logical cloud
 		_, err = ccc.CreateCloudConfig(
+			context.Background(),
 			cluster.Specification.ClusterProvider,
 			cluster.Specification.ClusterName,
 			lc.Specification.Level,
@@ -293,7 +296,7 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 		return "", nil
 	}
 	// get user's private key
-	pkDataArray, err := db.DBconn.Find(v.storeName, lckey, "privatekey")
+	pkDataArray, err := db.DBconn.Find(context.Background(), v.storeName, lckey, "privatekey")
 	if err != nil {
 		return "", pkgerrors.Wrap(err, "Error getting private key from logical cloud")
 	}
@@ -314,12 +317,12 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 		clusterName := strings.Join([]string{cluster.Specification.ClusterProvider, "+", cluster.Specification.ClusterName}, "")
 
 		// get the app context handle for the status of this cluster (which should contain the certificate inside, if already issued)
-		statusHandle, err := ac.GetClusterStatusHandle("logical-cloud", clusterName)
+		statusHandle, err := ac.GetClusterStatusHandle(context.Background(), "logical-cloud", clusterName)
 
 		if err != nil {
 			return "", pkgerrors.Wrap(err, "The cluster doesn't contain status, please check if all services are up and running")
 		}
-		statusRaw, err := ac.GetValue(statusHandle)
+		statusRaw, err := ac.GetValue(context.Background(), statusHandle)
 		if err != nil {
 			return "", pkgerrors.Wrap(err, "An error occurred while reading the cluster status")
 		}
@@ -374,7 +377,7 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 	}
 
 	// get kubeconfig from L0 cloudconfig respective to the cluster referenced by this logical cloud
-	cconfig, err := ccc.GetCloudConfig(cluster.Specification.ClusterProvider, cluster.Specification.ClusterName, "0", "")
+	cconfig, err := ccc.GetCloudConfig(context.Background(), cluster.Specification.ClusterProvider, cluster.Specification.ClusterName, "0", "")
 	if err != nil {
 		return "", pkgerrors.New("Failed fetching kubeconfig from rsync's CloudConfig")
 	}
@@ -441,6 +444,7 @@ func (v *ClusterClient) GetClusterConfig(project, logicalCloud, clusterReference
 	// now that we have the L1 kubeconfig for this L1 logical cloud,
 	// let's give it to rsync so it can get stored in the right place
 	_, err = ccc.CreateCloudConfig(
+		context.Background(),
 		cluster.Specification.ClusterProvider,
 		cluster.Specification.ClusterName,
 		lc.Specification.Level,

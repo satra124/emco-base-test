@@ -12,6 +12,8 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/state"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"context"
+
 	pkgerrors "github.com/pkg/errors"
 )
 
@@ -110,7 +112,7 @@ func (v *NetworkClient) CreateNetwork(p Network, clusterProvider, cluster string
 		return Network{}, pkgerrors.New("Network already exists")
 	}
 
-	err = db.DBconn.Insert(v.db.StoreName, key, nil, v.db.TagMeta, p)
+	err = db.DBconn.Insert(context.Background(), v.db.StoreName, key, nil, v.db.TagMeta, p)
 	if err != nil {
 		return Network{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -128,7 +130,7 @@ func (v *NetworkClient) GetNetwork(name, clusterProvider, cluster string) (Netwo
 		NetworkName:         name,
 	}
 
-	value, err := db.DBconn.Find(v.db.StoreName, key, v.db.TagMeta)
+	value, err := db.DBconn.Find(context.Background(), v.db.StoreName, key, v.db.TagMeta)
 	if err != nil {
 		return Network{}, err
 	}
@@ -161,7 +163,7 @@ func (v *NetworkClient) GetNetworks(clusterProvider, cluster string) ([]Network,
 	}
 
 	var resp []Network
-	values, err := db.DBconn.Find(v.db.StoreName, key, v.db.TagMeta)
+	values, err := db.DBconn.Find(context.Background(), v.db.StoreName, key, v.db.TagMeta)
 	if err != nil {
 		return []Network{}, err
 	}
@@ -215,6 +217,6 @@ func (v *NetworkClient) DeleteNetwork(name, clusterProvider, cluster string) err
 		NetworkName:         name,
 	}
 
-	err = db.DBconn.Remove(v.db.StoreName, key)
+	err = db.DBconn.Remove(context.Background(), v.db.StoreName, key)
 	return err
 }

@@ -4,6 +4,7 @@
 package module
 
 import (
+	"context"
 	"reflect"
 	"strings"
 
@@ -53,7 +54,7 @@ func (c *ClusterGroupClient) CreateClusterGroup(group ClusterGroup, failIfExists
 		)
 	}
 
-	if err := db.DBconn.Insert(c.dbInfo.StoreName, c.dbKey, nil, c.dbInfo.TagMeta, group); err != nil {
+	if err := db.DBconn.Insert(context.Background(), c.dbInfo.StoreName, c.dbKey, nil, c.dbInfo.TagMeta, group); err != nil {
 		return ClusterGroup{}, cExists, err
 	}
 
@@ -62,12 +63,12 @@ func (c *ClusterGroupClient) CreateClusterGroup(group ClusterGroup, failIfExists
 
 // DeleteClusterGroup deletes a clusterGroup
 func (c *ClusterGroupClient) DeleteClusterGroup() error {
-	return db.DBconn.Remove(c.dbInfo.StoreName, c.dbKey)
+	return db.DBconn.Remove(context.Background(), c.dbInfo.StoreName, c.dbKey)
 }
 
 // GetAllClusterGroups returns  all the clusterGroup
 func (c *ClusterGroupClient) GetAllClusterGroups() ([]ClusterGroup, error) {
-	values, err := db.DBconn.Find(c.dbInfo.StoreName, c.dbKey, c.dbInfo.TagMeta)
+	values, err := db.DBconn.Find(context.Background(), c.dbInfo.StoreName, c.dbKey, c.dbInfo.TagMeta)
 	if err != nil {
 		return []ClusterGroup{}, err
 	}
@@ -86,7 +87,7 @@ func (c *ClusterGroupClient) GetAllClusterGroups() ([]ClusterGroup, error) {
 
 // GetClusterGroup returns the clusterGroup
 func (c *ClusterGroupClient) GetClusterGroup() (ClusterGroup, error) {
-	value, err := db.DBconn.Find(c.dbInfo.StoreName, c.dbKey, c.dbInfo.TagMeta)
+	value, err := db.DBconn.Find(context.Background(), c.dbInfo.StoreName, c.dbKey, c.dbInfo.TagMeta)
 	if err != nil {
 		return ClusterGroup{}, err
 	}

@@ -4,6 +4,8 @@
 package statusnotify
 
 import (
+	"context"
+
 	pkgerrors "github.com/pkg/errors"
 	dcm "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
@@ -31,7 +33,7 @@ func getLcKeyValues(reg *statusnotifypb.StatusRegistration) (string, string, err
 	return lcKey.GetProject(), lcKey.GetLogicalCloud(), nil
 }
 
-func (d lcHelpers) GetAppContextId(reg *statusnotifypb.StatusRegistration) (string, error) {
+func (d lcHelpers) GetAppContextId(ctx context.Context, reg *statusnotifypb.StatusRegistration) (string, error) {
 	p, lc, err := getLcKeyValues(reg)
 	if err != nil {
 		return "", err
@@ -45,7 +47,7 @@ func (d lcHelpers) GetAppContextId(reg *statusnotifypb.StatusRegistration) (stri
 	return state.GetStatusContextIdFromStateInfo(si), nil
 }
 
-func (d lcHelpers) StatusQuery(reg *statusnotifypb.StatusRegistration, qStatusInstance, qType, qOutput string, fApps, fClusters, fResources []string) status.StatusResult {
+func (d lcHelpers) StatusQuery(ctx context.Context, reg *statusnotifypb.StatusRegistration, qStatusInstance, qType, qOutput string, fApps, fClusters, fResources []string) status.StatusResult {
 	p, lc, err := getLcKeyValues(reg)
 	if err != nil {
 		return status.StatusResult{}

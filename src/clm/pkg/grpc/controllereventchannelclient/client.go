@@ -25,7 +25,7 @@ func SendControllerEvent(providerName string, clusterName string, event clmcontr
 	defer cancel()
 
 	// Fetch Grpc Connection handle
-	conn := rpc.GetRpcConn(ctx, clmCtrl.Metadata.Name)
+	conn := rpc.GetRpcConn(context.Background(), clmCtrl.Metadata.Name)
 	if conn != nil {
 		rpcClient = clmcontrollerpb.NewClmControllerEventChannelClient(conn)
 		ctrlReq := new(clmcontrollerpb.ClmControllerEventRequest)

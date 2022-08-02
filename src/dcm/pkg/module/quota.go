@@ -4,6 +4,7 @@
 package module
 
 import (
+	"context"
 	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 )
@@ -108,7 +109,7 @@ func (v *QuotaClient) CreateQuota(project, logicalCloud string, c Quota) (Quota,
 		return Quota{}, pkgerrors.New("Quota already exists")
 	}
 
-	err = db.DBconn.Insert(v.storeName, key, nil, v.tagMeta, c)
+	err = db.DBconn.Insert(context.Background(), v.storeName, key, nil, v.tagMeta, c)
 	if err != nil {
 		return Quota{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -125,7 +126,7 @@ func (v *QuotaClient) GetQuota(project, logicalCloud, quotaName string) (Quota, 
 		LogicalCloudName: logicalCloud,
 		QuotaName:        quotaName,
 	}
-	value, err := db.DBconn.Find(v.storeName, key, v.tagMeta)
+	value, err := db.DBconn.Find(context.Background(), v.storeName, key, v.tagMeta)
 	if err != nil {
 		return Quota{}, err
 	}
@@ -156,7 +157,7 @@ func (v *QuotaClient) GetAllQuotas(project, logicalCloud string) ([]Quota, error
 		QuotaName:        "",
 	}
 	var resp []Quota
-	values, err := db.DBconn.Find(v.storeName, key, v.tagMeta)
+	values, err := db.DBconn.Find(context.Background(), v.storeName, key, v.tagMeta)
 	if err != nil {
 		return []Quota{}, err
 	}
@@ -181,7 +182,7 @@ func (v *QuotaClient) DeleteQuota(project, logicalCloud, quotaName string) error
 		LogicalCloudName: logicalCloud,
 		QuotaName:        quotaName,
 	}
-	err := db.DBconn.Remove(v.storeName, key)
+	err := db.DBconn.Remove(context.Background(), v.storeName, key)
 	if err != nil {
 		return pkgerrors.Wrap(err, "Delete Quota")
 	}
@@ -205,7 +206,7 @@ func (v *QuotaClient) UpdateQuota(project, logicalCloud, quotaName string, c Quo
 	if err != nil {
 		return Quota{}, err
 	}
-	err = db.DBconn.Insert(v.storeName, key, nil, v.tagMeta, c)
+	err = db.DBconn.Insert(context.Background(), v.storeName, key, nil, v.tagMeta, c)
 	if err != nil {
 		return Quota{}, pkgerrors.Wrap(err, "Updating DB Entry")
 	}

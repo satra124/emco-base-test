@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"context"
 	dcm "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 	common "gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
@@ -39,7 +40,7 @@ var _ = Describe("Userpermissions", func() {
 					UserData1:   "",
 					UserData2:   "",
 				}
-				mdb.Insert("resources", okey, nil, "data", p)
+				mdb.Insert(context.Background(), "resources", okey, nil, "data", p)
 				// create logical cloud in mocked db
 				lkey := common.LogicalCloudKey{
 					Project:          "project",
@@ -56,7 +57,7 @@ var _ = Describe("Userpermissions", func() {
 					NameSpace: "testns",
 					Level:     "1",
 				}
-				mdb.Insert("resources", lkey, nil, "data", lc)
+				mdb.Insert(context.Background(), "resources", lkey, nil, "data", lc)
 			})
 			It("creation should succeed and return the resource created", func() {
 				up := _createTestUserPermission("testup", "testns")

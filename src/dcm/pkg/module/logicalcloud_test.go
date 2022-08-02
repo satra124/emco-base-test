@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"context"
 	dcm "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 	common "gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
@@ -75,7 +76,7 @@ var _ = Describe("Logicalcloud", func() {
 				up := _createTestUserPermission("testup", "testns")
 				err := dcm.Instantiate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up})
 
-				etcdKeys, _ := contextdb.Db.GetAllKeys("/")
+				etcdKeys, _ := contextdb.Db.GetAllKeys(context.Background(), "/")
 				appcontextId := strings.Split(etcdKeys[0], "/")[2]
 				var val string
 
@@ -123,16 +124,16 @@ var _ = Describe("Logicalcloud", func() {
 				mockedValues = append(mockedValues, `{"appdependency":{"logical-cloud":"go"}}`) // [14]
 
 				for _, k := range [13]int{0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13, 14} {
-					contextdb.Db.Get(mockedKeys[k], &val)
+					contextdb.Db.Get(context.Background(), mockedKeys[k], &val)
 					Expect(val).To(Equal(mockedValues[k]))
 				}
 
 				// check the untested values separately (these change every run due to crypto or timestamps)
-				contextdb.Db.Get(mockedKeys[4], &val)
+				contextdb.Db.Get(context.Background(), mockedKeys[4], &val)
 				Expect(strings.Contains(val, "kind: CertificateSigningRequest")).Should(BeTrue())
 				Expect(strings.Contains(val, "name: testlc-user-csr")).Should(BeTrue())
 				Expect(strings.Contains(val, "request: LS0")).Should(BeTrue())
-				contextdb.Db.Get(mockedKeys[5], &val)
+				contextdb.Db.Get(context.Background(), mockedKeys[5], &val)
 				Expect(strings.Contains(val, `"message":"Approved for Logical Cloud authentication","reason":"LogicalCloud","type":"Approved"}`)).Should(BeTrue())
 			})
 		})
@@ -167,7 +168,7 @@ var _ = Describe("Logicalcloud", func() {
 				up2 := _createTestUserPermission("testup", "")
 				err := dcm.Instantiate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up1, up2})
 
-				etcdKeys, _ := contextdb.Db.GetAllKeys("/")
+				etcdKeys, _ := contextdb.Db.GetAllKeys(context.Background(), "/")
 				appcontextId := strings.Split(etcdKeys[0], "/")[2]
 				var val string
 
@@ -219,16 +220,16 @@ var _ = Describe("Logicalcloud", func() {
 				mockedValues = append(mockedValues, `{"appdependency":{"logical-cloud":"go"}}`) // [16]
 
 				for _, k := range [15]int{0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16} {
-					contextdb.Db.Get(mockedKeys[k], &val)
+					contextdb.Db.Get(context.Background(), mockedKeys[k], &val)
 					Expect(val).To(Equal(mockedValues[k]))
 				}
 
 				// check the untested values separately (these change every run due to crypto or timestamps)
-				contextdb.Db.Get(mockedKeys[4], &val)
+				contextdb.Db.Get(context.Background(), mockedKeys[4], &val)
 				Expect(strings.Contains(val, "kind: CertificateSigningRequest")).Should(BeTrue())
 				Expect(strings.Contains(val, "name: testlc-user-csr")).Should(BeTrue())
 				Expect(strings.Contains(val, "request: LS0")).Should(BeTrue())
-				contextdb.Db.Get(mockedKeys[5], &val)
+				contextdb.Db.Get(context.Background(), mockedKeys[5], &val)
 				Expect(strings.Contains(val, `"message":"Approved for Logical Cloud authentication","reason":"LogicalCloud","type":"Approved"}`)).Should(BeTrue())
 			})
 		})
@@ -265,7 +266,7 @@ var _ = Describe("Logicalcloud", func() {
 			BeforeEach(func() {
 				rclient := rsync.NewCloudConfigClient()
 				_createExistingLogicalCloud(mdb, "0", false, false)
-				_, _ = rclient.CreateCloudConfig("testcp", "testcl", "0", "default", "123")
+				_, _ = rclient.CreateCloudConfig(context.Background(), "testcp", "testcl", "0", "default", "123")
 			})
 			// 	It("instantiation should be successful", func() {
 
@@ -291,7 +292,7 @@ var _ = Describe("Logicalcloud", func() {
 			// 		quota := _createTestQuota("testquota")
 			// 		err := dcm.Instantiate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota})
 
-			// 		etcdKeys, _ := contextdb.Db.GetAllKeys("/")
+			// 		etcdKeys, _ := contextdb.Db.GetAllKeys(context.Background(), "/")
 			// 		appcontextId := strings.Split(etcdKeys[0], "/")[2]
 			// 		var val string
 
@@ -325,12 +326,12 @@ var _ = Describe("Logicalcloud", func() {
 			// 		// mockedValues = append(mockedValues, `{"appdependency":{"logical-cloud":"go"}}`) // [14]
 
 			// 		for _, k := range [5]int{0, 1, 2, 3, 4} { // TODO set to the 7 elements once issue fixed
-			// 			contextdb.Db.Get(mockedKeys[k], &val)
+			// 			contextdb.Db.Get(context.Background(), mockedKeys[k], &val)
 			// 			Expect(val).To(Equal(mockedValues[k]))
 			// 		}
 			// 	})
 
-			// TODO: uncomment/finalize once lcc.LoadAppContext(ctxVal) can be mocked
+			// TODO: uncomment/finalize once lcc.LoadAppContext(context.Background(), ctxVal) can be mocked
 			// It("termination should be successful when instantiated", func() {
 
 			// 	// Mock gRPC InstallApp()
@@ -356,11 +357,11 @@ var _ = Describe("Logicalcloud", func() {
 			// 		LogicalCloudName: "testlc",
 			// 		Project:          "project",
 			// 	}
-			// 	mdb.Insert("orchestrator", lckey, nil, "lccontext", "4714860942153963991")
+			// 	mdb.Insert(context.Background(), "orchestrator", lckey, nil, "lccontext", "4714860942153963991")
 
 			// 	err := dcm.Terminate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota})
 
-			// 	etcdKeys, _ := contextdb.Db.GetAllKeys("/")
+			// 	etcdKeys, _ := contextdb.Db.GetAllKeys(context.Background(), "/")
 			// 	Expect(len(etcdKeys)).To(Equal(0))
 
 			// 	Expect(err).ShouldNot(HaveOccurred())
@@ -379,7 +380,7 @@ var _ = Describe("Logicalcloud", func() {
 					UserData1:   "",
 					UserData2:   "",
 				}
-				mdb.Insert("resources", okey, nil, "data", p)
+				mdb.Insert(context.Background(), "resources", okey, nil, "data", p)
 			})
 			It("creation should succeed and return the resource created (2x - level 1 and level 0)", func() {
 				originalLogicalCloud := _createTestLogicalCloud("testlogicalCloudL1", "1")
@@ -495,7 +496,7 @@ var _ = Describe("Logicalcloud", func() {
 					Port: 9031,
 					Type: "",
 				}
-				mdb.Insert("resources", ctrlkey, nil, "data", ctrl)
+				mdb.Insert(context.Background(), "resources", ctrlkey, nil, "data", ctrl)
 
 				// Expect status to be Created
 				stateInfo, err = client.GetState("project", "testlogicalCloudL1")
@@ -534,7 +535,7 @@ var _ = Describe("Logicalcloud", func() {
 						Bytes: x509.MarshalPKCS1PrivateKey(pk),
 					},
 				))
-				mdb.Insert("resources", lkey, nil, "privatekey", string(pkData))
+				mdb.Insert(context.Background(), "resources", lkey, nil, "privatekey", string(pkData))
 
 				// Expect status to be Created
 				stateInfo, err = client.GetState("project", "testlogicalCloudL1")
@@ -609,7 +610,7 @@ func _createExistingLogicalCloud(mdb *db.NewMockDB, level string, standard bool,
 		UserData1:   "",
 		UserData2:   "",
 	}
-	mdb.Insert("resources", okey, nil, "data", p)
+	mdb.Insert(context.Background(), "resources", okey, nil, "data", p)
 
 	// create logical cloud in mocked db
 	lkey := common.LogicalCloudKey{
@@ -617,7 +618,7 @@ func _createExistingLogicalCloud(mdb *db.NewMockDB, level string, standard bool,
 		LogicalCloudName: "testlc",
 	}
 	lc := _createTestLogicalCloud("testlc", level)
-	mdb.Insert("resources", lkey, nil, "data", lc)
+	mdb.Insert(context.Background(), "resources", lkey, nil, "data", lc)
 
 	// add private key to logical cloud
 	pk, _ := rsa.GenerateKey(rand.Reader, 4096)
@@ -627,7 +628,7 @@ func _createExistingLogicalCloud(mdb *db.NewMockDB, level string, standard bool,
 			Bytes: x509.MarshalPKCS1PrivateKey(pk),
 		},
 	))
-	mdb.Insert("resources", lkey, nil, "privatekey", string(pkData))
+	mdb.Insert(context.Background(), "resources", lkey, nil, "privatekey", string(pkData))
 
 	// create cluster reference in mocked db
 	ckey := common.ClusterKey{
@@ -636,7 +637,7 @@ func _createExistingLogicalCloud(mdb *db.NewMockDB, level string, standard bool,
 		ClusterReference: "testcl",
 	}
 	cl := _createTestClusterReference("testcp", "testcl")
-	mdb.Insert("resources", ckey, nil, "data", cl)
+	mdb.Insert(context.Background(), "resources", ckey, nil, "data", cl)
 
 	// create quota in mocked db
 	qkey := dcm.QuotaKey{
@@ -645,7 +646,7 @@ func _createExistingLogicalCloud(mdb *db.NewMockDB, level string, standard bool,
 		QuotaName:        "testquota",
 	}
 	quota := _createTestQuota("testquota")
-	mdb.Insert("resources", qkey, nil, "data", quota)
+	mdb.Insert(context.Background(), "resources", qkey, nil, "data", quota)
 	upkey := dcm.UserPermissionKey{
 		Project:            "project",
 		LogicalCloudName:   "testlc",
@@ -655,12 +656,12 @@ func _createExistingLogicalCloud(mdb *db.NewMockDB, level string, standard bool,
 	// for the sake of testing, if this flag isn't specified it means this logical cloud is invalid as
 	// it doesn't specify its primary-namespace user permission, which is a requirement to any L1 LC.
 	if standard {
-		mdb.Insert("orchestrator", upkey, nil, "userpermission", _createTestUserPermission("testup", "testns"))
+		mdb.Insert(context.Background(), "orchestrator", upkey, nil, "userpermission", _createTestUserPermission("testup", "testns"))
 	}
 	// the privileged flag indicates whether this logical cloud is privileged and thus,
 	// for the sake of testing, a clusterwide user permission should be created
 	if privileged {
-		mdb.Insert("orchestrator", upkey, nil, "userpermission", _createTestUserPermission("testup", ""))
+		mdb.Insert(context.Background(), "orchestrator", upkey, nil, "userpermission", _createTestUserPermission("testup", ""))
 	}
 	// create rsync controller in database (for grpc calls)
 	ctrlkey := controller.ControllerKey{
@@ -679,7 +680,7 @@ func _createExistingLogicalCloud(mdb *db.NewMockDB, level string, standard bool,
 		Port: 9031,
 		Type: "",
 	}
-	mdb.Insert("resources", ctrlkey, nil, "data", ctrl)
+	mdb.Insert(context.Background(), "resources", ctrlkey, nil, "data", ctrl)
 }
 
 // functions that mock strings for appcontext K8s resources

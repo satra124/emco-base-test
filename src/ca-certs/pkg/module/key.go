@@ -4,6 +4,8 @@
 package module
 
 import (
+	"context"
+
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common/emcoerror"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 )
@@ -40,17 +42,17 @@ func NewKeyClient(dbKey interface{}) *KeyClient {
 
 // Save key in the mongo
 func (c *KeyClient) Save(pk Key) error {
-	return db.DBconn.Insert(c.dbInfo.StoreName, c.dbKey, nil, c.dbInfo.TagMeta, pk)
+	return db.DBconn.Insert(context.Background(), c.dbInfo.StoreName, c.dbKey, nil, c.dbInfo.TagMeta, pk)
 }
 
 // Delete key from mongo
 func (c *KeyClient) Delete() error {
-	return db.DBconn.Remove(c.dbInfo.StoreName, c.dbKey)
+	return db.DBconn.Remove(context.Background(), c.dbInfo.StoreName, c.dbKey)
 }
 
 // Get key from mongo
 func (c *KeyClient) Get() (Key, error) {
-	value, err := db.DBconn.Find(c.dbInfo.StoreName, c.dbKey, c.dbInfo.TagMeta)
+	value, err := db.DBconn.Find(context.Background(), c.dbInfo.StoreName, c.dbKey, c.dbInfo.TagMeta)
 	if err != nil {
 		return Key{}, err
 	}

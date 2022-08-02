@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 
+	"context"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/client/clusterprovider"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
@@ -145,20 +146,20 @@ func populateCertTestData() {
 	cpKey := clusterprovider.CaCertKey{
 		Cert:            cert.MetaData.Name,
 		ClusterProvider: "provider1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", cert)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", cert)
 
 	// cert 2
 	cert = mockCert("test-cert-2")
 	cpKey = clusterprovider.CaCertKey{
 		Cert:            cert.MetaData.Name,
 		ClusterProvider: "provider1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", cert)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", cert)
 
 	// cert 3
 	cert = mockCert("test-cert-3")
 	cpKey = clusterprovider.CaCertKey{
 		Cert:            cert.MetaData.Name,
 		ClusterProvider: "provider1"}
-	_ = mockdb.Insert("resources", cpKey, nil, "data", cert)
+	_ = mockdb.Insert(context.Background(), "resources", cpKey, nil, "data", cert)
 
 }

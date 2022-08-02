@@ -4,6 +4,7 @@
 package module
 
 import (
+	"context"
 	pkgerrors "github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 )
@@ -76,7 +77,7 @@ func (v *KeyValueClient) CreateKVPair(project, logicalCloud string, c KeyValue) 
 		return KeyValue{}, pkgerrors.New("Key Value already exists")
 	}
 
-	err = db.DBconn.Insert(v.storeName, key, nil, v.tagMeta, c)
+	err = db.DBconn.Insert(context.Background(), v.storeName, key, nil, v.tagMeta, c)
 	if err != nil {
 		return KeyValue{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -93,7 +94,7 @@ func (v *KeyValueClient) GetKVPair(project, logicalCloud, kvPairName string) (Ke
 		LogicalCloudName: logicalCloud,
 		KeyValueName:     kvPairName,
 	}
-	value, err := db.DBconn.Find(v.storeName, key, v.tagMeta)
+	value, err := db.DBconn.Find(context.Background(), v.storeName, key, v.tagMeta)
 	if err != nil {
 		return KeyValue{}, err
 	}
@@ -125,7 +126,7 @@ func (v *KeyValueClient) GetAllKVPairs(project, logicalCloud string) ([]KeyValue
 		KeyValueName:     "",
 	}
 	var resp []KeyValue
-	values, err := db.DBconn.Find(v.storeName, key, v.tagMeta)
+	values, err := db.DBconn.Find(context.Background(), v.storeName, key, v.tagMeta)
 	if err != nil {
 		return []KeyValue{}, err
 	}
@@ -151,7 +152,7 @@ func (v *KeyValueClient) DeleteKVPair(project, logicalCloud, kvPairName string) 
 		LogicalCloudName: logicalCloud,
 		KeyValueName:     kvPairName,
 	}
-	err := db.DBconn.Remove(v.storeName, key)
+	err := db.DBconn.Remove(context.Background(), v.storeName, key)
 	if err != nil {
 		return pkgerrors.Wrap(err, "Delete Key Value")
 	}
@@ -175,7 +176,7 @@ func (v *KeyValueClient) UpdateKVPair(project, logicalCloud, kvPairName string, 
 	if err != nil {
 		return KeyValue{}, err
 	}
-	err = db.DBconn.Insert(v.storeName, key, nil, v.tagMeta, c)
+	err = db.DBconn.Insert(context.Background(), v.storeName, key, nil, v.tagMeta, c)
 	if err != nil {
 		return KeyValue{}, pkgerrors.Wrap(err, "Updating DB Entry")
 	}

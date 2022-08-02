@@ -8,11 +8,12 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/contextupdate"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
-	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/context"
+	con "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/context"
 	"gitlab.com/project-emco/core/emco-base/src/tac/pkg/module"
 	eta "gitlab.com/project-emco/core/emco-base/src/workflowmgr/pkg/emcotemporalapi"
 
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -29,7 +30,7 @@ func UpdateAppContext(intentName, appContextId, hookType string) error {
 
 	var ac appcontext.AppContext
 
-	_, err := ac.LoadAppContext(appContextId)
+	_, err := ac.LoadAppContext(context.Background(), appContextId)
 	if err != nil {
 		logutils.Error("Failed to get the appContext.",
 			logutils.Fields{
@@ -37,12 +38,12 @@ func UpdateAppContext(intentName, appContextId, hookType string) error {
 		return errors.Wrapf(err, "Failed to get the appContext with ID: %s.", appContextId)
 	}
 
-	_, err = ac.GetCompositeAppHandle()
+	_, err = ac.GetCompositeAppHandle(context.Background())
 	if err != nil {
 		return err
 	}
 
-	appContext, err := context.ReadAppContext(appContextId)
+	appContext, err := con.ReadAppContext(context.Background(), appContextId)
 	if err != nil {
 		logutils.Error("Failed to get the compositeApp for the appContext.",
 			logutils.Fields{
@@ -110,7 +111,7 @@ func TerminateAppContext(appContextId string) error {
 
 	logutils.Info("Terminate TAC ... pre-terminate hooks starting.", logutils.Fields{})
 
-	_, err := ac.LoadAppContext(appContextId)
+	_, err := ac.LoadAppContext(context.Background(), appContextId)
 	if err != nil {
 		logutils.Error("Failed to get the appContext.",
 			logutils.Fields{
@@ -118,12 +119,12 @@ func TerminateAppContext(appContextId string) error {
 		return errors.Wrapf(err, "Failed to get the appContext with ID: %s.", appContextId)
 	}
 
-	_, err = ac.GetCompositeAppHandle()
+	_, err = ac.GetCompositeAppHandle(context.Background())
 	if err != nil {
 		return err
 	}
 
-	appContext, err := context.ReadAppContext(appContextId)
+	appContext, err := con.ReadAppContext(context.Background(), appContextId)
 	if err != nil {
 		logutils.Error("Failed to get the compositeApp for the appContext.",
 			logutils.Fields{
@@ -191,7 +192,7 @@ func PostEvent(appContextId string, et contextupdate.EventType) error {
 
 	logutils.Info("PostEvent TAC ... "+eventString[et]+" hooks starting.", logutils.Fields{})
 
-	_, err := ac.LoadAppContext(appContextId)
+	_, err := ac.LoadAppContext(context.Background(), appContextId)
 	if err != nil {
 		logutils.Error("PostEvent Failed to get the appContext.",
 			logutils.Fields{
@@ -199,12 +200,12 @@ func PostEvent(appContextId string, et contextupdate.EventType) error {
 		return errors.Wrapf(err, "PostEvent Failed to get the appContext with ID: %s.", appContextId)
 	}
 
-	_, err = ac.GetCompositeAppHandle()
+	_, err = ac.GetCompositeAppHandle(context.Background())
 	if err != nil {
 		return err
 	}
 
-	appContext, err := context.ReadAppContext(appContextId)
+	appContext, err := con.ReadAppContext(context.Background(), appContextId)
 	if err != nil {
 		logutils.Error("PostEvent Failed to get the compositeApp for the appContext.",
 			logutils.Fields{

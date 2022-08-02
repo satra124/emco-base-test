@@ -4,7 +4,6 @@
 package cluster
 
 import (
-	"context"
 	"strings"
 	"time"
 
@@ -18,6 +17,8 @@ import (
 
 	clmController "gitlab.com/project-emco/core/emco-base/src/clm/pkg/controller"
 	clmcontrollerpb "gitlab.com/project-emco/core/emco-base/src/clm/pkg/grpc/controller-eventchannel"
+
+	"context"
 
 	clmcontrollereventchannelclient "gitlab.com/project-emco/core/emco-base/src/clm/pkg/grpc/controllereventchannelclient"
 )
@@ -145,7 +146,6 @@ func NewClusterClient() *ClusterClient {
 
 // CreateClusterProvider - create a new Cluster Provider
 func (v *ClusterClient) CreateClusterProvider(p ClusterProvider, exists bool) (ClusterProvider, error) {
-	ctx := context.Background()
 
 	//Construct key and tag to select the entry
 	key := ClusterProviderKey{
@@ -158,7 +158,7 @@ func (v *ClusterClient) CreateClusterProvider(p ClusterProvider, exists bool) (C
 		return ClusterProvider{}, pkgerrors.New("ClusterProvider already exists")
 	}
 
-	err = db.DBconn.Insert(ctx, v.db.storeName, key, nil, v.db.tagMeta, p)
+	err = db.DBconn.Insert(context.Background(), v.db.storeName, key, nil, v.db.tagMeta, p)
 	if err != nil {
 		return ClusterProvider{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -222,20 +222,18 @@ func (v *ClusterClient) GetClusterProviders() ([]ClusterProvider, error) {
 
 // DeleteClusterProvider the  ClusterProvider from database
 func (v *ClusterClient) DeleteClusterProvider(name string) error {
-	ctx := context.Background()
 
 	//Construct key and tag to select the entry
 	key := ClusterProviderKey{
 		ClusterProviderName: name,
 	}
 
-	err := db.DBconn.Remove(ctx, v.db.storeName, key)
+	err := db.DBconn.Remove(context.Background(), v.db.storeName, key)
 	return err
 }
 
 // CreateCluster - create a new Cluster for a cluster-provider
 func (v *ClusterClient) CreateCluster(provider string, p Cluster, q ClusterContent) (Cluster, error) {
-	ctx := context.Background()
 
 	//Construct key and tag to select the entry
 	key := ClusterKey{
@@ -249,7 +247,7 @@ func (v *ClusterClient) CreateCluster(provider string, p Cluster, q ClusterConte
 		return Cluster{}, pkgerrors.New("Cluster already exists")
 	}
 
-	err = db.DBconn.Insert(ctx, v.db.storeName, key, nil, v.db.tagMeta, p)
+	err = db.DBconn.Insert(context.Background(), v.db.storeName, key, nil, v.db.tagMeta, p)
 	if err != nil {
 		return Cluster{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -263,20 +261,20 @@ func (v *ClusterClient) CreateCluster(provider string, p Cluster, q ClusterConte
 	}
 	s.Actions = append(s.Actions, a)
 
-	err = db.DBconn.Insert(ctx, v.db.storeName, key, nil, v.db.tagState, s)
+	err = db.DBconn.Insert(context.Background(), v.db.storeName, key, nil, v.db.tagState, s)
 	if err != nil {
 		return Cluster{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
 
 	ccc := rsync.NewCloudConfigClient()
 
-	_, err = ccc.CreateCloudConfig(ctx, provider, p.Metadata.Name, "0", "default", q.Kubeconfig)
+	_, err = ccc.CreateCloudConfig(context.Background(), provider, p.Metadata.Name, "0", "default", q.Kubeconfig)
 	if err != nil {
 		return Cluster{}, pkgerrors.Wrap(err, "Error creating cloud config")
 	}
 
 	if p.Spec.Props.GitOpsType != "" {
-		_, err = ccc.CreateGitOpsConfig(ctx, provider, p.Metadata.Name, p.Spec, "0", "default")
+		_, err = ccc.CreateGitOpsConfig(context.Background(), provider, p.Metadata.Name, p.Spec, "0", "default")
 		if err != nil {
 			return Cluster{}, pkgerrors.Wrap(err, "Error creating cloud config")
 		}
@@ -458,8 +456,6 @@ func (v *ClusterClient) GetClustersWithLabel(provider, label string) ([]string, 
 
 // DeleteCluster the  Cluster from database
 func (v *ClusterClient) DeleteCluster(provider, name string) error {
-	ctx := context.Background()
-
 	//Construct key and tag to select the entry
 	key := ClusterKey{
 		ClusterProviderName: provider,
@@ -470,7 +466,7 @@ func (v *ClusterClient) DeleteCluster(provider, name string) error {
 	if err != nil {
 		// If the StateInfo cannot be found, then a proper cluster record is not present.
 		// Call the DB delete to clean up any errant record without a StateInfo element that may exist.
-		err = db.DBconn.Remove(ctx, v.db.storeName, key)
+		err = db.DBconn.Remove(context.Background(), v.db.storeName, key)
 		return err
 	}
 
@@ -487,19 +483,19 @@ func (v *ClusterClient) DeleteCluster(provider, name string) error {
 	if stateVal == state.StateEnum.Terminated || stateVal == state.StateEnum.TerminateStopped {
 		// Verify that the appcontext has completed terminating
 		ctxid := state.GetLastContextIdFromStateInfo(s)
-		acStatus, err := state.GetAppContextStatus(ctx, ctxid)
+		acStatus, err := state.GetAppContextStatus(context.Background(), ctxid)
 		if err == nil &&
 			!(acStatus.Status == appcontext.AppContextStatusEnum.Terminated || acStatus.Status == appcontext.AppContextStatusEnum.TerminateFailed) {
 			return pkgerrors.Errorf("Network intents for cluster have not completed terminating " + name)
 		}
 
 		for _, id := range state.GetContextIdsFromStateInfo(s) {
-			context, err := state.GetAppContextFromId(ctx, id)
+			appCtx, err := state.GetAppContextFromId(context.Background(), id)
 			if err != nil {
 				log.Info("Delete Cluster .. appcontext not found", log.Fields{"clusterProvider": provider, "cluster": name, "appContext": id})
 				continue
 			}
-			err = context.DeleteCompositeApp(ctx)
+			err = appCtx.DeleteCompositeApp(context.Background())
 			if err != nil {
 				return pkgerrors.Wrap(err, "Error deleting appcontext for Cluster")
 			}
@@ -507,7 +503,7 @@ func (v *ClusterClient) DeleteCluster(provider, name string) error {
 	}
 
 	// Remove the cluster resource
-	err = db.DBconn.Remove(ctx, v.db.storeName, key)
+	err = db.DBconn.Remove(context.Background(), v.db.storeName, key)
 	if err != nil {
 		return pkgerrors.Wrap(err, "Delete Cluster Entry;")
 	}
@@ -526,7 +522,7 @@ func (v *ClusterClient) DeleteCluster(provider, name string) error {
 	// Delete the Cloud Config resource associated with this cluster
 	ccc := rsync.NewCloudConfigClient()
 
-	err = ccc.DeleteCloudConfig(ctx, provider, name, "0", "default")
+	err = ccc.DeleteCloudConfig(context.Background(), provider, name, "0", "default")
 	if err != nil {
 		log.Warn("DeleteCluster .. error deleting cloud config", log.Fields{"clusterProvider": provider, "cluster": name, "error": err})
 	}
@@ -536,8 +532,6 @@ func (v *ClusterClient) DeleteCluster(provider, name string) error {
 
 // CreateClusterLabel - create a new Cluster Label mongo document for a cluster-provider/cluster
 func (v *ClusterClient) CreateClusterLabel(provider string, cluster string, p ClusterLabel, exists bool) (ClusterLabel, error) {
-	ctx := context.Background()
-
 	//Construct key and tag to select the entry
 	key := ClusterLabelKey{
 		ClusterProviderName: provider,
@@ -551,7 +545,7 @@ func (v *ClusterClient) CreateClusterLabel(provider string, cluster string, p Cl
 		return ClusterLabel{}, pkgerrors.New("Cluster Label already exists")
 	}
 
-	err = db.DBconn.Insert(ctx, v.db.storeName, key, nil, v.db.tagMeta, p)
+	err = db.DBconn.Insert(context.Background(), v.db.storeName, key, nil, v.db.tagMeta, p)
 	if err != nil {
 		return ClusterLabel{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -623,8 +617,6 @@ func (v *ClusterClient) GetClusterLabels(provider, cluster string) ([]ClusterLab
 
 // DeleteClusterLabel ... Delete the Cluster Label from database
 func (v *ClusterClient) DeleteClusterLabel(provider, cluster, label string) error {
-	ctx := context.Background()
-
 	//Construct key and tag to select the entry
 	key := ClusterLabelKey{
 		ClusterProviderName: provider,
@@ -632,14 +624,12 @@ func (v *ClusterClient) DeleteClusterLabel(provider, cluster, label string) erro
 		ClusterLabelName:    label,
 	}
 
-	err := db.DBconn.Remove(ctx, v.db.storeName, key)
+	err := db.DBconn.Remove(context.Background(), v.db.storeName, key)
 	return err
 }
 
 // CreateClusterKvPairs - Create a New Cluster KV pairs document
 func (v *ClusterClient) CreateClusterKvPairs(provider string, cluster string, p ClusterKvPairs, exists bool) (ClusterKvPairs, error) {
-	ctx := context.Background()
-
 	key := ClusterKvPairsKey{
 		ClusterProviderName: provider,
 		ClusterName:         cluster,
@@ -652,7 +642,7 @@ func (v *ClusterClient) CreateClusterKvPairs(provider string, cluster string, p 
 		return ClusterKvPairs{}, pkgerrors.New("Cluster KV Pair already exists")
 	}
 
-	err = db.DBconn.Insert(ctx, v.db.storeName, key, nil, v.db.tagMeta, p)
+	err = db.DBconn.Insert(context.Background(), v.db.storeName, key, nil, v.db.tagMeta, p)
 	if err != nil {
 		return ClusterKvPairs{}, pkgerrors.Wrap(err, "Creating DB Entry")
 	}
@@ -761,8 +751,6 @@ func (v *ClusterClient) GetAllClusterKvPairs(provider, cluster string) ([]Cluste
 
 // DeleteClusterKvPairs the  ClusterKvPairs from database
 func (v *ClusterClient) DeleteClusterKvPairs(provider, cluster, kvpair string) error {
-	ctx := context.Background()
-
 	//Construct key and tag to select entry
 	key := ClusterKvPairsKey{
 		ClusterProviderName: provider,
@@ -770,7 +758,7 @@ func (v *ClusterClient) DeleteClusterKvPairs(provider, cluster, kvpair string) e
 		ClusterKvPairsName:  kvpair,
 	}
 
-	err := db.DBconn.Remove(ctx, v.db.storeName, key)
+	err := db.DBconn.Remove(context.Background(), v.db.storeName, key)
 	return err
 }
 

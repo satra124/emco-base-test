@@ -6,6 +6,7 @@ package action_test
 import (
 	"strings"
 
+	"context"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
@@ -145,7 +146,7 @@ var _ = Describe("SFCAction", func() {
 		cdb = new(contextdb.MockConDb)
 		cdb.Err = nil
 		contextdb.Db = cdb
-		cid, _ := cacontext.CreateCompApp(TestCA1)
+		cid, _ := cacontext.CreateCompApp(context.Background(), TestCA1)
 		contextIdCA1 = cid
 
 		// setup the mock DB resources
@@ -298,11 +299,11 @@ var _ = Describe("SFCAction", func() {
 		db.DBconn = mdb
 
 		// set up prerequisites
-		_, err := (*projClient).CreateProject(proj, false)
+		_, err := (*projClient).CreateProject(context.Background(), proj, false)
 		Expect(err).To(BeNil())
-		_, err = (*caClient).CreateCompositeApp(ca, "testp", false)
+		_, err = (*caClient).CreateCompositeApp(context.Background(), ca, "testp", false)
 		Expect(err).To(BeNil())
-		_, _, err = (*digClient).CreateDeploymentIntentGroup(dig, "testp", "chainCA", "v1", true)
+		_, _, err = (*digClient).CreateDeploymentIntentGroup(context.Background(), dig, "testp", "chainCA", "v1", true)
 		Expect(err).To(BeNil())
 		_, err = (*sfcClient).CreateSfcIntent(sfcIntent, "testp", "chainCA", "v1", "dig1", false)
 		Expect(err).To(BeNil())
@@ -390,7 +391,7 @@ var _ = Describe("SFCAction", func() {
 		err = (*sfcClient).DeleteSfcIntent("sfcIntentName", "testp", "chainCA", "v1", "dig1")
 		Expect(err).To(BeNil())
 
-		resultingCA, err = cacontext.ReadAppContext(contextIdCA1)
+		resultingCA, err = cacontext.ReadAppContext(context.Background(), contextIdCA1)
 		cacontext.PrintCompositeApp(resultingCA)
 
 		err = action.UpdateAppContext("dig1", contextIdCA1)
@@ -412,7 +413,7 @@ var _ = Describe("SFCAction", func() {
 		_, err = (*sfcProviderNetworkClient).CreateSfcProviderNetworkIntent(sfcRightProviderNetworkIntent, "testp", "chainCA", "v1", "dig1", "sfcIntentName2", false)
 		Expect(err).To(BeNil())
 
-		resultingCA, err = cacontext.ReadAppContext(contextIdCA1)
+		resultingCA, err = cacontext.ReadAppContext(context.Background(), contextIdCA1)
 		cacontext.PrintCompositeApp(resultingCA)
 
 		err = action.UpdateAppContext("dig1", contextIdCA1)

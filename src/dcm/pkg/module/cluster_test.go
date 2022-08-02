@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"context"
 	dcm "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 	common "gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
@@ -39,7 +40,7 @@ var _ = Describe("Cluster", func() {
 					UserData1:   "",
 					UserData2:   "",
 				}
-				mdb.Insert("orchestrator", okey, nil, "projectmetadata", p)
+				mdb.Insert(context.Background(), "orchestrator", okey, nil, "projectmetadata", p)
 				// create logical cloud in mocked db
 				lkey := common.LogicalCloudKey{
 					Project:          "project",
@@ -56,7 +57,7 @@ var _ = Describe("Cluster", func() {
 					NameSpace: "anything",
 					Level:     "1",
 				}
-				mdb.Insert("orchestrator", lkey, nil, "logicalcloud", lc)
+				mdb.Insert(context.Background(), "orchestrator", lkey, nil, "logicalcloud", lc)
 			})
 			It("creation should succeed and return the resource created", func() {
 				Skip("temporarily disabled")

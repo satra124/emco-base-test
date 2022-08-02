@@ -4,6 +4,7 @@
 package module
 
 import (
+	"context"
 	"time"
 
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
@@ -48,12 +49,12 @@ func (c *StateClient) Create(contextID string) error {
 	s := state.StateInfo{}
 	s.Actions = append(s.Actions, a)
 
-	return db.DBconn.Insert(c.dbInfo.StoreName, c.dbKey, nil, c.dbInfo.TagState, s)
+	return db.DBconn.Insert(context.Background(), c.dbInfo.StoreName, c.dbKey, nil, c.dbInfo.TagState, s)
 }
 
 // Get the stateInfo from mongo
 func (c *StateClient) Get() (state.StateInfo, error) {
-	values, err := db.DBconn.Find(c.dbInfo.StoreName, c.dbKey, c.dbInfo.TagState)
+	values, err := db.DBconn.Find(context.Background(), c.dbInfo.StoreName, c.dbKey, c.dbInfo.TagState)
 	if err != nil {
 		return state.StateInfo{}, err
 	}
@@ -102,7 +103,7 @@ func (c *StateClient) Update(newState state.StateValue,
 		s.StatusContextId = contextID
 		s.Actions = append(s.Actions, a)
 
-		if err = db.DBconn.Insert(c.dbInfo.StoreName, c.dbKey, nil, c.dbInfo.TagState, s); err != nil {
+		if err = db.DBconn.Insert(context.Background(), c.dbInfo.StoreName, c.dbKey, nil, c.dbInfo.TagState, s); err != nil {
 			return err
 		}
 
@@ -122,7 +123,7 @@ func (c *StateClient) Update(newState state.StateValue,
 
 // Delete the stateInfo
 func (c *StateClient) Delete() error {
-	return db.DBconn.Remove(c.dbInfo.StoreName, c.dbKey)
+	return db.DBconn.Remove(context.Background(), c.dbInfo.StoreName, c.dbKey)
 }
 
 // VerifyState verifies the enrollment\distribution state
@@ -136,7 +137,7 @@ func (sc *StateClient) VerifyState(event common.EmcoEvent) (string, error) {
 
 	contextID = state.GetLastContextIdFromStateInfo(s)
 	if contextID != "" {
-		status, err := state.GetAppContextStatus(contextID)
+		status, err := state.GetAppContextStatus(context.Background(), contextID)
 		if err != nil {
 			return contextID, err
 		}

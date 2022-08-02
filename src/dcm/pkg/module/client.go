@@ -79,10 +79,10 @@ func InvokeReadyNotify(appContextID string) error {
 		return nil
 	}
 
-	conn := rpc.GetRpcConn(rsyncName)
+	conn := rpc.GetRpcConn(context.Background(), rsyncName)
 	if conn == nil {
 		initRsyncClient()
-		conn = rpc.GetRpcConn(rsyncName)
+		conn = rpc.GetRpcConn(context.Background(), rsyncName)
 		if conn == nil {
 			log.Error("[ReadyNotify gRPC] connection error", log.Fields{"grpc-server": rsyncName})
 			return pkgerrors.Errorf("[ReadyNotify gRPC] connection error. grpc-server[%v]", rsyncName)
@@ -129,12 +129,12 @@ func processAlert(client readynotifypb.ReadyNotifyClient, stream readynotifypb.R
 	// so it's time for DCM to build all the L1 kubeconfigs and store them in CloudConfig
 
 	// get logical cloud using context logicalcloud meta:
-	_, err := ac.LoadAppContext(appContextID)
+	_, err := ac.LoadAppContext(context.Background(), appContextID)
 	if err != nil {
 		log.Error("[ReadyNotify gRPC] Error getting Logical Cloud using AppContext ID", log.Fields{"err": err})
 		return
 	}
-	lcmeta, err = ac.GetCompositeAppMeta()
+	lcmeta, err = ac.GetCompositeAppMeta(context.Background())
 	if err != nil {
 		log.Error("[ReadyNotify gRPC] Couldn't get Logical Cloud using AppContext ID", log.Fields{"err": err})
 		return
@@ -196,7 +196,7 @@ func addState(lcc *LogicalCloudClient, project, logicalCloud, cid, newState stri
 	s.StatusContextId = cid
 	s.Actions = append(s.Actions, a)
 
-	err = db.DBconn.Insert(lcc.storeName, lckey, nil, lcc.tagState, s)
+	err = db.DBconn.Insert(context.Background(), lcc.storeName, lckey, nil, lcc.tagState, s)
 	if err != nil {
 		log.Error("Error updating the state info of the LogicalCloud: ", log.Fields{"logicalCloud": logicalCloud})
 		return err
@@ -227,13 +227,13 @@ func unsubscribe(client readynotifypb.ReadyNotifyClient, appContextID string) er
 func checkAppContext(appContextID string) bool {
 	// Get the contextId from the label (id)
 	var ac appcontext.AppContext
-	_, err := ac.LoadAppContext(appContextID)
+	_, err := ac.LoadAppContext(context.Background(), appContextID)
 	if err != nil {
 		log.Error("AppContext not found", log.Fields{"appContextID": appContextID})
 		return false
 	}
 
-	appsOrder, err := ac.GetAppInstruction("order")
+	appsOrder, err := ac.GetAppInstruction(context.Background(), "order")
 	if err != nil {
 		return false
 	}
@@ -241,7 +241,7 @@ func checkAppContext(appContextID string) bool {
 	json.Unmarshal([]byte(appsOrder.(string)), &appList)
 
 	for _, app := range appList["apporder"] {
-		clusterNames, err := ac.GetClusterNames(app)
+		clusterNames, err := ac.GetClusterNames(context.Background(), app)
 		if err != nil {
 			return false
 		}
@@ -254,19 +254,19 @@ func checkAppContext(appContextID string) bool {
 			if gitOps {
 				continue
 			}
-			chandle, err := ac.GetClusterHandle(app, clusterNames[k])
+			chandle, err := ac.GetClusterHandle(context.Background(), app, clusterNames[k])
 			if err != nil {
 				log.Info("Error getting cluster handle", log.Fields{"cluster": clusterNames[k]})
 				return false
 			}
 			// Get the handle for the cluster status object
-			handle, err := ac.GetLevelHandle(chandle, "status")
+			handle, err := ac.GetLevelHandle(context.Background(), chandle, "status")
 			if err != nil {
 				log.Error("Couldn't fetch the handle for the cluster status object", log.Fields{"chandle": chandle})
 				return false
 			}
 
-			clusterStatus, err := ac.GetValue(handle)
+			clusterStatus, err := ac.GetValue(context.Background(), handle)
 			if err != nil {
 				log.Error("Couldn't fetch cluster status from its handle", log.Fields{"handle": handle})
 				return false

@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 
+	"context"
 	"github.com/gorilla/mux"
 	dcm "gitlab.com/project-emco/core/emco-base/src/dcm/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common"
@@ -66,7 +67,7 @@ func (h logicalCloudHandler) createHandler(w http.ResponseWriter, r *http.Reques
 	// Validate that the specified Project exists
 	// before associating a Logical Cloud with it
 	p := orch.NewProjectClient()
-	_, err = p.GetProject(project)
+	_, err = p.GetProject(context.Background(), project)
 	if err != nil {
 		apiErr := apierror.HandleErrors(vars, err, v, apiErrors)
 		http.Error(w, apiErr.Message, apiErr.Status)
@@ -314,7 +315,7 @@ func (h logicalCloudHandler) terminateHandler(w http.ResponseWriter, r *http.Req
 
 	// Check if any DIGs are associated to this logical cloud before attempting any termination
 	digClient := orch.NewDeploymentIntentGroupClient()
-	digs, _ := digClient.GetAllDeploymentIntentGroups(project, "", "")
+	digs, _ := digClient.GetAllDeploymentIntentGroups(context.Background(), project, "", "")
 
 	// filter DIGs for given Logical Cloud
 	for _, dig := range digs {
