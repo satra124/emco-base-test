@@ -56,6 +56,9 @@ metadata:
 spec:
   profile: minimal
   meshConfig:
+    # Block all the outbound traffic directly going out by setting the mode to REGISTRY_ONLY
+    outboundTrafficPolicy:
+      mode: REGISTRY_ONLY
     accessLogFile: /dev/stdout
     enableAutoMtls: true
     defaultConfig:
@@ -593,3 +596,87 @@ curl -v -HHost:httpbin.example.com --resolve "httpbin.example.com:$SECURE_INGRES
       \_     _/
         `"""`
 * Connection #0 to host httpbin.example.com left intact
+```
+
+# Example connecting to external mysql database from the EMCO managed cluster
+
+## Start the mysql server on the host
+
+```
+sudo apt update
+sudo apt install mysql-server
+sudo systemctl start mysql.service
+```
+## Build mysql client image
+```
+export DOCKER_REG=<docker reg>
+cd examples/test-apps/mysql
+./mysql-build.sh
+```
+## Create mysql client on the cluster
+```
+cd ../../helm_charts/mysql-client/helm/mysql
+helm install mysql .
+```
+### Apply the following service entry
+
+```
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-svc-mysql
+spec:
+  hosts:
+  # hostname where the mysql server is running
+  - <hostname>
+  addresses:
+  # vip for this service entry, traffic for this IP will be captured
+  # by the sidecar and routed appropriately.
+  - 240.0.0.4
+  ports:
+  - number: 3306
+    name: mysql
+    protocol: TCP
+  location: MESH_EXTERNAL
+  resolution: STATIC
+  # The endpoint address points to the ip address of the mysql server
+  endpoints:
+  - address: 172.25.55.65
+```
+## Create http client on the cluster
+```
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: nginx-ext
+spec:
+  hosts:
+  - <hostname>
+  addresses:
+  - <vip address>
+  ports:
+  - number: 80
+    name: http
+    protocol: HTTP
+  location: MESH_EXTERNAL
+  resolution: STATIC
+  endpoints:
+  - address: 172.25.55.65
+```
+
+## Create https client on the cluster
+```
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: google
+spec:
+  hosts:
+  - www.google.com
+  ports:
+  - number: 443
+    name: https
+    protocol: HTTPS
+  resolution: DNS
+  location: MESH_EXTERNAL
+```
