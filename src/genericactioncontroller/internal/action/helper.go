@@ -36,7 +36,7 @@ type updateError struct {
 
 // isValidClusterToApplyByLabel checks if a given cluster falls under the given label and provider
 func isValidClusterToApplyByLabel(provider, clusterName, clusterLabel, mode string) (bool, error) {
-	clusters, err := cluster.NewClusterClient().GetClustersWithLabel(provider, clusterLabel)
+	clusters, err := cluster.NewClusterClient().GetClustersWithLabel(context.Background(), provider, clusterLabel)
 	if err != nil {
 		log.Error("Failed to get clusters by the provider and label",
 			log.Fields{
@@ -59,7 +59,7 @@ func isValidClusterToApplyByLabel(provider, clusterName, clusterLabel, mode stri
 
 // isValidClusterToApplyByName checks if a given cluster under a provider matches with the cluster which is authenticated for
 func isValidClusterToApplyByName(provider, authenticatedCluster, givenCluster, mode string) (bool, error) {
-	clusters, err := cluster.NewClusterClient().GetClusters(provider)
+	clusters, err := cluster.NewClusterClient().GetClusters(context.Background(), provider)
 	if err != nil {
 		log.Error("Failed to get clusters by the provider",
 			log.Fields{

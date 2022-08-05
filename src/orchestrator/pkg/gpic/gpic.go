@@ -9,6 +9,7 @@ package gpic
 */
 
 import (
+	"context"
 	"log"
 	"strconv"
 
@@ -70,7 +71,7 @@ var intentResolverHelper = func(pn, cn, cln string, clusters []ClusterWithName) 
 	}
 	if cn == "" && cln != "" {
 		//Finding cluster names for the clusterlabel
-		clusterNamesList, err := cluster.NewClusterClient().GetClustersWithLabel(pn, cln)
+		clusterNamesList, err := cluster.NewClusterClient().GetClustersWithLabel(context.Background(), pn, cln)
 		if err != nil {
 			return []ClusterWithName{}, pkgerrors.Wrap(err, "Error getting clusterLabels")
 		}

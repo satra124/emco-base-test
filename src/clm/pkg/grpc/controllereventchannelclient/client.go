@@ -15,17 +15,17 @@ import (
 )
 
 // SendControllerEvent ..  will make the grpc call to the specified controller
-func SendControllerEvent(providerName string, clusterName string, event clmcontrollerpb.ClmControllerEventType, clmCtrl clmModel.Controller) error {
+func SendControllerEvent(ctx context.Context, providerName string, clusterName string, event clmcontrollerpb.ClmControllerEventType, clmCtrl clmModel.Controller) error {
 	controllerName := clmCtrl.Metadata.Name
 	log.Info("SendControllerEvent .. start", log.Fields{"provider-name": providerName, "cluster-name": clusterName, "event": event, "controller": clmCtrl})
 	var err error
 	var rpcClient clmcontrollerpb.ClmControllerEventChannelClient
 	var ctrlRes *clmcontrollerpb.ClmControllerEventResponse
-	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 	defer cancel()
 
 	// Fetch Grpc Connection handle
-	conn := rpc.GetRpcConn(context.Background(), clmCtrl.Metadata.Name)
+	conn := rpc.GetRpcConn(ctx, clmCtrl.Metadata.Name)
 	if conn != nil {
 		rpcClient = clmcontrollerpb.NewClmControllerEventChannelClient(conn)
 		ctrlReq := new(clmcontrollerpb.ClmControllerEventRequest)

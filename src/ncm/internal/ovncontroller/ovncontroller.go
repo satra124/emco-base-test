@@ -72,7 +72,7 @@ func Apply(ctxVal interface{}, clusterProvider, cluster string) error {
 	if err != nil {
 		return pkgerrors.Wrapf(err, "Error getting AppContext with Id: %v for %v/%v", ctxVal, clusterProvider, cluster)
 	}
-	ckv, err := clusterPkg.NewClusterClient().GetAllClusterKvPairs(clusterProvider, cluster)
+	ckv, err := clusterPkg.NewClusterClient().GetAllClusterKvPairs(context.Background(), clusterProvider, cluster)
 	var val string
 	if err == nil {
 		for _, kvp := range ckv {

@@ -40,7 +40,7 @@ func (d clusterHelpers) GetAppContextId(ctx context.Context, reg *statusnotifypb
 		return "", err
 	}
 
-	si, err := clustermodule.NewClusterClient().GetClusterState(clusterProvider, cluster)
+	si, err := clustermodule.NewClusterClient().GetClusterState(context.Background(), clusterProvider, cluster)
 	if err != nil {
 		return "", pkgerrors.Wrapf(err, "Cluster state not found: %v+%v", clusterProvider, cluster)
 	}

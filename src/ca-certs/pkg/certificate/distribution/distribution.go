@@ -210,7 +210,7 @@ func (ctx *DistributionContext) createCertManagerIssuerResources() error {
 // createServiceResources creates the resources based on the service mesh type
 func (ctx *DistributionContext) createServiceResources() error {
 	var serviceType string
-	val, err := clm.NewClusterClient().GetClusterKvPairsValue(ctx.ClusterGroup.Spec.Provider, ctx.Cluster, "serviceMeshInfo", "serviceType")
+	val, err := clm.NewClusterClient().GetClusterKvPairsValue(context.Background(), ctx.ClusterGroup.Spec.Provider, ctx.Cluster, "serviceMeshInfo", "serviceType")
 	if err == nil {
 		serviceType = val.(string)
 	}

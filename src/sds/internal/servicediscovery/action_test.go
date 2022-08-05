@@ -96,7 +96,7 @@ func CreateClusterLabel(provider, clu string) error {
 		},
 	}
 
-	_, _ = client.CreateClusterProvider(cp, false)
+	_, _ = client.CreateClusterProvider(context.Background(), cp, false)
 	c := cluster.Cluster{
 		Metadata: mtypes.Metadata{
 			Name:        clu,
@@ -108,13 +108,13 @@ func CreateClusterLabel(provider, clu string) error {
 	cc := cluster.ClusterContent{
 		Kubeconfig: "dummydata",
 	}
-	_, _ = client.CreateCluster(provider, c, cc)
+	_, _ = client.CreateCluster(context.Background(), provider, c, cc)
 
 	cl := cluster.ClusterLabel{
 		LabelName: "networkpolicy-supported",
 	}
 
-	_, _ = client.CreateClusterLabel(provider, clu, cl, false)
+	_, _ = client.CreateClusterLabel(context.Background(), provider, clu, cl, false)
 
 	return nil
 

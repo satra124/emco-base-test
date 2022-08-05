@@ -128,21 +128,21 @@ func getClusters(group ClusterGroup) (clusters []string, err error) {
 	switch strings.ToLower(group.Spec.Scope) {
 	case "name":
 		// get cluster by provider and the name
-		if _, err = clm.NewClusterClient().GetCluster(group.Spec.Provider, group.Spec.Cluster); err != nil {
+		if _, err = clm.NewClusterClient().GetCluster(context.Background(), group.Spec.Provider, group.Spec.Cluster); err != nil {
 			return clusters, err
 		}
 
 		clusters = append(clusters, group.Spec.Cluster)
 	case "label":
 		// get clusters by label
-		list, err := clm.NewClusterClient().GetClustersWithLabel(group.Spec.Provider, group.Spec.Label)
+		list, err := clm.NewClusterClient().GetClustersWithLabel(context.Background(), group.Spec.Provider, group.Spec.Label)
 		if err != nil {
 			return clusters, err
 		}
 
 		for _, name := range list {
 			// get cluster by provider and the name
-			if _, err = clm.NewClusterClient().GetCluster(group.Spec.Provider, name); err != nil {
+			if _, err = clm.NewClusterClient().GetCluster(context.Background(), group.Spec.Provider, name); err != nil {
 				return clusters, err
 			}
 		}

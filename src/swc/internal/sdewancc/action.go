@@ -376,7 +376,7 @@ func getClusterKvPair(c, kvkey string) (string, error) {
 		})
 		return "", pkgerrors.New("Not a valid cluster name")
 	}
-	ckv, err := clusterPkg.NewClusterClient().GetAllClusterKvPairs(parts[0], parts[1])
+	ckv, err := clusterPkg.NewClusterClient().GetAllClusterKvPairs(context.Background(), parts[0], parts[1])
 	var val string
 	if err == nil {
 		for _, kvp := range ckv {

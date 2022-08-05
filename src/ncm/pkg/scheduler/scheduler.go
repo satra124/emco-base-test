@@ -130,7 +130,7 @@ func callRsyncUninstall(contextid interface{}) error {
 // Apply Network Intents associated with a cluster
 func (v *SchedulerClient) ApplyNetworkIntents(clusterProvider, cluster string) error {
 
-	s, err := clusterPkg.NewClusterClient().GetClusterState(clusterProvider, cluster)
+	s, err := clusterPkg.NewClusterClient().GetClusterState(context.Background(), clusterProvider, cluster)
 	if err != nil {
 		return err
 	}
@@ -259,7 +259,7 @@ func (v *SchedulerClient) ApplyNetworkIntents(clusterProvider, cluster string) e
 
 // Terminate Network Intents associated with a cluster
 func (v *SchedulerClient) TerminateNetworkIntents(clusterProvider, cluster string) error {
-	s, err := clusterPkg.NewClusterClient().GetClusterState(clusterProvider, cluster)
+	s, err := clusterPkg.NewClusterClient().GetClusterState(context.Background(), clusterProvider, cluster)
 	if err != nil {
 		return pkgerrors.Wrapf(err, "Error finding StateInfo for cluster: %v, %v", clusterProvider, cluster)
 	}
@@ -320,7 +320,7 @@ func (v *SchedulerClient) TerminateNetworkIntents(clusterProvider, cluster strin
 
 // Stop Network Intent instantiation or termination associated with a cluster
 func (v *SchedulerClient) StopNetworkIntents(clusterProvider, cluster string) error {
-	s, err := clusterPkg.NewClusterClient().GetClusterState(clusterProvider, cluster)
+	s, err := clusterPkg.NewClusterClient().GetClusterState(context.Background(), clusterProvider, cluster)
 	if err != nil {
 		return pkgerrors.Wrapf(err, "Error finding StateInfo for cluster: %v, %v", clusterProvider, cluster)
 	}
@@ -391,7 +391,7 @@ the cluster network intents, which is made available in the appcontext
 */
 func (c SchedulerClient) NetworkIntentsStatus(clusterProvider, cluster, qInstance, qType, qOutput string, qApps, qClusters, qResources []string) (ClusterStatus, error) {
 
-	s, err := clusterPkg.NewClusterClient().GetClusterState(clusterProvider, cluster)
+	s, err := clusterPkg.NewClusterClient().GetClusterState(context.Background(), clusterProvider, cluster)
 	if err != nil {
 		return ClusterStatus{}, pkgerrors.Wrap(err, "Cluster state not found")
 	}
@@ -416,7 +416,7 @@ It returns the full StatusResult structure so it can be used with the status not
 */
 func (c SchedulerClient) GenericNetworkIntentsStatus(clusterProvider, cluster, qStatusInstance, qType, qOutput string, qApps, qClusters, qResources []string) (status.StatusResult, error) {
 
-	s, err := clusterPkg.NewClusterClient().GetClusterState(clusterProvider, cluster)
+	s, err := clusterPkg.NewClusterClient().GetClusterState(context.Background(), clusterProvider, cluster)
 	if err != nil {
 		return status.StatusResult{}, pkgerrors.Wrap(err, "Cluster state not found")
 	}

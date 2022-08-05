@@ -4,6 +4,7 @@
 package enrollment
 
 import (
+	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -35,7 +36,7 @@ func (ctx *EnrollmentContext) createCertManagerCertificateRequest() error {
 	ctx.CaCert.Spec.CertificateSigningInfo.Subject.Names.CommonName = commonName
 
 	// check if a cluster specific commonName is available
-	if val, err := clm.NewClusterClient().GetClusterKvPairsValue(ctx.ClusterGroup.Spec.Provider, ctx.Cluster, "csrData", "commonName"); err == nil {
+	if val, err := clm.NewClusterClient().GetClusterKvPairsValue(context.Background(), ctx.ClusterGroup.Spec.Provider, ctx.Cluster, "csrData", "commonName"); err == nil {
 		ctx.CaCert.Spec.CertificateSigningInfo.Subject.Names.CommonName = val.(string)
 	}
 

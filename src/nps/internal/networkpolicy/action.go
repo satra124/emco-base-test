@@ -172,7 +172,7 @@ func UpdateAppContext(intentName, appContextId string) error {
 				})
 				return pkgerrors.New("Not a valid cluster name")
 			}
-			cl, err := client.GetClusterLabel(parts[0], parts[1], "networkpolicy-supported")
+			cl, err := client.GetClusterLabel(context.Background(), parts[0], parts[1], "networkpolicy-supported")
 			if err != nil || cl.LabelName != "networkpolicy-supported" {
 				continue
 			}

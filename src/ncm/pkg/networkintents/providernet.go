@@ -78,7 +78,7 @@ func NewProviderNetClient() *ProviderNetClient {
 func (v *ProviderNetClient) CreateProviderNet(p ProviderNet, clusterProvider, cluster string, exists bool) (ProviderNet, error) {
 
 	// verify cluster exists and in state to add provider networks
-	s, err := clusterPkg.NewClusterClient().GetClusterState(clusterProvider, cluster)
+	s, err := clusterPkg.NewClusterClient().GetClusterState(context.Background(), clusterProvider, cluster)
 	if err != nil {
 		return ProviderNet{}, err
 	}
@@ -185,7 +185,7 @@ func (v *ProviderNetClient) GetProviderNets(clusterProvider, cluster string) ([]
 // Delete the  ProviderNet from database
 func (v *ProviderNetClient) DeleteProviderNet(name, clusterProvider, cluster string) error {
 	// verify cluster is in a state where provider network intent can be deleted
-	s, err := clusterPkg.NewClusterClient().GetClusterState(clusterProvider, cluster)
+	s, err := clusterPkg.NewClusterClient().GetClusterState(context.Background(), clusterProvider, cluster)
 	if err != nil {
 		return err
 	}

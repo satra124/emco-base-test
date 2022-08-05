@@ -114,7 +114,7 @@ func UpdateAppContext(intentName, appContextId string) error {
 			}
 			pc := strings.Split(c, "+")
 			// Read the cluster kv pairs for cluster capabilities
-			ckv, err := clusterPkg.NewClusterClient().GetAllClusterKvPairs(pc[0], pc[1])
+			ckv, err := clusterPkg.NewClusterClient().GetAllClusterKvPairs(context.Background(), pc[0], pc[1])
 			var allIntf, cniWrapper string
 			// Deafults
 			allIntf = "false"

@@ -83,7 +83,7 @@ func (v *NetworkClient) CreateNetwork(p Network, clusterProvider, cluster string
 	}
 
 	//Check if cluster exists and in a state for adding network intents
-	s, err := clusterPkg.NewClusterClient().GetClusterState(clusterProvider, cluster)
+	s, err := clusterPkg.NewClusterClient().GetClusterState(context.Background(), clusterProvider, cluster)
 	if err != nil {
 		return Network{}, err
 	}
@@ -183,7 +183,7 @@ func (v *NetworkClient) GetNetworks(clusterProvider, cluster string) ([]Network,
 // Delete the  Network from database
 func (v *NetworkClient) DeleteNetwork(name, clusterProvider, cluster string) error {
 	// verify cluster is in a state where network intent can be deleted
-	s, err := clusterPkg.NewClusterClient().GetClusterState(clusterProvider, cluster)
+	s, err := clusterPkg.NewClusterClient().GetClusterState(context.Background(), clusterProvider, cluster)
 	if err != nil {
 		return err
 	}
