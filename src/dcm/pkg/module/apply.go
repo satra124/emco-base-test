@@ -83,13 +83,13 @@ type RoleRef struct {
 	ApiGroup string `yaml:"apiGroup"`
 }
 
-func cleanupCompositeApp(appCtx appcontext.AppContext, err error, reason string, details []string) error {
+func cleanupCompositeApp(ctx context.Context, appCtx appcontext.AppContext, err error, reason string, details []string) error {
 	if err == nil {
 		// create an error object to avoid wrap failures
 		err = pkgerrors.New("Composite App cleanup.")
 	}
 
-	cleanuperr := appCtx.DeleteCompositeApp(context.Background())
+	cleanuperr := appCtx.DeleteCompositeApp(ctx)
 	newerr := pkgerrors.Wrap(err, reason)
 	if cleanuperr != nil {
 		log.Warn("Error cleaning AppContext, ", log.Fields{
@@ -368,9 +368,9 @@ func createApprovalSubresource(logicalcloud common.LogicalCloud) (string, error)
 queryDBAndSetRsyncInfo queries the MCO db to find the record the sync controller
 and then sets the RsyncInfo global variable.
 */
-func queryDBAndSetRsyncInfo() (installappclient.RsyncInfo, error) {
+func queryDBAndSetRsyncInfo(ctx context.Context, ) (installappclient.RsyncInfo, error) {
 	client := controller.NewControllerClient("resources", "data", "orchestrator")
-	vals, _ := client.GetControllers(context.Background())
+	vals, _ := client.GetControllers(ctx)
 	for _, v := range vals {
 		if v.Metadata.Name == rsyncName {
 			log.Info("Initializing RPC connection to resource synchronizer", log.Fields{
@@ -384,8 +384,8 @@ func queryDBAndSetRsyncInfo() (installappclient.RsyncInfo, error) {
 }
 
 // callRsyncInstall method shall take in the app context id and invoke the rsync service via grpc
-func callRsyncInstall(contextid interface{}) error {
-	rsyncInfo, err := queryDBAndSetRsyncInfo()
+func callRsyncInstall(ctx context.Context, contextid interface{}) error {
+	rsyncInfo, err := queryDBAndSetRsyncInfo(ctx)
 	log.Info("Calling rsync", log.Fields{
 		"RsyncName": rsyncInfo.RsyncName,
 	})
@@ -395,7 +395,7 @@ func callRsyncInstall(contextid interface{}) error {
 	}
 
 	appContextID := fmt.Sprintf("%v", contextid)
-	err = installappclient.InvokeInstallApp(context.Background(), appContextID)
+	err = installappclient.InvokeInstallApp(ctx, appContextID)
 	if err != nil {
 		log.Error("", log.Fields{"err": err})
 		return err
@@ -404,8 +404,8 @@ func callRsyncInstall(contextid interface{}) error {
 }
 
 // callRsyncReadyNotify method shall take in the app context id and invoke the rsync ready-notify grpc api
-func callRsyncReadyNotify(contextid interface{}) error {
-	rsyncInfo, err := queryDBAndSetRsyncInfo()
+func callRsyncReadyNotify(ctx context.Context, contextid interface{}) error {
+	rsyncInfo, err := queryDBAndSetRsyncInfo(ctx)
 	log.Info("Calling rsync", log.Fields{
 		"RsyncName": rsyncInfo.RsyncName,
 	})
@@ -415,12 +415,12 @@ func callRsyncReadyNotify(contextid interface{}) error {
 	}
 
 	appContextID := fmt.Sprintf("%v", contextid)
-	return InvokeReadyNotify(appContextID) // see dcm/pkg/module/client.go
+	return InvokeReadyNotify(ctx, appContextID) // see dcm/pkg/module/client.go
 }
 
 // callRsyncUninstall method shall take in the app context id and invoke the rsync service via grpc
-func callRsyncUninstall(contextid interface{}) error {
-	rsyncInfo, err := queryDBAndSetRsyncInfo()
+func callRsyncUninstall(ctx context.Context, contextid interface{}) error {
+	rsyncInfo, err := queryDBAndSetRsyncInfo(ctx)
 	log.Info("Calling rsync", log.Fields{
 		"RsyncName": rsyncInfo.RsyncName,
 	})
@@ -430,7 +430,7 @@ func callRsyncUninstall(contextid interface{}) error {
 	}
 
 	appContextID := fmt.Sprintf("%v", contextid)
-	err = installappclient.InvokeUninstallApp(context.Background(), appContextID)
+	err = installappclient.InvokeUninstallApp(ctx, appContextID)
 	if err != nil {
 		log.Error("", log.Fields{"err": err})
 		return err
@@ -438,8 +438,8 @@ func callRsyncUninstall(contextid interface{}) error {
 	return nil
 }
 
-func callRsyncUpdate(FromContextid, ToContextid interface{}) error {
-	rsyncInfo, err := queryDBAndSetRsyncInfo()
+func callRsyncUpdate(ctx context.Context, FromContextid, ToContextid interface{}) error {
+	rsyncInfo, err := queryDBAndSetRsyncInfo(ctx)
 	log.Info("Calling the Rsync ", log.Fields{
 		"RsyncName": rsyncInfo.RsyncName,
 	})
@@ -449,7 +449,7 @@ func callRsyncUpdate(FromContextid, ToContextid interface{}) error {
 
 	fromAppContextID := fmt.Sprintf("%v", FromContextid)
 	toAppContextID := fmt.Sprintf("%v", ToContextid)
-	err = updateappclient.InvokeUpdateApp(context.Background(), fromAppContextID, toAppContextID)
+	err = updateappclient.InvokeUpdateApp(ctx, fromAppContextID, toAppContextID)
 	if err != nil {
 		return err
 	}
@@ -457,19 +457,19 @@ func callRsyncUpdate(FromContextid, ToContextid interface{}) error {
 }
 
 // TODO: use appCtx.ctxid instead of passing cid
-func prepL1ClusterAppContext(oldCid string, logicalcloud common.LogicalCloud, cluster common.Cluster, quotaList []Quota, userPermissionList []UserPermission, lcclient *LogicalCloudClient, lckey common.LogicalCloudKey, pkData string, appCtx appcontext.AppContext, cid string) error {
+func prepL1ClusterAppContext(ctx context.Context, oldCid string, logicalcloud common.LogicalCloud, cluster common.Cluster, quotaList []Quota, userPermissionList []UserPermission, lcclient *LogicalCloudClient, lckey common.LogicalCloudKey, pkData string, appCtx appcontext.AppContext, cid string) error {
 	logicalCloudName := logicalcloud.MetaData.Name
 	clusterName := strings.Join([]string{cluster.Specification.ClusterProvider, "+", cluster.Specification.ClusterName}, "")
-	appHandle, err := appCtx.GetAppHandle(context.Background(), lcAppName)                // caution: ignoring error
-	clusterHandle, err := appCtx.AddCluster(context.Background(), appHandle, clusterName) // caution: ignoring error
+	appHandle, err := appCtx.GetAppHandle(ctx, lcAppName)                // caution: ignoring error
+	clusterHandle, err := appCtx.AddCluster(ctx, appHandle, clusterName) // caution: ignoring error
 	// pre-build array to pass to cleanupCompositeApp() [for performance]
 	details := []string{logicalCloudName, clusterName, cid}
 
 	if err != nil {
-		return cleanupCompositeApp(appCtx, err, "Error adding Cluster to AppContext", details)
+		return cleanupCompositeApp(ctx, appCtx, err, "Error adding Cluster to AppContext", details)
 	}
 
-	gitOps, err := IsGitOpsCluster(clusterName)
+	gitOps, err := IsGitOpsCluster(ctx, clusterName)
 	if err != nil {
 		return err
 	}
@@ -496,9 +496,9 @@ func prepL1ClusterAppContext(oldCid string, logicalcloud common.LogicalCloud, cl
 	}
 
 	// Add namespace resource to each cluster
-	_, err = appCtx.AddResource(context.Background(), clusterHandle, namespaceName, namespace)
+	_, err = appCtx.AddResource(ctx, clusterHandle, namespaceName, namespace)
 	if err != nil {
-		return cleanupCompositeApp(appCtx, err, "Error adding Namespace Resource to AppContext", details)
+		return cleanupCompositeApp(ctx, appCtx, err, "Error adding Namespace Resource to AppContext", details)
 	}
 	resorderList := []string{namespaceName}
 	if !gitOps {
@@ -509,7 +509,7 @@ func prepL1ClusterAppContext(oldCid string, logicalcloud common.LogicalCloud, cl
 		}
 
 		// check to see if - in case of an update - if the csr was already created for this logical cloud
-		gotCsr, oldCsr := alreadyGotCsr(oldCid, appCtx, lcAppName, clusterName, csrName)
+		gotCsr, oldCsr := alreadyGotCsr(ctx, oldCid, appCtx, lcAppName, clusterName, csrName)
 		if gotCsr {
 			csr = oldCsr
 		}
@@ -519,15 +519,15 @@ func prepL1ClusterAppContext(oldCid string, logicalcloud common.LogicalCloud, cl
 			return pkgerrors.Wrap(err, "Error Creating approval subresource for logical cloud")
 		}
 		// Add csr resource to each cluster
-		csrHandle, err := appCtx.AddResource(context.Background(), clusterHandle, csrName, csr)
+		csrHandle, err := appCtx.AddResource(ctx, clusterHandle, csrName, csr)
 		if err != nil {
-			return cleanupCompositeApp(appCtx, err, "Error adding CSR Resource to AppContext", details)
+			return cleanupCompositeApp(ctx, appCtx, err, "Error adding CSR Resource to AppContext", details)
 		}
 
 		// Add csr approval as a subresource of csr
-		_, err = appCtx.AddLevelValue(context.Background(), csrHandle, "subresource/approval", approval)
+		_, err = appCtx.AddLevelValue(ctx, csrHandle, "subresource/approval", approval)
 		if err != nil {
-			return cleanupCompositeApp(appCtx, err, "Error approving CSR via AppContext", details)
+			return cleanupCompositeApp(ctx, appCtx, err, "Error approving CSR via AppContext", details)
 		}
 		resorderList = append(resorderList, csrName)
 
@@ -537,9 +537,9 @@ func prepL1ClusterAppContext(oldCid string, logicalcloud common.LogicalCloud, cl
 			return pkgerrors.Wrap(err, "Error creating subresource order JSON")
 		}
 
-		_, err = appCtx.AddInstruction(context.Background(), csrHandle, "subresource", "order", string(subresOrder))
+		_, err = appCtx.AddInstruction(ctx, csrHandle, "subresource", "order", string(subresOrder))
 		if err != nil {
-			return cleanupCompositeApp(appCtx, err, "Error adding instruction order to AppContext", details)
+			return cleanupCompositeApp(ctx, appCtx, err, "Error adding instruction order to AppContext", details)
 		}
 	} else {
 		sa, saName, err := createServiceAccount(logicalcloud)
@@ -547,34 +547,34 @@ func prepL1ClusterAppContext(oldCid string, logicalcloud common.LogicalCloud, cl
 			return pkgerrors.Wrap(err, "Error Creating SA for logical cloud")
 		}
 		// Add sa resource to each cluster
-		_, err = appCtx.AddResource(context.Background(), clusterHandle, saName, sa)
+		_, err = appCtx.AddResource(ctx, clusterHandle, saName, sa)
 		if err != nil {
-			return cleanupCompositeApp(appCtx, err, "Error adding SA Resource to AppContext", details)
+			return cleanupCompositeApp(ctx, appCtx, err, "Error adding SA Resource to AppContext", details)
 		}
 		resorderList = append(resorderList, saName)
 	}
 
 	// Add [Cluster]Role resources to each cluster
 	for i, roleName := range roleNames {
-		_, err = appCtx.AddResource(context.Background(), clusterHandle, roleName, roles[i])
+		_, err = appCtx.AddResource(ctx, clusterHandle, roleName, roles[i])
 		if err != nil {
-			return cleanupCompositeApp(appCtx, err, "Error adding [Cluster]Role Resource to AppContext", details)
+			return cleanupCompositeApp(ctx, appCtx, err, "Error adding [Cluster]Role Resource to AppContext", details)
 		}
 	}
 
 	// Add [Cluster]RoleBinding resource to each cluster
 	for i, roleBindingName := range roleBindingNames {
-		_, err = appCtx.AddResource(context.Background(), clusterHandle, roleBindingName, roleBindings[i])
+		_, err = appCtx.AddResource(ctx, clusterHandle, roleBindingName, roleBindings[i])
 		if err != nil {
-			return cleanupCompositeApp(appCtx, err, "Error adding [Cluster]RoleBinding Resource to AppContext", details)
+			return cleanupCompositeApp(ctx, appCtx, err, "Error adding [Cluster]RoleBinding Resource to AppContext", details)
 		}
 	}
 
 	// Add quota resources to each cluster
 	for i, quotaName := range quotaNames {
-		_, err = appCtx.AddResource(context.Background(), clusterHandle, quotaName, quotas[i])
+		_, err = appCtx.AddResource(ctx, clusterHandle, quotaName, quotas[i])
 		if err != nil {
-			return cleanupCompositeApp(appCtx, err, "Error adding quota Resource to AppContext", details)
+			return cleanupCompositeApp(ctx, appCtx, err, "Error adding quota Resource to AppContext", details)
 		}
 	}
 
@@ -588,9 +588,9 @@ func prepL1ClusterAppContext(oldCid string, logicalcloud common.LogicalCloud, cl
 	}
 
 	// Add Resource-level Order
-	_, err = appCtx.AddInstruction(context.Background(), clusterHandle, "resource", "order", string(resOrder))
+	_, err = appCtx.AddInstruction(ctx, clusterHandle, "resource", "order", string(resOrder))
 	if err != nil {
-		return cleanupCompositeApp(appCtx, err, "Error adding instruction order to AppContext", details)
+		return cleanupCompositeApp(ctx, appCtx, err, "Error adding instruction order to AppContext", details)
 	}
 
 	return nil
@@ -600,7 +600,7 @@ func prepL1ClusterAppContext(oldCid string, logicalcloud common.LogicalCloud, cl
 // judgements about that logical cloud. It doesn't check for any current status for that logical cloud, it
 // simply adds it to a new appcontext, with a new appcontext ID, even if it was previously there. Any
 // judgements about the logical cloud, and any calls to rsync, are done by either Instantiate() or Update().
-func blindInstantiateL0(project string, logicalcloud common.LogicalCloud, lcclient *LogicalCloudClient,
+func blindInstantiateL0(ctx context.Context, project string, logicalcloud common.LogicalCloud, lcclient *LogicalCloudClient,
 	clusterList []common.Cluster) (appcontext.AppContext, string, error) {
 	var err error
 	var appCtx appcontext.AppContext
@@ -617,7 +617,7 @@ func blindInstantiateL0(project string, logicalcloud common.LogicalCloud, lcclie
 		ccc := rsync.NewCloudConfigClient()
 		log.Info("Asking rsync's CloudConfig for this cluster's namespace at level-0", log.Fields{"cluster": cluster.Specification.ClusterName})
 		ns, err := ccc.GetNamespace(
-			context.Background(),
+			ctx,
 			cluster.Specification.ClusterProvider,
 			cluster.Specification.ClusterName,
 		)
@@ -643,7 +643,7 @@ func blindInstantiateL0(project string, logicalcloud common.LogicalCloud, lcclie
 	// at this point we know what namespace name to give to the logical cloud
 	logicalcloud.Specification.NameSpace = l0ns
 	// the following is an update operation:
-	err = db.DBconn.Insert(context.Background(), lcclient.storeName, lckey, nil, lcclient.tagMeta, logicalcloud)
+	err = db.DBconn.Insert(ctx, lcclient.storeName, lckey, nil, lcclient.tagMeta, logicalcloud)
 	if err != nil {
 		log.Error("Failed to update L0 logical cloud with a namespace name", log.Fields{"logicalcloud": logicalCloudName, "namespace": l0ns})
 		return appCtx, "", pkgerrors.Wrap(err, "Failed to update L0 logical cloud with a namespace name")
@@ -658,36 +658,36 @@ func blindInstantiateL0(project string, logicalcloud common.LogicalCloud, lcclie
 	}
 	cid := ctxVal.(string)
 
-	handle, err := appCtx.CreateCompositeApp(context.Background())
+	handle, err := appCtx.CreateCompositeApp(ctx)
 	if err != nil {
 		return appCtx, "", pkgerrors.Wrap(err, "Error creating L0 LC AppContext CompositeApp")
 	}
 
-	appHandle, err := appCtx.AddApp(context.Background(), handle, lcAppName)
+	appHandle, err := appCtx.AddApp(ctx, handle, lcAppName)
 	if err != nil {
-		return appCtx, "", cleanupCompositeApp(appCtx, err, "Error adding App to L0 LC AppContext", []string{logicalCloudName, cid})
+		return appCtx, "", cleanupCompositeApp(ctx, appCtx, err, "Error adding App to L0 LC AppContext", []string{logicalCloudName, cid})
 	}
 
 	// Create a Logical Cloud Meta with basic information about the Logical Cloud:
 	// project name and logical cloud name
 	err = appCtx.AddCompositeAppMeta(
-		context.Background(),
+		ctx,
 		appcontext.CompositeAppMeta{
 			Project:      project,
 			LogicalCloud: logicalCloudName})
 	if err != nil {
-		return appCtx, "", cleanupCompositeApp(appCtx, err, "Error Adding Logical Cloud Meta to AppContext", []string{logicalCloudName, cid})
+		return appCtx, "", cleanupCompositeApp(ctx, appCtx, err, "Error Adding Logical Cloud Meta to AppContext", []string{logicalCloudName, cid})
 	}
 
 	// iterate through cluster list and add all the clusters (as empty-shells)
 	for _, cluster := range clusterList {
 		clusterName := strings.Join([]string{cluster.Specification.ClusterProvider, "+", cluster.Specification.ClusterName}, "")
-		clusterHandle, err := appCtx.AddCluster(context.Background(), appHandle, clusterName)
+		clusterHandle, err := appCtx.AddCluster(ctx, appHandle, clusterName)
 		// pre-build array to pass to cleanupCompositeApp() [for performance]
 		details := []string{logicalCloudName, clusterName, cid}
 
 		if err != nil {
-			return appCtx, "", cleanupCompositeApp(appCtx, err, "Error adding Cluster to L0 LC AppContext", details)
+			return appCtx, "", cleanupCompositeApp(ctx, appCtx, err, "Error adding Cluster to L0 LC AppContext", details)
 		}
 
 		// resource-level order is mandatory too for an empty-shell appcontext
@@ -695,9 +695,9 @@ func blindInstantiateL0(project string, logicalcloud common.LogicalCloud, lcclie
 		if err != nil {
 			return appCtx, "", pkgerrors.Wrap(err, "Error creating resource order JSON")
 		}
-		_, err = appCtx.AddInstruction(context.Background(), clusterHandle, "resource", "order", string(resOrder))
+		_, err = appCtx.AddInstruction(ctx, clusterHandle, "resource", "order", string(resOrder))
 		if err != nil {
-			return appCtx, "", cleanupCompositeApp(appCtx, err, "Error adding resource-level order to L0 LC AppContext", details)
+			return appCtx, "", cleanupCompositeApp(ctx, appCtx, err, "Error adding resource-level order to L0 LC AppContext", details)
 		}
 		// TODO add resource-level dependency as well
 		// app-level order is mandatory too for an empty-shell appcontext
@@ -705,9 +705,9 @@ func blindInstantiateL0(project string, logicalcloud common.LogicalCloud, lcclie
 		if err != nil {
 			return appCtx, "", pkgerrors.Wrap(err, "Error creating app order JSON")
 		}
-		_, err = appCtx.AddInstruction(context.Background(), handle, "app", "order", string(appOrder))
+		_, err = appCtx.AddInstruction(ctx, handle, "app", "order", string(appOrder))
 		if err != nil {
-			return appCtx, "", cleanupCompositeApp(appCtx, err, "Error adding app-level order to L0 LC AppContext", details)
+			return appCtx, "", cleanupCompositeApp(ctx, appCtx, err, "Error adding app-level order to L0 LC AppContext", details)
 		}
 		// TODO add app-level dependency as well
 		// TODO move app-level order/dependency out of loop
@@ -715,25 +715,25 @@ func blindInstantiateL0(project string, logicalcloud common.LogicalCloud, lcclie
 	return appCtx, cid, nil
 }
 
-func alreadyGotCsr(oldCid string, newAc appcontext.AppContext, app, cluster, csrName string) (bool, string) {
+func alreadyGotCsr(ctx context.Context, oldCid string, newAc appcontext.AppContext, app, cluster, csrName string) (bool, string) {
 	if oldCid == "" {
 		return false, ""
 	}
 	var oldAc appcontext.AppContext
-	_, err := oldAc.LoadAppContext(context.Background(), oldCid)
+	_, err := oldAc.LoadAppContext(ctx, oldCid)
 	if err != nil {
 		log.Info("[CSR} Error getting old appcontext",
 			log.Fields{"oldCid": oldCid, "app": app, "cluster": cluster, "csrName": csrName})
 		return false, ""
 	}
 
-	csrH, err := oldAc.GetResourceHandle(context.Background(), app, cluster, csrName)
+	csrH, err := oldAc.GetResourceHandle(ctx, app, cluster, csrName)
 	if err != nil {
 		log.Info("[CSR} Error getting old appcontext resource handle",
 			log.Fields{"oldCid": oldCid, "app": app, "cluster": cluster, "csrName": csrName})
 		return false, ""
 	}
-	csr, err := oldAc.GetValue(context.Background(), csrH)
+	csr, err := oldAc.GetValue(ctx, csrH)
 	if err != nil {
 		log.Info("[CSR} Error getting old appcontext resource handle",
 			log.Fields{"oldCid": oldCid, "app": app, "cluster": cluster, "csrName": csrName})
@@ -745,7 +745,7 @@ func alreadyGotCsr(oldCid string, newAc appcontext.AppContext, app, cluster, csr
 }
 
 // // blindInstantiateL1 is the equivalent of blindInstantiateL0 but for Level-1 Logical Clouds.
-func blindInstantiateL1(oldCid string, project string, logicalcloud common.LogicalCloud, lcclient *LogicalCloudClient,
+func blindInstantiateL1(ctx context.Context, oldCid string, project string, logicalcloud common.LogicalCloud, lcclient *LogicalCloudClient,
 	clusterList []common.Cluster, quotaList []Quota, userPermissionList []UserPermission) (appcontext.AppContext, string, error) {
 	var err error
 	var appCtx appcontext.AppContext
@@ -778,20 +778,20 @@ func blindInstantiateL1(oldCid string, project string, logicalcloud common.Logic
 	}
 	cid := ctxVal.(string)
 
-	handle, err := appCtx.CreateCompositeApp(context.Background())
+	handle, err := appCtx.CreateCompositeApp(ctx)
 	if err != nil {
 		return appCtx, "", pkgerrors.Wrap(err, "Error creating AppContext CompositeApp")
 	}
 
-	_, err = appCtx.AddApp(context.Background(), handle, lcAppName)
+	_, err = appCtx.AddApp(ctx, handle, lcAppName)
 	if err != nil {
-		return appCtx, "", cleanupCompositeApp(appCtx, err, "Error adding App to AppContext", []string{logicalCloudName, cid})
+		return appCtx, "", cleanupCompositeApp(ctx, appCtx, err, "Error adding App to AppContext", []string{logicalCloudName, cid})
 	}
 
 	// Create a Logical Cloud Meta with all data needed for a successful L1 (standard/privileged) instantiation:
 	// project name, logical cloud name, level="0" and namespace="default"
 	err = appCtx.AddCompositeAppMeta(
-		context.Background(),
+		ctx,
 		appcontext.CompositeAppMeta{
 			Project:               project,
 			LogicalCloud:          logicalCloudName,
@@ -799,7 +799,7 @@ func blindInstantiateL1(oldCid string, project string, logicalcloud common.Logic
 			Level:                 "0",
 			Namespace:             "default"})
 	if err != nil {
-		return appCtx, "", cleanupCompositeApp(appCtx, err, "Error Adding Logical Cloud Meta to AppContext", []string{logicalCloudName, cid})
+		return appCtx, "", cleanupCompositeApp(ctx, appCtx, err, "Error Adding Logical Cloud Meta to AppContext", []string{logicalCloudName, cid})
 	}
 
 	// Add App Order and App Dependency
@@ -813,32 +813,32 @@ func blindInstantiateL1(oldCid string, project string, logicalcloud common.Logic
 	}
 
 	// Add App-level Order and Dependency
-	_, err = appCtx.AddInstruction(context.Background(), handle, "app", "order", string(appOrder))
+	_, err = appCtx.AddInstruction(ctx, handle, "app", "order", string(appOrder))
 	if err != nil {
-		return appCtx, "", cleanupCompositeApp(appCtx, err, "Error adding app-level order to AppContext", []string{logicalCloudName})
+		return appCtx, "", cleanupCompositeApp(ctx, appCtx, err, "Error adding app-level order to AppContext", []string{logicalCloudName})
 	}
-	_, err = appCtx.AddInstruction(context.Background(), handle, "app", "dependency", string(appDependency))
+	_, err = appCtx.AddInstruction(ctx, handle, "app", "dependency", string(appDependency))
 	if err != nil {
-		return appCtx, "", cleanupCompositeApp(appCtx, err, "Error adding app-level dependency to AppContext", []string{logicalCloudName})
+		return appCtx, "", cleanupCompositeApp(ctx, appCtx, err, "Error adding app-level dependency to AppContext", []string{logicalCloudName})
 	}
 
 	// get pkData from the database, which was created during logical cloud Create()
-	pkDataArray, err := db.DBconn.Find(context.Background(), lcclient.storeName, lckey, "privatekey")
+	pkDataArray, err := db.DBconn.Find(ctx, lcclient.storeName, lckey, "privatekey")
 	if err != nil {
-		return appCtx, "", cleanupCompositeApp(appCtx, err, "Error getting private key from logical cloud", []string{logicalCloudName})
+		return appCtx, "", cleanupCompositeApp(ctx, appCtx, err, "Error getting private key from logical cloud", []string{logicalCloudName})
 	}
 	if len(pkDataArray) == 0 {
-		return appCtx, "", cleanupCompositeApp(appCtx, err, "Private key from logical cloud not found", []string{logicalCloudName})
+		return appCtx, "", cleanupCompositeApp(ctx, appCtx, err, "Private key from logical cloud not found", []string{logicalCloudName})
 	}
 	privKey := common.PrivateKey{}
 	err = db.DBconn.Unmarshal(pkDataArray[0], &privKey)
 	if err != nil {
-		return appCtx, "", cleanupCompositeApp(appCtx, err, "Private key unmarshal error", []string{logicalCloudName})
+		return appCtx, "", cleanupCompositeApp(ctx, appCtx, err, "Private key unmarshal error", []string{logicalCloudName})
 	}
 
 	// Iterate through cluster list and add all the clusters
 	for _, cluster := range clusterList {
-		err = prepL1ClusterAppContext(oldCid, logicalcloud, cluster, quotaList, userPermissionList, lcclient, lckey, privKey.KeyValue, appCtx, cid)
+		err = prepL1ClusterAppContext(ctx, oldCid, logicalcloud, cluster, quotaList, userPermissionList, lcclient, lckey, privKey.KeyValue, appCtx, cid)
 		if err != nil {
 			return appCtx, "", err
 		}
@@ -849,7 +849,7 @@ func blindInstantiateL1(oldCid string, project string, logicalcloud common.Logic
 
 // Instantiate prepares all yaml resources to be given to the clusters via rsync,
 // then creates an appcontext with such resources and asks rsync to instantiate the logical cloud
-func Instantiate(project string, logicalcloud common.LogicalCloud, clusterList []common.Cluster,
+func Instantiate(ctx context.Context, project string, logicalcloud common.LogicalCloud, clusterList []common.Cluster,
 	quotaList []Quota, userPermissionList []UserPermission) error {
 
 	logicalCloudName := logicalcloud.MetaData.Name
@@ -858,17 +858,17 @@ func Instantiate(project string, logicalcloud common.LogicalCloud, clusterList [
 	lcclient := NewLogicalCloudClient()
 
 	// Check if there was a previous appCtx for this logical cloud
-	s, err := lcclient.GetState(project, logicalCloudName)
+	s, err := lcclient.GetState(ctx, project, logicalCloudName)
 	if err != nil {
 		return err
 	}
 	cid := state.GetLastContextIdFromStateInfo(s)
 	if cid != "" {
-		ac, err := state.GetAppContextFromId(context.Background(), cid)
+		ac, err := state.GetAppContextFromId(ctx, cid)
 		if err != nil {
 			return err
 		}
-		acStatus, err := state.GetAppContextStatus(context.Background(), cid) // new from state
+		acStatus, err := state.GetAppContextStatus(ctx, cid) // new from state
 		if err != nil {
 			return err
 		}
@@ -879,7 +879,7 @@ func Instantiate(project string, logicalcloud common.LogicalCloud, clusterList [
 			return err
 		}
 		if stateVal == state.StateEnum.TerminateStopped {
-			err = state.UpdateAppContextStopFlag(context.Background(), cid, false)
+			err = state.UpdateAppContextStopFlag(ctx, cid, false)
 			if err != nil {
 				return err
 			}
@@ -890,7 +890,7 @@ func Instantiate(project string, logicalcloud common.LogicalCloud, clusterList [
 		switch acStatus.Status {
 		case appcontext.AppContextStatusEnum.Terminated:
 			// Fully delete the old AppContext
-			err := ac.DeleteCompositeApp(context.Background())
+			err := ac.DeleteCompositeApp(ctx)
 			if err != nil {
 				log.Error("Error deleting AppContext CompositeApp Logical Cloud", log.Fields{"logicalcloud": logicalCloudName})
 				return pkgerrors.Wrap(err, "Error deleting AppContext CompositeApp Logical Cloud")
@@ -921,32 +921,32 @@ func Instantiate(project string, logicalcloud common.LogicalCloud, clusterList [
 	var newcid string
 	// TODO: use appCtx.ctxid instead of returning newcid
 	if level == "0" {
-		appCtx, newcid, err = blindInstantiateL0(project, logicalcloud, lcclient, clusterList)
+		appCtx, newcid, err = blindInstantiateL0(ctx, project, logicalcloud, lcclient, clusterList)
 	} else {
-		appCtx, newcid, err = blindInstantiateL1("", project, logicalcloud, lcclient, clusterList, quotaList, userPermissionList)
+		appCtx, newcid, err = blindInstantiateL1(ctx, "", project, logicalcloud, lcclient, clusterList, quotaList, userPermissionList)
 	}
 	if err != nil {
 		return err
 	}
 
 	// Call rsync to install Logical Cloud in clusters
-	err = callRsyncInstall(newcid)
+	err = callRsyncInstall(ctx, newcid)
 	if err != nil {
 		log.Error("Failed calling rsync install-app", log.Fields{"err": err})
 		return pkgerrors.Wrap(err, "Failed calling rsync install-app")
 	}
 
 	// Update state with switch to Instantiated state, along with storing the AppContext ID for future retrieval
-	err = addState(lcclient, project, logicalCloudName, newcid, state.StateEnum.Instantiated)
+	err = addState(ctx, lcclient, project, logicalCloudName, newcid, state.StateEnum.Instantiated)
 	if err != nil {
-		return cleanupCompositeApp(appCtx, err, "Error adding Logical Cloud AppContext to DB", []string{logicalCloudName, newcid})
+		return cleanupCompositeApp(ctx, appCtx, err, "Error adding Logical Cloud AppContext to DB", []string{logicalCloudName, newcid})
 	}
 
 	if level == "1" {
 		// Call rsync grpc streaming api, which launches a goroutine to wait for the response of
 		// every cluster (function should know how many clusters are expected and only finish when
 		// all respective certificates have been obtained and all kubeconfigs stored in CloudConfig)
-		err = callRsyncReadyNotify(newcid)
+		err = callRsyncReadyNotify(ctx, newcid)
 		if err != nil {
 			log.Error("Failed calling rsync ready-notify", log.Fields{"err": err})
 			return pkgerrors.Wrap(err, "Failed calling rsync ready-notify")
@@ -957,7 +957,7 @@ func Instantiate(project string, logicalcloud common.LogicalCloud, clusterList [
 }
 
 // Terminate asks rsync to terminate the logical cloud
-func Terminate(project string, logicalcloud common.LogicalCloud, clusterList []common.Cluster,
+func Terminate(ctx context.Context, project string, logicalcloud common.LogicalCloud, clusterList []common.Cluster,
 	quotaList []Quota) error {
 
 	logicalCloudName := logicalcloud.MetaData.Name
@@ -967,7 +967,7 @@ func Terminate(project string, logicalcloud common.LogicalCloud, clusterList []c
 	lcclient := NewLogicalCloudClient()
 
 	// Check if there was a previous appCtx for this logical cloud
-	s, err := lcclient.GetState(project, logicalCloudName)
+	s, err := lcclient.GetState(ctx, project, logicalCloudName)
 	if err != nil {
 		return err
 	}
@@ -980,7 +980,7 @@ func Terminate(project string, logicalcloud common.LogicalCloud, clusterList []c
 			return err
 		}
 		if stateVal == state.StateEnum.InstantiateStopped {
-			err = state.UpdateAppContextStopFlag(context.Background(), cid, false)
+			err = state.UpdateAppContextStopFlag(ctx, cid, false)
 			if err != nil {
 				return err
 			}
@@ -988,7 +988,7 @@ func Terminate(project string, logicalcloud common.LogicalCloud, clusterList []c
 
 		// Make sure rsync status for this logical cloud is Terminated,
 		// otherwise we can't re-instantiate logical cloud yet
-		acStatus, err := state.GetAppContextStatus(context.Background(), cid) // new from state
+		acStatus, err := state.GetAppContextStatus(ctx, cid) // new from state
 		if err != nil {
 			return err
 		}
@@ -1010,7 +1010,7 @@ func Terminate(project string, logicalcloud common.LogicalCloud, clusterList []c
 			fallthrough
 		case appcontext.AppContextStatusEnum.Instantiated:
 			// call resource synchronizer to delete the CRs from every cluster of the logical cloud
-			err = callRsyncUninstall(cid)
+			err = callRsyncUninstall(ctx, cid)
 			if err != nil {
 				return err
 			}
@@ -1021,7 +1021,7 @@ func Terminate(project string, logicalcloud common.LogicalCloud, clusterList []c
 				for _, cluster := range clusterList {
 					log.Info("Destroying CloudConfig of logicalcloud/cluster pair via rsync", log.Fields{"cluster": cluster.Specification.ClusterName, "logicalcloud": logicalCloudName, "level": level})
 					err = ccc.DeleteCloudConfig(
-						context.Background(),
+						ctx,
 						cluster.Specification.ClusterProvider,
 						cluster.Specification.ClusterName,
 						level,
@@ -1037,7 +1037,7 @@ func Terminate(project string, logicalcloud common.LogicalCloud, clusterList []c
 			}
 
 			// Set State as Terminated
-			err = addState(lcclient, project, logicalCloudName, cid, state.StateEnum.Terminated)
+			err = addState(ctx, lcclient, project, logicalCloudName, cid, state.StateEnum.Terminated)
 			if err != nil {
 				return err // error already logged
 			}
@@ -1051,13 +1051,13 @@ func Terminate(project string, logicalcloud common.LogicalCloud, clusterList []c
 }
 
 // Stop asks rsync to stop the instantiation or termination of the logical cloud
-func Stop(project string, logicalcloud common.LogicalCloud) error {
+func Stop(ctx context.Context, project string, logicalcloud common.LogicalCloud) error {
 
 	logicalCloudName := logicalcloud.MetaData.Name
 	lcclient := NewLogicalCloudClient()
 
 	// Find and deal with state
-	s, err := lcclient.GetState(project, logicalCloudName)
+	s, err := lcclient.GetState(ctx, project, logicalCloudName)
 	if err != nil {
 		return err
 	}
@@ -1085,12 +1085,12 @@ func Stop(project string, logicalcloud common.LogicalCloud) error {
 		return pkgerrors.New("LogicalCloud is in an invalid state: " + logicalCloudName + " " + stateVal)
 	}
 
-	err = state.UpdateAppContextStopFlag(context.Background(), cid, true)
+	err = state.UpdateAppContextStopFlag(ctx, cid, true)
 	if err != nil {
 		return err
 	}
 
-	err = addState(lcclient, project, logicalCloudName, cid, stopState)
+	err = addState(ctx, lcclient, project, logicalCloudName, cid, stopState)
 	if err != nil {
 		return pkgerrors.Wrap(err, "Error updating the stateInfo of the LogicalCloud: "+logicalCloudName)
 	}
@@ -1098,7 +1098,7 @@ func Stop(project string, logicalcloud common.LogicalCloud) error {
 	return nil
 }
 
-func IsGitOpsCluster(clustername string) (bool, error) {
+func IsGitOpsCluster(ctx context.Context, clustername string) (bool, error) {
 
 	if !strings.Contains(clustername, "+") {
 		log.Debug("GitOps Not a valid cluster name", log.Fields{})
@@ -1112,7 +1112,7 @@ func IsGitOpsCluster(clustername string) (bool, error) {
 
 	ccc := rsync.NewCloudConfigClient()
 
-	gc, err := ccc.GetGitOpsConfig(context.Background(), strs[0], strs[1], "0", "")
+	gc, err := ccc.GetGitOpsConfig(ctx, strs[0], strs[1], "0", "")
 	if err != nil {
 		log.Debug("Error getting GitOps config", log.Fields{"err": err})
 		return false, nil

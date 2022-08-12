@@ -161,7 +161,7 @@ func getLogicalCloudReferencedClusters(group ClusterGroup, project, logicalCloud
 	}
 
 	// get all the clusters referenced by the project and logicalCloud
-	cListLc, err := dcm.NewClusterClient().GetAllClusters(project, logicalCloud)
+	cListLc, err := dcm.NewClusterClient().GetAllClusters(context.Background(), project, logicalCloud)
 	if err != nil {
 		return []string{}, err
 	}

@@ -39,7 +39,7 @@ func (d lcHelpers) GetAppContextId(ctx context.Context, reg *statusnotifypb.Stat
 		return "", err
 	}
 
-	si, err := dcm.NewLogicalCloudClient().GetState(p, lc)
+	si, err := dcm.NewLogicalCloudClient().GetState(ctx, p, lc)
 	if err != nil {
 		return "", pkgerrors.Wrap(err, "Logical cloud state not found: "+lc)
 	}
@@ -53,7 +53,7 @@ func (d lcHelpers) StatusQuery(ctx context.Context, reg *statusnotifypb.StatusRe
 		return status.StatusResult{}
 	}
 
-	statusResult, err := dcm.NewLogicalCloudClient().GenericStatus(p, lc, qStatusInstance, qType, qOutput, fClusters, fResources)
+	statusResult, err := dcm.NewLogicalCloudClient().GenericStatus(ctx, p, lc, qStatusInstance, qType, qOutput, fClusters, fResources)
 	if err != nil {
 		return status.StatusResult{}
 	}

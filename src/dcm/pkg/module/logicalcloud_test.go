@@ -52,6 +52,7 @@ var _ = Describe("Logicalcloud", func() {
 			})
 			It("instantiation (non-privileged) should be successful", func() {
 				Skip("temporarily disabled")
+				ctx := context.Background()
 				// Mock gRPC InstallApp()
 				var gsia = &grpcSignature{}
 				gsia.grpcReq = nil
@@ -74,7 +75,7 @@ var _ = Describe("Logicalcloud", func() {
 				cl := _createTestClusterReference("testcp", "testcl")
 				quota := _createTestQuota("testquota")
 				up := _createTestUserPermission("testup", "testns")
-				err := dcm.Instantiate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up})
+				err := dcm.Instantiate(ctx, "project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up})
 
 				etcdKeys, _ := contextdb.Db.GetAllKeys(context.Background(), "/")
 				appcontextId := strings.Split(etcdKeys[0], "/")[2]
@@ -143,6 +144,7 @@ var _ = Describe("Logicalcloud", func() {
 			})
 			It("instantiation (privileged) should be successful", func() {
 				Skip("temporarily disabled")
+				ctx := context.Background()
 				// Mock gRPC InstallApp()
 				var gsia = &grpcSignature{}
 				gsia.grpcReq = nil
@@ -166,7 +168,7 @@ var _ = Describe("Logicalcloud", func() {
 				quota := _createTestQuota("testquota")
 				up1 := _createTestUserPermission("testup", "testns")
 				up2 := _createTestUserPermission("testup", "")
-				err := dcm.Instantiate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up1, up2})
+				err := dcm.Instantiate(ctx, "project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up1, up2})
 
 				etcdKeys, _ := contextdb.Db.GetAllKeys(context.Background(), "/")
 				appcontextId := strings.Split(etcdKeys[0], "/")[2]
@@ -238,6 +240,7 @@ var _ = Describe("Logicalcloud", func() {
 				_createExistingLogicalCloud(mdb, "1", false, false)
 			})
 			It("instantiation (non-privileged) should be successful", func() {
+				ctx := context.Background()
 				// Mock gRPC InstallApp()
 				var gsia = &grpcSignature{}
 				gsia.grpcReq = nil
@@ -255,7 +258,7 @@ var _ = Describe("Logicalcloud", func() {
 				lc := _createTestLogicalCloud("testlc", "1")
 				cl := _createTestClusterReference("testcp", "testcl")
 				quota := _createTestQuota("testquota")
-				err := dcm.Instantiate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{})
+				err := dcm.Instantiate(ctx, "project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{})
 
 				// check that the instantiation failed
 				Expect(err).Should(HaveOccurred())
@@ -383,54 +386,60 @@ var _ = Describe("Logicalcloud", func() {
 				mdb.Insert(context.Background(), "resources", okey, nil, "data", p)
 			})
 			It("creation should succeed and return the resource created (2x - level 1 and level 0)", func() {
+				ctx := context.Background()
 				originalLogicalCloud := _createTestLogicalCloud("testlogicalCloudL1", "1")
-				logicalCloud, err := client.Create("project", originalLogicalCloud)
+				logicalCloud, err := client.Create(ctx, "project", originalLogicalCloud)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(originalLogicalCloud).To(Equal(logicalCloud))
 				originalLogicalCloud = _createTestLogicalCloud("testlogicalCloudL0", "0")
-				logicalCloud, err = client.Create("project", originalLogicalCloud)
+				logicalCloud, err = client.Create(ctx, "project", originalLogicalCloud)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(originalLogicalCloud).To(Equal(logicalCloud))
 			})
 			It("creation should succeed and return the resource created (level not specified)", func() {
+				ctx := context.Background()
 				originalLogicalCloud := _createTestLogicalCloud("testlogicalCloud", "")
-				logicalCloud, err := client.Create("project", originalLogicalCloud)
+				logicalCloud, err := client.Create(ctx, "project", originalLogicalCloud)
 				Expect(err).ShouldNot(HaveOccurred())
 				originalLogicalCloud.Specification.Level = "1" // created LC should default to 1
 				Expect(originalLogicalCloud).To(Equal(logicalCloud))
 			})
 			It("get should fail and not return anything", func() {
-				logicalCloud, err := client.Get("project", "testlogicalCloud")
+				ctx := context.Background()
+				logicalCloud, err := client.Get(ctx, "project", "testlogicalCloud")
 				Expect(err).Should(HaveOccurred())
 				Expect(logicalCloud).To(Equal(common.LogicalCloud{}))
 			})
 			It("create followed by get should return what was created", func() {
+				ctx := context.Background()
 				logicalCloud := _createTestLogicalCloud("testlogicalCloud", "1")
-				_, _ = client.Create("project", logicalCloud)
-				logicalCloud, err := client.Get("project", "testlogicalCloud")
+				_, _ = client.Create(ctx, "project", logicalCloud)
+				logicalCloud, err := client.Get(ctx, "project", "testlogicalCloud")
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(logicalCloud).To(Equal(logicalCloud))
 			})
 			It("create followed by get-all should return only what was created", func() {
+				ctx := context.Background()
 				logicalCloud := _createTestLogicalCloud("testlogicalCloud", "1")
-				_, err := client.Create("project", logicalCloud)
+				_, err := client.Create(ctx, "project", logicalCloud)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				_, err = client.Get("project", "testlogicalCloud")
+				_, err = client.Get(ctx, "project", "testlogicalCloud")
 				Expect(err).ShouldNot(HaveOccurred())
-				logicalClouds, err := client.GetAll("project")
+				logicalClouds, err := client.GetAll(ctx, "project")
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(len(logicalClouds)).To(Equal(1))
 				Expect(logicalClouds[0]).To(Equal(logicalCloud))
 			})
 			It("three creates followed by get-all should return all that was created", func() {
+				ctx := context.Background()
 				logicalCloud1 := _createTestLogicalCloud("testlogicalCloud1", "1")
 				logicalCloud2 := _createTestLogicalCloud("testlogicalCloud2", "1")
 				logicalCloud3 := _createTestLogicalCloud("testlogicalCloud3", "1")
-				_, _ = client.Create("project", logicalCloud1)
-				_, _ = client.Create("project", logicalCloud2)
-				_, _ = client.Create("project", logicalCloud3)
-				logicalClouds, err := client.GetAll("project")
+				_, _ = client.Create(ctx, "project", logicalCloud1)
+				_, _ = client.Create(ctx, "project", logicalCloud2)
+				_, _ = client.Create(ctx, "project", logicalCloud3)
+				logicalClouds, err := client.GetAll(ctx, "project")
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(len(logicalClouds)).To(Equal(3))
 				Expect(logicalClouds[0]).To(Equal(logicalCloud1))
@@ -438,11 +447,12 @@ var _ = Describe("Logicalcloud", func() {
 				Expect(logicalClouds[2]).To(Equal(logicalCloud3))
 			})
 			It("delete after creation should succeed and database remain empty", func() {
+				ctx := context.Background()
 				logicalCloud := _createTestLogicalCloud("testlogicalCloud", "1")
-				_, _ = client.Create("project", logicalCloud)
-				err := client.Delete("project", "testlogicalCloud")
+				_, _ = client.Create(ctx, "project", logicalCloud)
+				err := client.Delete(ctx, "project", "testlogicalCloud")
 				Expect(err).ShouldNot(HaveOccurred())
-				logicalClouds, err := client.GetAll("project")
+				logicalClouds, err := client.GetAll(ctx, "project")
 				Expect(len(logicalClouds)).To(Equal(0))
 			})
 			// will uncomment after general mockdb issues resolved
@@ -451,10 +461,11 @@ var _ = Describe("Logicalcloud", func() {
 			// 	Expect(err).Should(HaveOccurred())
 			// })
 			It("update after creation should succeed and return updated resource", func() {
+				ctx := context.Background()
 				logicalCloud := _createTestLogicalCloud("testlogicalCloud", "1")
-				_, _ = client.Create("project", logicalCloud)
+				_, _ = client.Create(ctx, "project", logicalCloud)
 				logicalCloud.MetaData.UserData1 = "new user data"
-				logicalCloud, err := client.UpdateLogicalCloud("project", "testlogicalCloud", logicalCloud)
+				logicalCloud, err := client.UpdateLogicalCloud(ctx, "project", "testlogicalCloud", logicalCloud)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(logicalCloud.MetaData.Name).To(Equal("testlogicalCloud"))
 				Expect(logicalCloud.MetaData.Description).To(Equal(""))
@@ -462,10 +473,11 @@ var _ = Describe("Logicalcloud", func() {
 				Expect(logicalCloud.MetaData.UserData2).To(Equal(""))
 			})
 			It("create followed by updating the name is disallowed and should fail", func() {
+				ctx := context.Background()
 				logicalCloud := _createTestLogicalCloud("testlogicalCloud", "1")
-				_, _ = client.Create("project", logicalCloud)
+				_, _ = client.Create(ctx, "project", logicalCloud)
 				logicalCloud.MetaData.Name = "updated"
-				logicalCloud, err := client.UpdateLogicalCloud("project", "testlogicalCloud", logicalCloud)
+				logicalCloud, err := client.UpdateLogicalCloud(ctx, "project", "testlogicalCloud", logicalCloud)
 				Expect(err).Should(HaveOccurred())
 				Expect(logicalCloud).To(Equal(common.LogicalCloud{}))
 			})
@@ -474,8 +486,9 @@ var _ = Describe("Logicalcloud", func() {
 				var err error
 				var stateInfo state.StateInfo
 
+				ctx := context.Background()
 				originalLogicalCloud := _createTestLogicalCloud("testlogicalCloudL1", "1")
-				logicalCloud, err := client.Create("project", originalLogicalCloud)
+				logicalCloud, err := client.Create(ctx, "project", originalLogicalCloud)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(originalLogicalCloud).To(Equal(logicalCloud))
 
@@ -499,7 +512,7 @@ var _ = Describe("Logicalcloud", func() {
 				mdb.Insert(context.Background(), "resources", ctrlkey, nil, "data", ctrl)
 
 				// Expect status to be Created
-				stateInfo, err = client.GetState("project", "testlogicalCloudL1")
+				stateInfo, err = client.GetState(ctx, "project", "testlogicalCloudL1")
 				Expect(len(stateInfo.Actions)).To(Equal(1))
 				Expect(stateInfo.Actions[0].State).To(Equal("Created"))
 				Expect(err).ShouldNot(HaveOccurred())
@@ -538,7 +551,7 @@ var _ = Describe("Logicalcloud", func() {
 				mdb.Insert(context.Background(), "resources", lkey, nil, "privatekey", string(pkData))
 
 				// Expect status to be Created
-				stateInfo, err = client.GetState("project", "testlogicalCloudL1")
+				stateInfo, err = client.GetState(ctx, "project", "testlogicalCloudL1")
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(len(stateInfo.Actions)).To(Equal(1))
 				Expect(stateInfo.Actions[0].State).To(Equal("Created"))
@@ -546,7 +559,7 @@ var _ = Describe("Logicalcloud", func() {
 				// Next step is to verify that Instantiated state gets added after Instantiate() succeeds (mocking CSR auth success)
 
 				// Expect instantiation to succeed
-				err = dcm.Instantiate("project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up})
+				err = dcm.Instantiate(ctx, "project", lc, []common.Cluster{cl}, []dcm.Quota{quota}, []dcm.UserPermission{up})
 				Expect(err).ShouldNot(HaveOccurred())
 
 				// INFO: Status doesn't get updated simply by doing this because the entire grpc and CSR issuing path isn't mocked here

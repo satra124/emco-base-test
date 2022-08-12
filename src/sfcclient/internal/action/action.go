@@ -78,7 +78,7 @@ func getDigLabels(pr, ca, caver, dig string) (map[string]string, error) {
 		return labels, err
 	}
 
-	lc, err := dcm.NewLogicalCloudClient().Get(pr, d.Spec.LogicalCloud)
+	lc, err := dcm.NewLogicalCloudClient().Get(context.Background(), pr, d.Spec.LogicalCloud)
 	if err != nil {
 		log.Error("Error find Logical Cloud for DeploymentIntentGroup ", log.Fields{"DeploymentIntentGroup: ": dig, "Logicalcloud": d.Spec.LogicalCloud})
 		return labels, err

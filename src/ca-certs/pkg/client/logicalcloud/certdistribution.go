@@ -4,6 +4,8 @@
 package logicalcloud
 
 import (
+	"context"
+
 	cmv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/certificate/distribution"
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/certificate/enrollment"
@@ -111,7 +113,7 @@ func (c *CaCertDistributionClient) Instantiate(cert, project string) error {
 	// get all the clusters associated with these logicalCloud(s)
 	for _, lc := range lcs {
 		// get the logical cloud
-		l, err := dcm.NewLogicalCloudClient().Get(project, lc.Spec.LogicalCloud)
+		l, err := dcm.NewLogicalCloudClient().Get(context.Background(), project, lc.Spec.LogicalCloud)
 		if err != nil {
 			return err
 		}
@@ -230,7 +232,7 @@ func (c *CaCertDistributionClient) Update(cert, project string) error {
 
 		for _, lc := range lcs {
 			// get the logicalCloud
-			l, err := dcm.NewLogicalCloudClient().Get(project, lc.Spec.LogicalCloud)
+			l, err := dcm.NewLogicalCloudClient().Get(context.Background(), project, lc.Spec.LogicalCloud)
 			if err != nil {
 				return err
 			}
