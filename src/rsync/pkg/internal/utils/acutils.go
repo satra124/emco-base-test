@@ -201,6 +201,7 @@ func (a *AppContextReference) GetRes(ctx context.Context, name string, app strin
 	return byteRes, sh, nil
 }
 
+// INFO: the function below always returns level=0 as it stands
 //GetNamespace reads namespace from metadata
 func (a *AppContextReference) GetNamespace(ctx context.Context) (string, string) {
 	namespace := "default"
@@ -217,14 +218,15 @@ func (a *AppContextReference) GetNamespace(ctx context.Context) (string, string)
 	return namespace, level
 }
 
-//GetLogicalCloudInfo reads logical cloud releated info from metadata
-func (a *AppContextReference) GetLogicalCloudInfo(ctx context.Context) (string, string, string, error) {
+//GetLogicalCloudInfo reads logical cloud related info from metadata
+func (a *AppContextReference) GetLogicalCloudInfo(ctx context.Context) (string, string, string, string, string, error) {
+
 	appmeta, err := a.ac.GetCompositeAppMeta(ctx)
 	if err != nil {
 		log.Error("Error GetLogicalCloudInfo", log.Fields{"err": err})
-		return "", "", "", err
+		return "", "", "", "", "", err
 	}
-	return appmeta.Project, appmeta.LogicalCloud, appmeta.LogicalCloudNamespace, nil
+	return appmeta.Project, appmeta.LogicalCloud, appmeta.Level, appmeta.LogicalCloudNamespace, appmeta.LogicalCloudLevel, nil
 }
 
 // PutRes copies resource into appContext

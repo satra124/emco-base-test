@@ -157,7 +157,7 @@ func processAlert(ctx context.Context, client readynotifypb.ReadyNotifyClient, s
 	}
 	for _, cluster := range clusterList {
 		_, err = dcc.GetClusterConfig(ctx, project, logicalCloud, cluster.MetaData.Name)
-		// discard kubeconfig returned because it's not needed here
+		// discard kubeconfig returned because it's not needed here (calling function above for the 1st time copies the kubeconfig to rsync/CloudConfig)
 		if err != nil {
 			log.Error("[ReadyNotify gRPC] Generating kubeconfig or storing CloudConfig failed", log.Fields{"logicalCloud": logicalCloud, "project": project, "cluster": cluster.MetaData.Name, "error": err.Error()})
 			return

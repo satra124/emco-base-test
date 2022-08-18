@@ -98,6 +98,7 @@ type CompositeAppMeta struct {
 	ChildContextIDs       []string `json:"ChildContextIDs"`
 	LogicalCloud          string   `json:"LogicalCloud"`
 	LogicalCloudNamespace string   `json:"LogicalCloudNamespace"`
+	LogicalCloudLevel     string   `json:"LogicalCloudLevel"`
 }
 
 // Init app context
@@ -683,6 +684,8 @@ func (ac *AppContext) GetCompositeAppMeta(ctx context.Context) (CompositeAppMeta
 	}
 	lc := fmt.Sprintf("%v", datamap["LogicalCloud"])
 	lcn := fmt.Sprintf("%v", datamap["LogicalCloudNamespace"])
+	// user-intended level of logical cloud, not level of app itself (which a logical cloud can be):
+	lclevel := fmt.Sprintf("%v", datamap["LogicalCloudLevel"])
 
-	return CompositeAppMeta{Project: p, CompositeApp: ca, Version: v, Release: rn, DeploymentIntentGroup: dig, Namespace: namespace, Level: level, ChildContextIDs: childCtxs, LogicalCloud: lc, LogicalCloudNamespace: lcn}, nil
+	return CompositeAppMeta{Project: p, CompositeApp: ca, Version: v, Release: rn, DeploymentIntentGroup: dig, Namespace: namespace, Level: level, ChildContextIDs: childCtxs, LogicalCloud: lc, LogicalCloudNamespace: lcn, LogicalCloudLevel: lclevel}, nil
 }

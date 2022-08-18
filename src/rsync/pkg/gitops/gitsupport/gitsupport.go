@@ -133,7 +133,6 @@ func NewGitProvider(ctx context.Context, cid, app, cluster, level, namespace str
 	params : string
 	return : string
 */
-
 func (p *GitProvider) GetPath(t string) string {
 	return "clusters/" + p.Cluster + "/" + t + "/" + p.Cid + "/app/" + p.App + "/"
 }

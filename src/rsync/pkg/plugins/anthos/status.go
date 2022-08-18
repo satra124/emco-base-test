@@ -65,7 +65,7 @@ func (p *AnthosProvider) ApplyStatusCR(ctx context.Context, name string, content
 		return err
 	}
 
-	path := p.gitProvider.GetPath("context") + name + ".yaml"
+	path := p.GetPath("context") + name + ".yaml"
 	ref, err := p.gitProvider.Apply(path, nil, rbsJson)
 	if err != nil {
 		return err
@@ -76,7 +76,7 @@ func (p *AnthosProvider) ApplyStatusCR(ctx context.Context, name string, content
 
 // DeleteStatusCR deletes status CR
 func (p *AnthosProvider) DeleteStatusCR(ctx context.Context, name string, content []byte) error {
-	path := p.gitProvider.GetPath("context") + name + ".yaml"
+	path := p.GetPath("context") + name + ".yaml"
 	ref, err := p.gitProvider.Delete(path, nil, content)
 	if err != nil {
 		return err

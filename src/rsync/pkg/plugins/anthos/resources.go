@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-// Creates a new resource if the not already existing
+// Creates a new resource if not already existing
 func (p *AnthosProvider) Create(name string, ref interface{}, content []byte) (interface{}, error) {
 
 	res, err := p.gitProvider.Create(name, ref, content)
@@ -30,14 +30,19 @@ func (p *AnthosProvider) Apply(ctx context.Context, name string, ref interface{}
 		return nil, err
 	}
 
-	// Set Namespace
-	unstruct.SetNamespace(p.gitProvider.Namespace)
+	// Namespaces shouldn't be blindly overwritten.
+	// Cluster-scoped resources must not contain a namespace (incompatible with certain distros) and (maybe) resources with an existing namespace should be respected (User Permissions will decide if they can actually be deployed)
+	structkind := unstruct.GetKind()
+	if structkind != "ClusterRoleBinding" && structkind != "ClusterRole" && structkind != "RepoSync" && structkind != "Namespace" {
+		// Set Namespace
+		unstruct.SetNamespace(p.gitProvider.Namespace)
+	}
 
 	unstructJson, err := unstruct.MarshalJSON()
 	if err != nil {
 		return nil, err
 	}
-	path := p.gitProvider.GetPath("context") + name + ".yaml"
+	path := p.GetPath("context") + name + ".yaml"
 	res, err := p.gitProvider.Apply(path, ref, unstructJson)
 	return res, err
 
@@ -46,7 +51,7 @@ func (p *AnthosProvider) Apply(ctx context.Context, name string, ref interface{}
 // Delete resource from the cluster
 func (p *AnthosProvider) Delete(name string, ref interface{}, content []byte) (interface{}, error) {
 
-	path := p.gitProvider.GetPath("context") + name + ".yaml"
+	path := p.GetPath("context") + name + ".yaml"
 	res, err := p.gitProvider.Delete(path, ref, content)
 	return res, err
 

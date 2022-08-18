@@ -408,7 +408,7 @@ Refer https://gitlab.com/project-emco/core/emco-base/-/tree/main/examples/test-a
 
 Before proceeding with the creation of Anthos-enabled clusters on GKE, enable the Anthos Config Management: https://cloud.google.com/anthos-config-management/docs/how-to/install-anthos-config-management#enabling.
 
-Then, create a new cluster (https://console.cloud.google.com/kubernetes/list/overview) and for the git repository type, pick ``unstructured``. See more at https://cloud.google.com/anthos-config-management/docs/how-to/unstructured-repo. Set the other fields as appropriate, and for directory name set `rootsync/*name of cluster`. More on this below.
+Then, create a new cluster (https://console.cloud.google.com/kubernetes/list/overview) and for the git repository type, pick ``unstructured``. See more at https://cloud.google.com/anthos-config-management/docs/how-to/unstructured-repo. Set the other fields as appropriate, and for directory name set `clusters/*full EMCO clustername*`. More on this below.
 
 #### Installing Monitor
 
@@ -420,13 +420,13 @@ The steps below build a Monitor package and then extract its template-replaced r
 cd ~/emco-base/deployments/helm
 helm package monitor
 tar -xf monitor-1.0.0.tgz
-CLUSTER_REF="provider-anthos+cluster2"
+CLUSTER_REF="provider-anthos+acm-cluster"
 GITHUB_OWNER="REPLACE_WITH_GITHUB_USER"
 GITHUB_TOKEN="REPLACE_WITH_GITHUB_ACCESS_TOKEN"
 GITHUB_REPO="REPLACE_WITH_GITHUB_REPO_NAME"
 helm template emco monitor -n emco --set git.token=$GITHUB_TOKEN --set git.repo=$GITHUB_REPO --set git.username=$GITHUB_OWNER --set git.clustername=$CLUSTER_REF --set git.enabled=true > monitor.yaml
-cp monitor.yaml ~/REPLACE_WITH_GITHUB_REPO_NAME/rootsync/acm-cluster/
-cd ~/REPLACE_WITH_GITHUB_REPO_NAME/rootsync/acm-cluster/
+cp monitor.yaml ~/REPLACE_WITH_GITHUB_REPO_NAME/clusters/provider-anthos+acm-cluster/
+cd ~/REPLACE_WITH_GITHUB_REPO_NAME/clusters/provider-anthos+acm-cluster/
 git add monitor.yaml
 git commit -a
 git push
@@ -437,51 +437,104 @@ git push
 
 #### Git repo structure
 
-Here's a sample of the structure of a git repository supporting 1 Anthos-enabled cluster (named `acm-cluster` in GKE, and `provider-anthos+cluster2` in EMCO):
+Here's a sample structure of a git repository supporting 1 Anthos-enabled cluster (named `acm-cluster` in GKE, and `provider-anthos+acm-cluster` in EMCO) with 1 Privileged Logical Cloud and 1 Composite App instantiated:
 
 ```
 ├── clusters
-│   ├── anthos
-│   └── provider-anthos+cluster2
-│       ├── context
-│       │   └── 6044482791265439821
-│       │       ├── app
-│       │       │   └── collectd
-│       │       │       ├── 6044482791265439821-collectd.yaml
-│       │       │       ├── collectd+Service.yaml
-│       │       │       ├── r1-collectd-config+ConfigMap.yaml
-│       │       │       └── r1-collectd+DaemonSet.yaml
-│       │       └── deployed
-│       └── status
-│           └── 5221547608623062846
-│               └── app
-│                   └── collectd
-│                       └── 5221547608623062846-collectd
-└── rootsync
-    └── acm-cluster
-        ├── monitor.yaml
-        └── rootsync.yaml
+│   └── provider-anthos+acm-cluster
+│       ├── monitor.yaml
+│       └── context
+│           └── 7254916754657549701
+│               ├── app
+│               │   └── logical-cloud
+│               │       ├── 7254916754657549701-logical-cloud.json
+│               │       ├── lc1-clusterRole2+ClusterRole.json
+│               │       ├── lc1-clusterRoleBinding2+ClusterRoleBinding.json
+│               │       ├── lc1-role0+Role.json
+│               │       ├── lc1-role1+Role.json
+│               │       ├── lc1-roleBinding0+RoleBinding.json
+│               │       ├── lc1-roleBinding1+RoleBinding.json
+│               │       ├── privileged-lc-ns+Namespace.json
+│               │       └── repo-sync-lc1+RepoSync.json
+│               └── deployed
+├── namespaces
+│   └── privileged-lc-ns
+│       └── provider-anthos+acm-cluster
+│           └── context
+│               └── 5772429642747222531
+│                   ├── app
+│                   │   └── collectd
+│                   │       ├── 5772429642747222531-collectd-modified.json
+│                   │       ├── collectd+Service.json
+│                   │       ├── r1-collectd-config+ConfigMap.json
+│                   │       └── r1-collectd+DaemonSet.json
+│                   └── deployed
 ```
+
+In the tree of the repository above, we can see that sets of resources are either associated with a cluster directly, or indirectly via a namespace. The namespace name is defined by a Standard or Privileged Logical Cloud in EMCO's Distributed Cloud Manager (DCM).
 
 The `context` and `status` folders are per-cluster and represent deployed composite apps as well the reporting of their respective statuses via Monitor.
 
-The `rootsync` folder contains one folder per cluster, with the non EMCO API deployed resources such as Monitor itself, as well as the `rootsync.yaml` configuration file that further tells Anthos which resources to give to the specified cluster. Here are the contents of the `rootsync.yaml` file above:
+The `monitor.yaml` file contains the Monitor installation for the respective cluster. The installation of this file was done according to the instructions above.
+
+On the EMCO side, both Cluster Provider and Cluster must be created. The Cluster should be registered to point at the git repository that will contain the `clusters/` directory. Inside that directory, folders with the full EMCO clustername will be created. This name is in the following format: `CLUSTER_PROVIDER_NAME+CLUSTER_NAME`.
+
+When configurating an Anthos cluster from the dashboard/console, it must be configured to read from the appropriate `clusters/*full EMCO clustername*` folder according to the format below, so the cluster knows where its resources should be read from (within the same repository) and installs Monitor.
+
+Example:
+
+Cluster Provider:
 
 ```
-apiVersion: configsync.gke.io/v1beta1
-kind: RootSync
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers
 metadata:
-  name: root-sync-emco
-  namespace: config-management-system
-spec:
-  sourceFormat: unstructured
-  git:
-    repo: https://github.com/REPLACE_WITH_GITHUB_USER/REPLACE_WITH_GITHUB_REPO_NAME.git
-    revision: HEAD
-    branch: main
-    dir: "/clusters/provider-anthos+cluster2"
-    auth: none
-    noSSLVerify: false
+   name: provider-anthos
 ```
 
-When configurating an Anthos cluster from the dashboard/console, it must be configured to read from the appropriate `rootsync/*name of cluster*` folder, so the cluster knows where its resources should be read from (within the same repository) and installs Monitor.
+Cluster Sync Objects:
+```
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/provider-anthos/cluster-sync-objects
+metadata:
+  name: anthos-sync-object
+spec:
+  kv:
+  - gitType: github
+  - userName: myorg
+  - gitToken: 0123456789abcdef
+  - repoName: mygitopsrepo
+  - branch: main
+```
+
+Cluster:
+
+```
+version: emco/v2
+resourceContext:
+  anchor: cluster-providers/provider-anthos/clusters
+metadata:
+   name: acm-cluster
+spec:
+  gitOps:
+    gitOpsType: anthos
+    gitOpsReferenceObject: anthos-sync-object
+    gitOpsResourceObject: anthos-sync-object
+file:
+  values.yaml
+```
+
+With the EMCO resources above, here is how the Google Cloud Anthos cluster should be configured:
+
+Repository: Custom
+URL: https://github.com/myorg/mygitopsrepo.git
+Authentication Type: None
+Branch: main
+Configuration directory: /clusters/provider-anthos+acm-cluster
+Source format: unstructured
+
+![Screenshot](images/anthos-gui.png)
+
+Finally, regarding Standard and Privileged Logical Clouds, EMCO will automatically generate `RepoSync` Custom Resources and add them to the cluster subdirectories in the Git repository, associated with the Composite App representation of the respective Logical Cloud. This is equivalent to the manual step taken above to configure the cluster to read from a Git repository (which internally generates and Anthos `RootSync` Custom Resource), except here this step is automated by EMCO. When Anthos Config Management reads from the Logical Cloud's subdirectory, it will enforce the Logical Cloud's User Permissions defined by the EMCO user. Read more about Google Anthos `RootSync` and `RepoSync` at: https://cloud.google.com/anthos-config-management/docs/reference/rootsync-reposync-fields.

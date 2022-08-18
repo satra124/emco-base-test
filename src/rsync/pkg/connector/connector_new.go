@@ -50,14 +50,21 @@ func (p *Provider) GetClientProviders(ctx context.Context, app, cluster, level, 
 	if len(kc) > 0 {
 		providerType = "k8s"
 	} else {
-		// GitOps uses level "0" credentials at this time
-		c, err := utils.GetGitOpsConfig(ctx, cluster, "0", "default")
+		c, err := utils.GetGitOpsConfig(ctx, cluster, level, namespace)
 		if err != nil {
 			return nil, err
 		}
 		providerType = c.Props.GitOpsType
 		if providerType == "" {
 			return nil, pkgerrors.New("No provider type specified")
+		}
+		if level == "1" && providerType != "anthos" {
+			// Non-Anthos GitOps uses level "0" credentials at this time.
+			// No need to enter this section if the level passed to GetClientProviders was already "0".
+			c, err = utils.GetGitOpsConfig(ctx, cluster, "0", "default")
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 

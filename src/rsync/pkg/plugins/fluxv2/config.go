@@ -26,10 +26,11 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 		return nil
 	}
 	_, level := acUtils.GetNamespace(ctx)
-	_, _, lcn, err := acUtils.GetLogicalCloudInfo(ctx)
+	_, _, _, lcn, _, err := acUtils.GetLogicalCloudInfo(ctx)
 	if err != nil {
 		return err
 	}
+	// INFO: the below is always false since level is always 0, as it stands
 	if level == "1" {
 		sa = lcn + "-sa"
 	}
