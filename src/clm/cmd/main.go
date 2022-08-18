@@ -6,21 +6,16 @@ package main
 import (
 	"context"
 	"math/rand"
-	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	"github.com/gorilla/handlers"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.com/project-emco/core/emco-base/src/clm/api"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/metrics"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/tracing"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
 )
 
 func main() {
@@ -33,8 +28,6 @@ func main() {
 		log.Error("Unable to initialize tracing", log.Fields{"Error": err})
 		os.Exit(1)
 	}
-
-	prometheus.MustRegister(metrics.NewBuildInfoCollector("clm"))
 
 	err = db.InitializeDatabaseConnection(ctx, "emco")
 	if err != nil {
@@ -49,13 +42,13 @@ func main() {
 
 	httpRouter := api.NewRouter(nil)
 	httpRouter.Use(tracing.Middleware)
-	httpRouter.Handle("/metrics", promhttp.Handler())
-	loggedRouter := handlers.LoggingHandler(os.Stdout, httpRouter)
-	log.Info("Starting Cluster Manager", log.Fields{"Port": config.GetConfiguration().ServicePort})
 
-	httpServer := &http.Server{
-		Handler: loggedRouter,
-		Addr:    ":" + config.GetConfiguration().ServicePort,
+	server, err := controller.NewControllerServer("clm",
+		httpRouter,
+		nil)
+	if err != nil {
+		log.Error("Unable to create server", log.Fields{"Error": err})
+		os.Exit(1)
 	}
 
 	connectionsClose := make(chan struct{})
@@ -63,12 +56,12 @@ func main() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
 		<-c
-		httpServer.Shutdown(ctx)
+		server.Shutdown(ctx)
 		close(connectionsClose)
 	}()
 
-	err = httpServer.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil {
-		log.Error("HTTP server failed", log.Fields{"Error": err})
+		log.Error("Server failed", log.Fields{"Error": err})
 	}
 }

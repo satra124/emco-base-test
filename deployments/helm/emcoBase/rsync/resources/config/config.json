@@ -3,5 +3,6 @@
     "database-ip": "emco-mongo",
     "etcd-ip": "emco-etcd",
     "zipkin-ip": "zipkin.istio-system",
+    "service-port": "9023",
     "log-level": {{ .Values.global.loglevel | quote }}
 }

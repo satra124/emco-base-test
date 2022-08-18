@@ -6,10 +6,23 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"net"
+	"net/http"
+	"os"
+	"sync"
 
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	pkgerrors "github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	register "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/metrics"
 	rpc "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
 	mtypes "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
 )
@@ -67,6 +80,12 @@ type ControllerClient struct {
 	collectionName string
 	tagMeta        string
 	tagGroup       string
+}
+
+// ControllerServer implements a controller/manager service
+type ControllerServer struct {
+	ListenAndServe func() error
+	Shutdown       func(context.Context) error
 }
 
 // NewControllerClient returns an instance of the ControllerClient
@@ -190,4 +209,91 @@ func (mc *ControllerClient) InitControllers(ctx context.Context) {
 		})
 		rpc.UpdateRpcConn(v.Metadata.Name, v.Spec.Host, v.Spec.Port)
 	}
+}
+
+func NewControllerServer(name string, httpRouter *mux.Router, grpcServer *register.GrpcServer) (*ControllerServer, error) {
+	if httpRouter == nil && grpcServer == nil {
+		return nil, errors.New("NewControllerServer: must provide non-nil httpRouter or grpcServer")
+	}
+
+	prometheus.MustRegister(metrics.NewBuildInfoCollector(name))
+
+	httpServerPort := config.GetConfiguration().ServicePort
+	if httpServerPort == "" {
+		return nil, errors.New("NewControllerServer: must configure a \"service-port\"")
+	}
+	if httpRouter == nil {
+		httpRouter = mux.NewRouter()
+	}
+	httpServer, err := newHttpServer(httpServerPort, httpRouter)
+	if err != nil {
+		log.Error("Unable to create HTTP server", log.Fields{"Error": err})
+		return nil, err
+	}
+
+	return &ControllerServer{
+		ListenAndServe: func() error {
+			log.Info("Starting HTTP server", log.Fields{"Port": httpServerPort})
+			httpLis, err := net.Listen("tcp", ":"+httpServerPort)
+			if err != nil {
+				log.Error("Could not listen on HTTP port", log.Fields{"Error": err, "Port": httpServerPort})
+				return err
+			}
+
+			var grpcLis net.Listener
+			if grpcServer != nil {
+				log.Info("Starting gRPC server", log.Fields{"Port": grpcServer.Port})
+				grpcLis, err = net.Listen("tcp", fmt.Sprintf(":%d", grpcServer.Port))
+				if err != nil {
+					log.Error("Could not listen on gRPC port", log.Fields{"Error": err, "Port": grpcServer.Port})
+					return err
+				}
+			}
+
+			var wg sync.WaitGroup
+			wg.Add(1)
+			go func() {
+				err = httpServer.Serve(httpLis)
+				if err != nil {
+					log.Error("HTTP server stopped", log.Fields{"Error": err})
+				}
+				wg.Done()
+			}()
+			if grpcServer != nil {
+				wg.Add(1)
+				go func() {
+					err = grpcServer.Serve(grpcLis)
+					if err != nil {
+						log.Error("gRPC server stopped", log.Fields{"Error": err})
+					}
+					wg.Done()
+				}()
+			}
+			wg.Wait()
+			return nil
+		},
+		Shutdown: func(ctx context.Context) error {
+			if grpcServer != nil {
+				err = grpcServer.Shutdown(ctx)
+				if err != nil {
+					log.Error("gRPC server shutdown failed", log.Fields{"Error": err})
+				}
+			}
+			err = httpServer.Shutdown(ctx)
+			if err != nil {
+				log.Error("HTTP server shutdown failed", log.Fields{"Error": err})
+			}
+			return err
+		},
+	}, nil
+}
+
+func newHttpServer(port string, httpRouter *mux.Router) (*http.Server, error) {
+	httpRouter.Handle("/metrics", promhttp.Handler())
+	loggedRouter := handlers.LoggingHandler(os.Stdout, httpRouter)
+
+	return &http.Server{
+		Handler: loggedRouter,
+		Addr:    ":" + port,
+	}, nil
 }

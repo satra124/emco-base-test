@@ -52,6 +52,13 @@ spec:
 
 ## Implementation notes
 
+### Adding metrics to existing services and controllers
+Adding the /metrics HTTP endpoint to an existing service is done by calling controller.NewControllerServer(). The port used is the `service-port` of the configuration.
+
+Common metrics should be placed in `src/orchestrator/pkg/infra/metrics`.
+
+At this point in time, only one common metric is defined: emco_build. It contains component, revision, and version labels. The component is the name provided to controller.NewControllerServer() while the revision and version labels are taken from the EMCO_META_EMCO_SHA and EMCO_META_EMCO_VERSION environment variables.
+
 ### Adding tracing to existing services and controllers
 The general process is to review the code for any uses of context.Background(). Instead of context.Background(), use a context provided by the caller. Inject the (yet to be added) tracing headers into the outgoing request context.
 
@@ -64,9 +71,15 @@ Care must be taken when passing the context through to a goroutine. This may res
 One last note: if new errors appear in the tests after plumbing the context through then it may be due to the mocks not having the right type signature anymore.
 
 #### Example code flow of tracing through the orchestrator service
-Beginning in main.main(), tracing.Middleware() is inserted into the HTTP router. This wraps each API handler with the code needed to setup the tracing context:
+Beginning in main.main(), conroller.NewControllerServer() is called. This contains the common code to configure the service's HTTP router and gRPC server.
 ```go
-	httpRouter := api.NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	server, err := controller.NewControllerServer("orchestrator",
+		api.NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil),
+		grpcServer)
+```
+
+controller.NewControllerServer() initializes the tracing provider and inserts tracing.Middleware() into the HTTP router. This wraps each API handler with the code needed to setup the tracing context:
+```go
 	httpRouter.Use(tracing.Middleware)
 ```
 

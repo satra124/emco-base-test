@@ -10,4 +10,4 @@ version: 1.0.0
 dependencies:
   - name: common
     version: ~1.x-0
-    repository: file://../common
+    repository: file://../../../../../deployments/helm/emcoBase/common
