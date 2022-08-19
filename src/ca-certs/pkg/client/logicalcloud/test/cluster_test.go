@@ -34,7 +34,7 @@ var _ = Describe("Create ClusterGroup",
 				l := len(mockdb.Items)
 				mClusterGroup := mockClusterGroup("test-clusterGroup-1")
 				cg, cExists, err := client.CreateClusterGroup(mClusterGroup, "lc1", "cert1", "proj1", true)
-				validateError(err, "ClusterGroup already exists")
+				validateError(err, module.CaCertClusterGroupAlreadyExists)
 				Expect(cg).To(Equal(module.ClusterGroup{}))
 				Expect(cExists).To(Equal(true))
 				Expect(len(mockdb.Items)).To(Equal(l))
@@ -106,7 +106,7 @@ var _ = Describe("Get ClusterGroup",
 		Context("get a nonexisting clusterGroup", func() {
 			It("returns an error, no clusterGroup", func() {
 				cluster, err := client.GetClusterGroup("non-existing-cluster", "lc1", "cert1", "proj1")
-				validateError(err, "ClusterGroup not found")
+				validateError(err, module.CaCertClusterGroupNotFound)
 				validateClusterGroup(cluster, module.ClusterGroup{})
 			})
 		})

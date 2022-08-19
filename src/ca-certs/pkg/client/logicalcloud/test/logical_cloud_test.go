@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/client/logicalcloud"
+	"gitlab.com/project-emco/core/emco-base/src/ca-certs/pkg/module"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
 )
 
@@ -37,7 +38,7 @@ var _ = Describe("Create CaCertLogicalCloud",
 				l := len(mockdb.Items)
 				mLogicalCloud := mockLogicalCloud("test-caCertLogicalCloud-1")
 				c, cExists, err := lcClient.CreateLogicalCloud(mLogicalCloud, "cert1", "proj1", true)
-				validateError(err, "LogicalCloud already exists")
+				validateError(err, module.CaCertLogicalCloudAlreadyExists)
 				validateLogicalCloud(c, logicalcloud.CaCertLogicalCloud{})
 				Expect(cExists).To(Equal(true))
 				Expect(len(mockdb.Items)).To(Equal(l))
@@ -109,7 +110,7 @@ var _ = Describe("Get CaCertLogicalCloud",
 		Context("get a nonexisting caCertLogicalCloud", func() {
 			It("returns an error, no caCertLogicalCloud", func() {
 				cluster, err := lcClient.GetLogicalCloud("non-existing-caCertLogicalCloud", "cert1", "proj1")
-				validateError(err, "LogicalCloud not found")
+				validateError(err, module.CaCertLogicalCloudNotFound)
 				validateLogicalCloud(cluster, logicalcloud.CaCertLogicalCloud{})
 			})
 		})

@@ -45,7 +45,7 @@ var _ = Describe("Create ClusterGroup",
 					ClusterProvider: "provider1"}
 				client := module.NewClusterGroupClient(key)
 				cg, cExists, err := client.CreateClusterGroup(mClusterGroup, true)
-				validateError(err, "ClusterGroup already exists")
+				validateError(err, module.CaCertClusterGroupAlreadyExists)
 				Expect(cg).To(Equal(module.ClusterGroup{}))
 				Expect(cExists).To(Equal(true))
 				Expect(len(mockdb.Items)).To(Equal(l))
@@ -78,7 +78,7 @@ var _ = Describe("Create ClusterGroup",
 					Project:            "proj1"}
 				client := module.NewClusterGroupClient(key)
 				cg, cExists, err := client.CreateClusterGroup(mClusterGroup, true)
-				validateError(err, "ClusterGroup already exists")
+				validateError(err, module.CaCertClusterGroupAlreadyExists)
 				Expect(cg).To(Equal(module.ClusterGroup{}))
 				Expect(cExists).To(Equal(true))
 				Expect(len(mockdb.Items)).To(Equal(l))
@@ -233,7 +233,7 @@ var _ = Describe("Get ClusterGroup",
 					ClusterProvider: "provider1"}
 				client := module.NewClusterGroupClient(key)
 				cluster, err := client.GetClusterGroup()
-				validateError(err, "ClusterGroup not found")
+				validateError(err, module.CaCertClusterGroupNotFound)
 				validateClusterGroup(cluster, module.ClusterGroup{})
 			})
 		})

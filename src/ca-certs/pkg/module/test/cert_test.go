@@ -44,7 +44,7 @@ var _ = Describe("Create Cert",
 					ClusterProvider: "provider1"}
 				client := module.NewCaCertClient(key)
 				c, cExists, err := client.CreateCert(mCert, true)
-				validateError(err, "Certificate already exists")
+				validateError(err, module.CaCertAlreadyExists)
 				Expect(cExists).To(Equal(true))
 				Expect(c).To(Equal(module.CaCert{}))
 				Expect(len(mockdb.Items)).To(Equal(l))
@@ -74,7 +74,7 @@ var _ = Describe("Create Cert",
 					Project: "proj1"}
 				client := module.NewCaCertClient(key)
 				c, cExists, err := client.CreateCert(mCert, true)
-				validateError(err, "Certificate already exists")
+				validateError(err, module.CaCertAlreadyExists)
 				Expect(c).To(Equal(module.CaCert{}))
 				Expect(cExists).To(Equal(true))
 				Expect(len(mockdb.Items)).To(Equal(l))
@@ -215,7 +215,7 @@ var _ = Describe("Get Cert",
 					ClusterProvider: "provider1"}
 				client := module.NewCaCertClient(key)
 				cert, err := client.GetCert()
-				validateError(err, "Certificate not found")
+				validateError(err, module.CaCertNotFound)
 				validateCert(cert, module.CaCert{})
 			})
 		})
