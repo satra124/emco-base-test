@@ -45,3 +45,37 @@ For the most part the injection and extraction of tracing headers can be handled
 Care must be taken when passing the context through to a goroutine. This may result in the context being cancelled in the goroutine when the creator of the goroutine returns. The solution currently used is to create a new context to provide to the goroutine. If the service logs show an unexpected cancel or a trace shows what appear to be orphaned spans, this is likely pointing to an incorrect use of the context.
 
 One last note: if new errors appear in the tests after plumbing the context through then it may be due to the mocks not having the right type signature anymore.
+
+#### Example code flow of tracing through the orchestrator service
+Beginning in main.main(), tracing.Middleware() is inserted into the HTTP router. This wraps each API handler with the code needed to setup the tracing context:
+```go
+	httpRouter := api.NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	httpRouter.Use(tracing.Middleware)
+```
+
+tracing.Middleware() extracts the tracing headers from the request header, creates a span describing the API request, and propagates the context containing the tracing headers to the actual API handler:
+```go
+		ctx := otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header))
+		tracer := otel.Tracer("orchestrator")
+		ctx, span := tracer.Start(ctx, r.Method+" "+r.URL.Path)
+		defer span.End()
+		next.ServeHTTP(w, r.Clone(ctx))
+```
+
+The actual API handler receives the context from the request and continues passing it down until it eventually nears an exit of the service:
+```go
+func (h instantiationHandler) approveHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	iErr := h.client.Approve(ctx, p, ca, v, di)
+...
+func ...
+        result, err := db.DBconn.Find(ctx, c.storeName, key, c.tagMetaData)
+```
+
+And finally, the Mongo client has been configured to inject the headers from the passed down context into the outgoing Mongo request using the Monitor client option:
+```go
+func NewMongoStore(ctx context.Context, name string, store *mongo.Database) (Store, error) {
+		clientOptions.Monitor = otelmongo.NewMonitor()
+```
+
+This completes propagation of the tracing headers from the incoming API request to the outgoing Mongo, etc. request.
