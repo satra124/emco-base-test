@@ -24,10 +24,14 @@ func createTracerProvider() (*tracesdk.TracerProvider, error) {
 	if err != nil {
 		return nil, err
 	}
-	name := "unknown"
-	name, _ = os.LookupEnv("APP_NAME")
-	namespace := "default"
-	namespace, _ = os.LookupEnv("POD_NAMESPACE")
+	var ok bool
+	var name, namespace string
+	if name, ok = os.LookupEnv("APP_NAME"); !ok {
+		name = "unknown"
+	}
+	if namespace, ok = os.LookupEnv("POD_NAMESPACE"); !ok {
+		namespace = "default"
+	}
 	tp := tracesdk.NewTracerProvider(
 		tracesdk.WithBatcher(exp),
 		tracesdk.WithResource(resource.NewWithAttributes(
@@ -50,9 +54,14 @@ func InitializeTracer() error {
 }
 
 func Middleware(next http.Handler) http.Handler {
+	var ok bool
+	var name string
+	if name, ok = os.LookupEnv("APP_NAME"); !ok {
+		name = "unknown"
+	}
+	tracer := otel.Tracer(name)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header))
-		tracer := otel.Tracer("orchestrator")
 		ctx, span := tracer.Start(ctx, r.Method+" "+r.URL.Path)
 		defer span.End()
 		next.ServeHTTP(w, r.Clone(ctx))
