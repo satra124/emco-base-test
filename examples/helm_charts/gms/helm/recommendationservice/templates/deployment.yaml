@@ -26,7 +26,8 @@ spec:
             command:
             - /bin/grpc_health_probe
             - -addr=:{{ .Values.recommendationservice.server.port }}
-          periodSeconds: 5
+          initialDelaySeconds: 30
+          periodSeconds: 15
         name: server
         ports:
         - containerPort: {{ .Values.recommendationservice.server.port }}
@@ -35,7 +36,8 @@ spec:
             command:
             - /bin/grpc_health_probe
             - -addr=:{{ .Values.recommendationservice.server.port }}
-          periodSeconds: 5
+          initialDelaySeconds: 30
+          periodSeconds: 15
         resources: {{- toYaml .Values.recommendationservice.server.resources | nindent 10 }}
       serviceAccountName: default
       terminationGracePeriodSeconds: 5
