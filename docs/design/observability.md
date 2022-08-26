@@ -33,6 +33,23 @@ The Istio addon dashboards can be accessed at the following URLs in the cluster.
 | jaeger     | http://localhost:16686       |
 | grafana    | http://localhost:3000        |
 
+## Jaeger configuration
+General instructions are at [Configure tracing using MeshConfig and Pod annotations](https://istio.io/latest/docs/tasks/observability/distributed-tracing/mesh-and-proxy-config/).
+
+To capture all samples, the IstioOperator configuration can be edited as shown below. Pods must be restarted after making this change.
+```yaml
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: istio-config
+  namespace: istio-system
+spec:
+  meshConfig:
+    defaultConfig:
+      tracing:
+        sampling: 100
+```
+
 ## Implementation notes
 
 ### Adding tracing to existing services and controllers
