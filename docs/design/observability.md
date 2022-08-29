@@ -1,6 +1,6 @@
 ```
 SPDX-License-Identifier: Apache-2.0
-Copyright (c) 2019-2020 Intel Corporation
+Copyright (c) 2022 Intel Corporation
 ```
 # Edge Multi-Cloud Orchestrator (EMCO) Observability
 EMCO metrics and tracing builds upon the features provided by Istio sidecars. The first step to enabling observability in EMCO is to setup Istio with its telemetry addons.
