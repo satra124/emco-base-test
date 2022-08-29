@@ -57,7 +57,7 @@ The general process is to review the code for any uses of context.Background(). 
 
 Then propagate the context up until the incoming server request is received (HTTP, gRPC, etc.). At this point create a derived context that extracts the tracing headers from the request.
 
-For the most part the injection and extraction of tracing headers can be handled by library specific interceptors. This prevents littering the code with inject and extract calls. The common orchestrator packages for mongo and gRPC use interceptors, and tracingMiddleware() in the orchestrator uses the gorilla/mux middleware functionality to intercept incoming HTTP requests. The tracing implementation looks for `zipkin-ip` in config.json for where to post the traces.
+For the most part the injection and extraction of tracing headers can be handled by library specific interceptors. This prevents littering the code with inject and extract calls. The common orchestrator packages for mongo and gRPC use interceptors, and tracingMiddleware() in the orchestrator uses the gorilla/mux middleware functionality to intercept incoming HTTP requests. The tracing implementation looks for `zipkin-ip` and `zipkin-port` (default `127.0.0.1:9411`) in config.json for where to post the traces.
 
 Care must be taken when passing the context through to a goroutine. This may result in the context being cancelled in the goroutine when the creator of the goroutine returns. The solution currently used is to create a new context to provide to the goroutine. If the service logs show an unexpected cancel or a trace shows what appear to be orphaned spans, this is likely pointing to an incorrect use of the context.
 

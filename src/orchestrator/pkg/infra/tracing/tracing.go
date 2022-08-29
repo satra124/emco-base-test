@@ -19,7 +19,7 @@ import (
 )
 
 func createTracerProvider() (*tracesdk.TracerProvider, error) {
-	endpoint := "http://" + net.JoinHostPort(config.GetConfiguration().ZipkinIP, "9411") + "/api/v2/spans"
+	endpoint := "http://" + net.JoinHostPort(config.GetConfiguration().ZipkinIP, config.GetConfiguration().ZipkinPort) + "/api/v2/spans"
 	exp, err := zipkin.New(endpoint)
 	if err != nil {
 		return nil, err
