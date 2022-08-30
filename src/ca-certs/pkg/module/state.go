@@ -61,10 +61,10 @@ func (c *StateClient) Get() (state.StateInfo, error) {
 	if len(values) == 0 ||
 		(len(values) > 0 &&
 			values[0] == nil) {
-		return state.StateInfo{}, &emcoerror.Error{
-			Message: emcoerror.StateInfoNotFound,
-			Reason:  emcoerror.NotFound,
-		}
+		return state.StateInfo{}, emcoerror.NewEmcoError(
+			emcoerror.StateInfoNotFound,
+			emcoerror.NotFound,
+		)
 	}
 
 	if len(values) > 0 &&
@@ -76,10 +76,10 @@ func (c *StateClient) Get() (state.StateInfo, error) {
 		return s, nil
 	}
 
-	return state.StateInfo{}, &emcoerror.Error{
-		Message: emcoerror.UnknownErrorMessage,
-		Reason:  emcoerror.Unknown,
-	}
+	return state.StateInfo{}, emcoerror.NewEmcoError(
+		emcoerror.UnknownErrorMessage,
+		emcoerror.Unknown,
+	)
 }
 
 // Update the stateInfo
@@ -143,40 +143,40 @@ func (sc *StateClient) VerifyState(event common.EmcoEvent) (string, error) {
 
 		switch status.Status {
 		case appcontext.AppContextStatusEnum.Terminating:
-			err := &emcoerror.Error{
-				Message: (&emcoerror.StateError{
+			err := emcoerror.NewEmcoError(
+				(&emcoerror.StateError{
 					Resource: "CaCert",
 					Event:    event,
 					Status:   status.Status,
 				}).Error(),
-				Reason: emcoerror.Conflict,
-			}
+				emcoerror.Conflict,
+			)
 			logutils.Error("",
 				logutils.Fields{
 					"Error":     err.Error(),
 					"ContextID": contextID})
 			return contextID, err
 		case appcontext.AppContextStatusEnum.Instantiating:
-			err := &emcoerror.Error{
-				Message: (&emcoerror.StateError{
+			err := emcoerror.NewEmcoError(
+				(&emcoerror.StateError{
 					Resource: "CaCert",
 					Event:    event,
 					Status:   status.Status}).Error(),
-				Reason: emcoerror.Conflict,
-			}
+				emcoerror.Conflict,
+			)
 			logutils.Error("",
 				logutils.Fields{
 					"Error":     err.Error(),
 					"ContextID": contextID})
 			return contextID, err
 		case appcontext.AppContextStatusEnum.TerminateFailed:
-			err := &emcoerror.Error{
-				Message: (&emcoerror.StateError{
+			err := emcoerror.NewEmcoError(
+				(&emcoerror.StateError{
 					Resource: "CaCert",
 					Event:    event,
 					Status:   status.Status}).Error(),
-				Reason: emcoerror.Conflict,
-			}
+				emcoerror.Conflict,
+			)
 			logutils.Error("",
 				logutils.Fields{
 					"Error":     err.Error(),
@@ -188,13 +188,13 @@ func (sc *StateClient) VerifyState(event common.EmcoEvent) (string, error) {
 			case common.Instantiate:
 				return contextID, nil
 			case common.Terminate:
-				err := &emcoerror.Error{
-					Message: (&emcoerror.StateError{
+				err := emcoerror.NewEmcoError(
+					(&emcoerror.StateError{
 						Resource: "CaCert",
 						Event:    event,
 						Status:   status.Status}).Error(),
-					Reason: emcoerror.Conflict,
-				}
+					emcoerror.Conflict,
+				)
 				logutils.Error("",
 					logutils.Fields{
 						"Error":     err.Error(),
@@ -204,13 +204,13 @@ func (sc *StateClient) VerifyState(event common.EmcoEvent) (string, error) {
 		case appcontext.AppContextStatusEnum.Instantiated:
 			switch event {
 			case common.Instantiate:
-				err := &emcoerror.Error{
-					Message: (&emcoerror.StateError{
+				err := emcoerror.NewEmcoError(
+					(&emcoerror.StateError{
 						Resource: "CaCert",
 						Event:    event,
 						Status:   status.Status}).Error(),
-					Reason: emcoerror.Conflict,
-				}
+					emcoerror.Conflict,
+				)
 				logutils.Error("",
 					logutils.Fields{
 						"Error":     err.Error(),
@@ -222,13 +222,13 @@ func (sc *StateClient) VerifyState(event common.EmcoEvent) (string, error) {
 		case appcontext.AppContextStatusEnum.InstantiateFailed:
 			switch event {
 			case common.Instantiate:
-				err := &emcoerror.Error{
-					Message: (&emcoerror.StateError{
+				err := emcoerror.NewEmcoError(
+					(&emcoerror.StateError{
 						Resource: "CaCert",
 						Event:    event,
 						Status:   status.Status}).Error(),
-					Reason: emcoerror.Conflict,
-				}
+					emcoerror.Conflict,
+				)
 				logutils.Error("",
 					logutils.Fields{
 						"Error":     err.Error(),
@@ -239,13 +239,13 @@ func (sc *StateClient) VerifyState(event common.EmcoEvent) (string, error) {
 				return contextID, nil
 			}
 		default:
-			err := &emcoerror.Error{
-				Message: (&emcoerror.StateError{
+			err := emcoerror.NewEmcoError(
+				(&emcoerror.StateError{
 					Resource: "CaCert",
 					Event:    event,
 					Status:   status.Status}).Error(),
-				Reason: emcoerror.Conflict,
-			}
+				emcoerror.Conflict,
+			)
 			logutils.Error("",
 				logutils.Fields{
 					"Error":     err.Error(),

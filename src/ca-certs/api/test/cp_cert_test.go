@@ -42,10 +42,11 @@ func (m *mockClusterProviderCertManager) CreateCert(cert module.CaCert, clusterP
 	}
 
 	if iExists && failIfExists { // cert already exists
-		return module.CaCert{}, iExists, &emcoerror.Error{
-			Message: module.CaCertAlreadyExists,
-			Reason:  emcoerror.Conflict,
-		}
+		return module.CaCert{}, iExists,
+			emcoerror.NewEmcoError(
+				module.CaCertAlreadyExists,
+				emcoerror.Conflict,
+			)
 	}
 
 	if iExists && !failIfExists { // cert already exists. update the cert
@@ -72,11 +73,10 @@ func (m *mockClusterProviderCertManager) DeleteCert(cert, clusterProvider string
 		}
 	}
 
-	return &emcoerror.Error{
-		Message: "The requested resource not found",
-		Reason:  emcoerror.NotFound,
-	} // cert does not exist
-
+	return emcoerror.NewEmcoError(
+		"The requested resource not found",
+		emcoerror.NotFound,
+	)
 }
 
 func (m *mockClusterProviderCertManager) GetAllCert(clusterProvider string) ([]module.CaCert, error) {
@@ -101,10 +101,10 @@ func (m *mockClusterProviderCertManager) GetCert(cert, clusterProvider string) (
 		}
 	}
 
-	return module.CaCert{}, &emcoerror.Error{
-		Message: module.CaCertNotFound,
-		Reason:  emcoerror.NotFound,
-	}
+	return module.CaCert{}, emcoerror.NewEmcoError(
+		module.CaCertNotFound,
+		emcoerror.NotFound,
+	)
 }
 
 var _ = Describe("Test create cert handler",
@@ -146,10 +146,10 @@ var _ = Describe("Test create cert handler",
 					entry:  "cert already exists",
 					input:  certInput("testCert1"),
 					result: module.CaCert{},
-					err: &emcoerror.Error{
-						Message: module.CaCertAlreadyExists,
-						Reason:  emcoerror.Conflict,
-					},
+					err: emcoerror.NewEmcoError(
+						module.CaCertAlreadyExists,
+						emcoerror.Conflict,
+					),
 					statusCode: http.StatusConflict,
 					client: &mockClusterProviderCertManager{
 						Err:   nil,
@@ -187,10 +187,10 @@ var _ = Describe("Test get cert handler",
 					entry:      "cert not found",
 					name:       "nonExistingCert",
 					statusCode: http.StatusNotFound,
-					err: &emcoerror.Error{
-						Message: module.CaCertNotFound,
-						Reason:  emcoerror.NotFound,
-					},
+					err: emcoerror.NewEmcoError(
+						module.CaCertNotFound,
+						emcoerror.NotFound,
+					),
 					result: module.CaCert{},
 					client: &mockClusterProviderCertManager{
 						Err:   nil,
@@ -282,10 +282,10 @@ var _ = Describe("Test delete cert handler",
 					entry:      "db remove cert not found",
 					name:       "nonExistingCert",
 					statusCode: http.StatusNotFound,
-					err: &emcoerror.Error{
-						Message: "The requested resource not found",
-						Reason:  emcoerror.NotFound,
-					},
+					err: emcoerror.NewEmcoError(
+						"The requested resource not found",
+						emcoerror.NotFound,
+					),
 					result: module.CaCert{},
 					client: &mockClusterProviderCertManager{
 						Err:   nil,

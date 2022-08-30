@@ -40,3 +40,24 @@ func (e *Error) Error() string {
 
 	return e.Message
 }
+
+// NewEmcoError returns an instance of emco error
+// constructed using the provided message, and reason
+func NewEmcoError(message string, reason ErrorReason) *Error {
+	return &Error{
+		Message: message,
+		Reason:  reason,
+	}
+
+}
+
+// NewEmcoErrorWithCause returns an instance of emco error
+// constructed using the provided message, reason, and cause
+func NewEmcoErrorWithCause(message string, reason ErrorReason, cause *Error) *Error {
+	return &Error{
+		Message: message,
+		Reason:  reason,
+		Cause:   cause,
+	}
+
+}

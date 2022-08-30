@@ -47,10 +47,10 @@ func (c *ClusterGroupClient) CreateClusterGroup(group ClusterGroup, failIfExists
 
 	if cExists &&
 		failIfExists {
-		return ClusterGroup{}, cExists, &emcoerror.Error{
-			Message: CaCertClusterGroupAlreadyExists,
-			Reason:  emcoerror.Conflict,
-		}
+		return ClusterGroup{}, cExists, emcoerror.NewEmcoError(
+			CaCertClusterGroupAlreadyExists,
+			emcoerror.Conflict,
+		)
 	}
 
 	if err := db.DBconn.Insert(c.dbInfo.StoreName, c.dbKey, nil, c.dbInfo.TagMeta, group); err != nil {
@@ -92,10 +92,10 @@ func (c *ClusterGroupClient) GetClusterGroup() (ClusterGroup, error) {
 	}
 
 	if len(value) == 0 {
-		return ClusterGroup{}, &emcoerror.Error{
-			Message: CaCertClusterGroupNotFound,
-			Reason:  emcoerror.NotFound,
-		}
+		return ClusterGroup{}, emcoerror.NewEmcoError(
+			CaCertClusterGroupNotFound,
+			emcoerror.NotFound,
+		)
 	}
 
 	if value != nil {
@@ -106,10 +106,10 @@ func (c *ClusterGroupClient) GetClusterGroup() (ClusterGroup, error) {
 		return c, nil
 	}
 
-	return ClusterGroup{}, &emcoerror.Error{
-		Message: emcoerror.UnknownErrorMessage,
-		Reason:  emcoerror.Unknown,
-	}
+	return ClusterGroup{}, emcoerror.NewEmcoError(
+		emcoerror.UnknownErrorMessage,
+		emcoerror.Unknown,
+	)
 }
 
 // GetClusters returns the list of clusters based on the logicalcloud and scope

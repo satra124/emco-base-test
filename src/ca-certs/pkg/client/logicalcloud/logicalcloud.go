@@ -54,10 +54,10 @@ func (c *CaCertLogicalCloudClient) CreateLogicalCloud(logicalCloud CaCertLogical
 
 	if lcExists &&
 		failIfExists {
-		return CaCertLogicalCloud{}, lcExists, &emcoerror.Error{
-			Message: module.CaCertLogicalCloudAlreadyExists,
-			Reason:  emcoerror.Conflict,
-		}
+		return CaCertLogicalCloud{}, lcExists, emcoerror.NewEmcoError(
+			module.CaCertLogicalCloudAlreadyExists,
+			emcoerror.Conflict,
+		)
 	}
 
 	if err := db.DBconn.Insert(c.dbInfo.StoreName, key, nil, c.dbInfo.TagMeta, logicalCloud); err != nil {
@@ -113,10 +113,10 @@ func (c *CaCertLogicalCloudClient) GetLogicalCloud(logicalCloud, cert, project s
 	}
 
 	if len(value) == 0 {
-		return CaCertLogicalCloud{}, &emcoerror.Error{
-			Message: module.CaCertLogicalCloudNotFound,
-			Reason:  emcoerror.NotFound,
-		}
+		return CaCertLogicalCloud{}, emcoerror.NewEmcoError(
+			module.CaCertLogicalCloudNotFound,
+			emcoerror.NotFound,
+		)
 	}
 
 	if value != nil {
@@ -127,8 +127,8 @@ func (c *CaCertLogicalCloudClient) GetLogicalCloud(logicalCloud, cert, project s
 		return lc, nil
 	}
 
-	return CaCertLogicalCloud{}, &emcoerror.Error{
-		Message: emcoerror.UnknownErrorMessage,
-		Reason:  emcoerror.Unknown,
-	}
+	return CaCertLogicalCloud{}, emcoerror.NewEmcoError(
+		emcoerror.UnknownErrorMessage,
+		emcoerror.Unknown,
+	)
 }

@@ -42,10 +42,10 @@ func (m *mockLogicalCloudClusterManager) CreateClusterGroup(cluster module.Clust
 	}
 
 	if iExists && failIfExists { // clusterGroup already exists
-		return module.ClusterGroup{}, iExists, &emcoerror.Error{
-			Message: module.CaCertClusterGroupAlreadyExists,
-			Reason:  emcoerror.Conflict,
-		}
+		return module.ClusterGroup{}, iExists, emcoerror.NewEmcoError(
+			module.CaCertClusterGroupAlreadyExists,
+			emcoerror.Conflict,
+		)
 	}
 
 	if iExists && !failIfExists { // clusterGroup already exists. update the clusterGroup
@@ -73,10 +73,10 @@ func (m *mockLogicalCloudClusterManager) DeleteClusterGroup(cluster, logicalClou
 		}
 	}
 
-	return &emcoerror.Error{
-		Message: "The requested resource not found",
-		Reason:  emcoerror.NotFound,
-	} // clusterGroup does not exist
+	return emcoerror.NewEmcoError(
+		"The requested resource not found",
+		emcoerror.NotFound,
+	) // clusterGroup does not exist
 }
 
 // GetAllClusterGroups
@@ -106,10 +106,10 @@ func (m *mockLogicalCloudClusterManager) GetClusterGroup(cluster, logicalCloud, 
 		}
 	}
 
-	return module.ClusterGroup{}, &emcoerror.Error{
-		Message: module.CaCertClusterGroupNotFound,
-		Reason:  emcoerror.NotFound,
-	}
+	return module.ClusterGroup{}, emcoerror.NewEmcoError(
+		module.CaCertClusterGroupNotFound,
+		emcoerror.NotFound,
+	)
 }
 
 var _ = Describe("Test create clusterGroup handler",
@@ -151,10 +151,10 @@ var _ = Describe("Test create clusterGroup handler",
 					entry:  "clusterGroup already exists",
 					input:  clusterGroupInput("testClusterGroup-1"),
 					result: module.ClusterGroup{},
-					err: &emcoerror.Error{
-						Message: module.CaCertClusterGroupAlreadyExists,
-						Reason:  emcoerror.Conflict,
-					},
+					err: emcoerror.NewEmcoError(
+						module.CaCertClusterGroupAlreadyExists,
+						emcoerror.Conflict,
+					),
 					statusCode: http.StatusConflict,
 					client: &mockLogicalCloudClusterManager{
 						Err:   nil,
@@ -190,10 +190,10 @@ var _ = Describe("Test get clusterGroup handler",
 				test{
 					name:       "nonExistingClusterGroup",
 					statusCode: http.StatusNotFound,
-					err: &emcoerror.Error{
-						Message: module.CaCertClusterGroupNotFound,
-						Reason:  emcoerror.NotFound,
-					},
+					err: emcoerror.NewEmcoError(
+						module.CaCertClusterGroupNotFound,
+						emcoerror.NotFound,
+					),
 					result: module.ClusterGroup{},
 					client: &mockLogicalCloudClusterManager{
 						Err:   nil,
@@ -285,10 +285,10 @@ var _ = Describe("Test delete clusterGroup handler",
 					entry:      "db remove clusterGroup not found",
 					name:       "nonExistingClusterGroup",
 					statusCode: http.StatusNotFound,
-					err: &emcoerror.Error{
-						Message: "The requested resource not found",
-						Reason:  emcoerror.NotFound,
-					},
+					err: emcoerror.NewEmcoError(
+						"The requested resource not found",
+						emcoerror.NotFound,
+					),
 					result: module.ClusterGroup{},
 					client: &mockLogicalCloudClusterManager{
 						Err:   nil,

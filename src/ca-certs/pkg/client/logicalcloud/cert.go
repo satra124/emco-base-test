@@ -52,10 +52,10 @@ func (c *CaCertClient) CreateCert(cert module.CaCert, project string, failIfExis
 
 	if certExists &&
 		failIfExists {
-		return module.CaCert{}, certExists, &emcoerror.Error{
-			Message: module.CaCertAlreadyExists,
-			Reason:  emcoerror.Conflict,
-		}
+		return module.CaCert{}, certExists, emcoerror.NewEmcoError(
+			module.CaCertAlreadyExists,
+			emcoerror.Conflict,
+		)
 	}
 
 	if certExists {
