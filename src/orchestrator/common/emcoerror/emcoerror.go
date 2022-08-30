@@ -22,6 +22,12 @@ const (
 	// Add additional reason(s)
 )
 
+const (
+	InternalServerErrorMessage string = "The server encountered an internal error and was unable to complete your request"
+	StateInfoNotFound          string = "Stateinfo not found"
+	UnknownErrorMessage        string = "Unknown error"
+)
+
 // Type Error implements the emcoerror
 type Error struct {
 	error

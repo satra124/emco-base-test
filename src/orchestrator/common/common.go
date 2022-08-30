@@ -7,10 +7,12 @@ package common
 type EmcoEvent string
 
 const (
-	AddChildContext EmcoEvent = "AddChildContext"
-	Instantiate     EmcoEvent = "Instantiate"
-	Read            EmcoEvent = "Read"
-	Terminate       EmcoEvent = "Terminate"
-	Update          EmcoEvent = "Update"
-	UpdateDelete    EmcoEvent = "UpdateDelete"
+	Approve     EmcoEvent = "Approve"
+	Instantiate EmcoEvent = "Instantiate"
+	Migrate     EmcoEvent = "Migrate"
+	Rollback    EmcoEvent = "Rollback"
+	Stop        EmcoEvent = "Stop"
+	Status      EmcoEvent = "Status"
+	Terminate   EmcoEvent = "Terminate"
+	Update      EmcoEvent = "Update"
 )
