@@ -53,7 +53,7 @@ func CreateAppContext(intentName, appContextID string) error {
 	deployIntentGroup := caMeta.DeploymentIntentGroup
 
 	// Get all server inbound intents
-	iss, err := module.NewServerInboundIntentClient().GetServerInboundIntents(project, compositeapp, compositeappversion, deployIntentGroup, intentName)
+	iss, err := module.NewServerInboundIntentClient().GetServerInboundIntents(context.Background(), project, compositeapp, compositeappversion, deployIntentGroup, intentName)
 	if err != nil {
 		log.Error("Error getting server inbound intents", log.Fields{
 			"error": err,
@@ -63,7 +63,7 @@ func CreateAppContext(intentName, appContextID string) error {
 
 	for _, is := range iss {
 
-		ics, err := module.NewClientsInboundIntentClient().GetClientsInboundIntents(project,
+		ics, err := module.NewClientsInboundIntentClient().GetClientsInboundIntents(context.Background(), project,
 			compositeapp,
 			compositeappversion,
 			deployIntentGroup,

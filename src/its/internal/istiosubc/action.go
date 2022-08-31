@@ -90,7 +90,7 @@ func UpdateAppContext(intentName, appContextId string) error {
 	namespace := caMeta.Namespace
 
 	// Get all server inbound intents
-	iss, err := module.NewServerInboundIntentClient().GetServerInboundIntents(project, compositeapp, compositeappversion, deployIntentGroup, intentName)
+	iss, err := module.NewServerInboundIntentClient().GetServerInboundIntents(context.Background(), project, compositeapp, compositeappversion, deployIntentGroup, intentName)
 	if err != nil {
 		log.Error("Error getting server inbound intents", log.Fields{
 			"error": err,
@@ -240,7 +240,7 @@ func UpdateAppContext(intentName, appContextId string) error {
 			servers[index].ClusterData[ci].ClusterName = c
 			servers[index].ClusterData[ci].Reslist = make([]map[string][]byte, 0)
 		}
-		ics, err := module.NewClientsInboundIntentClient().GetClientsInboundIntents(project,
+		ics, err := module.NewClientsInboundIntentClient().GetClientsInboundIntents(context.Background(), project,
 			compositeapp,
 			compositeappversion,
 			deployIntentGroup,
@@ -324,7 +324,7 @@ func UpdateAppContext(intentName, appContextId string) error {
 					return err
 				}
 			}
-			acs, err := module.NewClientsAccessInboundIntentClient().GetClientsAccessInboundIntents(project,
+			acs, err := module.NewClientsAccessInboundIntentClient().GetClientsAccessInboundIntents(context.Background(), project,
 				compositeapp,
 				compositeappversion,
 				deployIntentGroup,
