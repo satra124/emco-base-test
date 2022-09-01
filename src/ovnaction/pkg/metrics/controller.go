@@ -66,7 +66,7 @@ func do(ctx context.Context) {
 				fields := fields
 				fields["dig"] = dig.MetaData.Name
 
-				ncis, err := client.NetControlIntent.GetNetControlIntents(proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name)
+				ncis, err := client.NetControlIntent.GetNetControlIntents(ctx, proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name)
 				if err != nil {
 					log.Error(err.Error(), fields)
 					continue
@@ -75,7 +75,7 @@ func do(ctx context.Context) {
 					fields := fields
 					fields["net_controller_intent"] = nci.Metadata.Name
 					NetworkControllerIntentGauge.WithLabelValues(nci.Metadata.Name, proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name).Set(1)
-					wis, err := client.WorkloadIntent.GetWorkloadIntents(proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name, nci.Metadata.Name)
+					wis, err := client.WorkloadIntent.GetWorkloadIntents(ctx, proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name, nci.Metadata.Name)
 					if err != nil {
 						log.Error(err.Error(), fields)
 						continue
@@ -84,7 +84,7 @@ func do(ctx context.Context) {
 						fields := fields
 						fields["workload_intent"] = wi.Metadata.Name
 						WorkloadIntentGauge.WithLabelValues(wi.Metadata.Name, proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name, nci.Metadata.Name, wi.Spec.AppName, wi.Spec.WorkloadResource, wi.Spec.Type).Set(1)
-						wiifs, err := client.WorkloadIfIntent.GetWorkloadIfIntents(proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name, nci.Metadata.Name, wi.Metadata.Name)
+						wiifs, err := client.WorkloadIfIntent.GetWorkloadIfIntents(ctx, proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name, nci.Metadata.Name, wi.Metadata.Name)
 						if err != nil {
 							log.Error(err.Error(), fields)
 							continue
