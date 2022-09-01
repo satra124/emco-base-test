@@ -65,7 +65,7 @@ func do(ctx context.Context) {
 				fields := fields
 				fields["dig"] = dig.MetaData.Name
 
-				tacs, err := client.WorkflowIntentClient.GetWorkflowHookIntents(proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name)
+				tacs, err := client.WorkflowIntentClient.GetWorkflowHookIntents(ctx, proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name)
 				if err != nil {
 					log.Error(err.Error(), fields)
 					continue
