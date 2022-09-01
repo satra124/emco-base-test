@@ -22,9 +22,8 @@ import (
 )
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
-
 	ctx := context.Background()
+	rand.Seed(time.Now().UnixNano())
 
 	err := db.InitializeDatabaseConnection(ctx, "emco")
 	if err != nil {

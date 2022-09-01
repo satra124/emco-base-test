@@ -56,7 +56,7 @@ func do(ctx context.Context) {
 		for _, cl := range clusters {
 			fields := fields
 			fields["cluster"] = cl.Metadata.Name
-			networks, err := netClient.GetNetworks(clp.Metadata.Name, cl.Metadata.Name)
+			networks, err := netClient.GetNetworks(ctx, clp.Metadata.Name, cl.Metadata.Name)
 			if err != nil {
 				log.Error(err.Error(), fields)
 				continue
@@ -65,7 +65,7 @@ func do(ctx context.Context) {
 				NetworkGauge.WithLabelValues(clp.Metadata.Name, cl.Metadata.Name, network.Metadata.Name, network.Spec.CniType).Set(1)
 			}
 
-			providerNets, err := providerNetClient.GetProviderNets(clp.Metadata.Name, cl.Metadata.Name)
+			providerNets, err := providerNetClient.GetProviderNets(ctx, clp.Metadata.Name, cl.Metadata.Name)
 			if err != nil {
 				log.Error(err.Error(), fields)
 				continue
