@@ -16,11 +16,9 @@
 package api
 
 import (
-	"context"
-	"encoding/json"
+	etcdhelper "dbhelper/etcd"
+	"fmt"
 	"github.com/gorilla/mux"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
-	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"net/http"
 )
 
@@ -30,26 +28,21 @@ const (
 	Version = "v2"
 )
 
-func NewRouter(ctrl contextdb.ContextDb) *mux.Router {
+func NewRouter(ctrl etcdhelper.ContextDb) *mux.Router {
 	r := mux.NewRouter().PathPrefix("/" + Version).Subrouter()
 	r.HandleFunc("/get/{contextId}", func(w http.ResponseWriter, r *http.Request) {
 		v := mux.Vars(r)
 		key := "/context/" + v["contextId"] + "/meta/"
-		var value json.RawMessage
-		err := ctrl.Get(context.TODO(), key, value)
+		fmt.Println("Key is ", key)
+		value, err := ctrl.Get(key)
 		if err != nil {
-			log.Error("Error while getting context db data", log.Fields{"err": err})
-			return
-		}
-		jsonValue, err := json.Marshal(value)
-		if err != nil {
-			log.Error("Error while parsing context db data", log.Fields{"err": err})
+			fmt.Println(err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		_, err = w.Write(jsonValue)
+		_, err = w.Write(value)
 		if err != nil {
-			log.Error("Error while writing context db data", log.Fields{"err": err})
+			fmt.Println(err)
 			return
 		}
 	}).Methods(http.MethodGet)
