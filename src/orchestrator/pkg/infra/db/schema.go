@@ -97,7 +97,7 @@ func (m *MongoStore) ReadRefSchema(ctx context.Context) {
 	// being cancelled when the caller completes: a cancelled
 	// context will cause the below work to exit early.  A link is
 	// used so that the traces can be associated.
-	tracer := otel.Tracer("rsync")
+	tracer := otel.Tracer("orchestrator")
 	ctx, span := tracer.Start(context.Background(), "ReadRefSchema",
 		trace.WithLinks(trace.LinkFromContext(ctx)),
 	)
