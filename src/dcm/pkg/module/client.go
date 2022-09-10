@@ -109,15 +109,7 @@ func processAlert(ctx context.Context, client readynotifypb.ReadyNotifyClient, s
 	var project string
 	var logicalCloud string
 
-	// This function is executed asynchronously, so we must create
-	// a new (not derived) context to prevent the context from
-	// being cancelled when the caller completes: a cancelled
-	// context will cause the below work to exit early.  A link is
-	// used so that the traces can be associated.
-	tracer := otel.Tracer("dcm")
-	ctx, span := tracer.Start(context.Background(), "processAlert",
-		trace.WithLinks(trace.LinkFromContext(ctx)),
-	)
+	span := trace.SpanFromContext(ctx)
 	defer span.End()
 
 	allCertsReady := false
@@ -218,13 +210,23 @@ func addState(ctx context.Context, lcc *LogicalCloudClient, project, logicalClou
 }
 
 func subscribe(ctx context.Context, client readynotifypb.ReadyNotifyClient, appContextID string) {
-	stream, err := client.Alert(ctx, &readynotifypb.Topic{ClientName: "dcm", AppContext: appContextID}, grpc.WaitForReady(true))
+	// The client ctx used below belongs to the stream, so we must
+	// create a new (not derived) context to prevent the context
+	// from being cancelled when the caller completes: a cancelled
+	// context will cause the below work to exit early.  A link is
+	// used so that the traces can be associated.
+	tracer := otel.Tracer("dcm")
+	streamCtx, _ := tracer.Start(context.Background(), "processAlert",
+		trace.WithLinks(trace.LinkFromContext(ctx)),
+	)
+
+	stream, err := client.Alert(streamCtx, &readynotifypb.Topic{ClientName: "dcm", AppContext: appContextID}, grpc.WaitForReady(true))
 	if err != nil {
 		log.Error("[ReadyNotify gRPC] Failed to subscribe to alerts", log.Fields{"err": err, "appContextID": appContextID})
 	}
 
 	log.Info("[ReadyNotify gRPC] Subscribing to alerts about appcontext ID", log.Fields{"appContextID": appContextID})
-	go processAlert(ctx, client, stream)
+	go processAlert(streamCtx, client, stream)
 	stream.CloseSend()
 }
 

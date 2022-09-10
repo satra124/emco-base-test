@@ -17,6 +17,8 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/status"
 	readynotifypb "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/readynotify"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	proto "google.golang.org/protobuf/proto"
 )
 
@@ -297,12 +299,25 @@ func (s *StatusNotifyServer) StatusRegister(reg *pb.StatusRegistration, stream p
 				log.Fields{"appContextID": appContextID, "client": clientId})
 			return pkgerrors.Errorf("Unable to get ReadyNotifyClient for StatusNotifyServer: %v, %v", appContextID, clientId)
 		}
-		readyNotifyStream, err := s.readyNotifyClient.Alert(ctx,
+
+		// The readyNotifyClient ctx used below belongs to the
+		// stream, so we must create a new (not derived)
+		// context to prevent the context from being cancelled
+		// when the caller completes: a cancelled context will
+		// cause the below work to exit early.  A link is used
+		// so that the traces can be associated.
+		tracer := otel.Tracer("orchestrator")
+		readyNotifyStreamCtx, span := tracer.Start(context.Background(), "sendStatusNotifications",
+			trace.WithLinks(trace.LinkFromContext(ctx)),
+		)
+
+		readyNotifyStream, err := s.readyNotifyClient.Alert(readyNotifyStreamCtx,
 			&readynotifypb.Topic{ClientName: s.name, AppContext: appContextID})
 		if err != nil {
 			s.mutex.Unlock()
 			log.Error("[StatusNotify gRPC] Could not get ReadyNotify Stream",
 				log.Fields{"appContextID": appContextID, "client": clientId, "error": err})
+			span.End()
 			return err
 		}
 
@@ -314,7 +329,7 @@ func (s *StatusNotifyServer) StatusRegister(reg *pb.StatusRegistration, stream p
 		log.Info("[StatusNotify gRPC] ready to start sending status notifications",
 			log.Fields{"appContextID": appContextID, "client": clientId})
 		wg.Add(1)
-		go sendStatusNotifications(ctx, readyNotifyStream, &wg, appContextID)
+		go sendStatusNotifications(readyNotifyStreamCtx, readyNotifyStream, &wg, appContextID)
 	} else {
 		s.mutex.Unlock()
 	}
@@ -338,6 +353,9 @@ func (s *StatusNotifyServer) StatusRegister(reg *pb.StatusRegistration, stream p
 
 // SendStatusNotification sends a status notification message to the subscriber
 func sendStatusNotifications(ctx context.Context, stream readynotifypb.ReadyNotify_AlertClient, wg *sync.WaitGroup, appContextID string) error {
+	span := trace.SpanFromContext(ctx)
+	defer span.End()
+
 	type recvEvent struct {
 		app     string
 		cluster string
