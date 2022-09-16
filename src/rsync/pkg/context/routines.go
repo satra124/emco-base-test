@@ -182,7 +182,7 @@ func (c *Context) startMainThread(ctx context.Context, a interface{}, con Connec
 }
 
 // Handle AppContext
-func (c *Context) appContextRoutine(ctx context.Context) {
+func (c *Context) appContextRoutine(callerCtx context.Context) {
 	var lctx context.Context
 	var l context.Context
 	var lGroup *errgroup.Group
@@ -192,11 +192,13 @@ func (c *Context) appContextRoutine(ctx context.Context) {
 	// This function is executed asynchronously, so we must create
 	// a new (not derived) context to prevent the context from
 	// being cancelled when the caller completes: a cancelled
-	// context will cause the below work to exit early.  A link is
-	// used so that the traces can be associated.
+	// context will cause the below work to exit early.
+	ctx := context.Background()
+
+	// A link is used so that the traces can be associated.
 	tracer := otel.Tracer("rsync")
-	ctx, span := tracer.Start(context.Background(), "appContextRoutine",
-		trace.WithLinks(trace.LinkFromContext(ctx)),
+	ctx, span := tracer.Start(ctx, "appContextRoutine",
+		trace.WithLinks(trace.LinkFromContext(callerCtx)),
 	)
 	defer span.End()
 
