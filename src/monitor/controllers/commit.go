@@ -25,12 +25,21 @@ const (
 	maxrand = 0x7fffffffffffffff
 )
 
-func credentialsCallback(url string, username string, allowedTypes git.CredType) (*git.Credential, error) {
-	username = "chitti-intel"
-	password := "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"
-	cred, err := git.NewCredUserpassPlaintext(username, password)
-	return cred, err
+func getCredCallBack(userName, token string) func(url string, username string, allowedTypes git.CredType) (*git.Credential, error) {
+	return func(url string, username string, allowedTypes git.CredType) (*git.Credential, error) {
+		username = userName
+		password := token
+		cred, err := git.NewCredUserpassPlaintext(username, password)
+		return cred, err
+	}
 }
+
+// func credentialsCallback(url string, username string, allowedTypes git.CredType) (*git.Credential, error) {
+// 	username = "chitti-intel"
+// 	password := "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"
+// 	cred, err := git.NewCredUserpassPlaintext(username, password)
+// 	return cred, err
+// }
 
 // CommitFile contains high-level information about a file added to a commit.
 type CommitFile struct {
@@ -56,8 +65,10 @@ type GithubAccessClient struct {
 	cl           GitClient
 	gitUser      string
 	gitRepo      string
+	gitToken     string
 	cluster      string
 	githubDomain string
+	url          string
 }
 
 var GitHubClient GithubAccessClient
@@ -95,7 +106,7 @@ func SetupGitHubClient() error {
 
 func NewGitHubClient() (GithubAccessClient, error) {
 
-	githubDomain := "github.com"
+	githubDomain := os.Getenv("GIT_TYPE") + ".com"
 	gitUser := os.Getenv("GIT_USERNAME")
 	gitToken := os.Getenv("GIT_TOKEN")
 	gitRepo := os.Getenv("GIT_REPO")
@@ -116,8 +127,10 @@ func NewGitHubClient() (GithubAccessClient, error) {
 		cl:           cl,
 		gitUser:      gitUser,
 		gitRepo:      gitRepo,
+		gitToken:     gitToken,
 		githubDomain: githubDomain,
 		cluster:      clusterName,
+		url:          "https://" + githubDomain + "/" + gitUser + "/" + gitRepo,
 	}, nil
 }
 
@@ -146,26 +159,15 @@ func (c *GithubAccessClient) CommitCRToGitHub(cr *k8spluginv1alpha1.ResourceBund
 	path := "clusters/" + c.cluster + "/status/" + cid + "/app/" + app + "/" + v
 
 	s := string(resBytes)
-	// var files []gitprovider.CommitFile
-	// files = append(files, gitprovider.CommitFile{
-	// 	Path:    &path,
-	// 	Content: &s,
-	// })
 	files := []CommitFile{}
-	folderName := "/tmp/" + "chitti-intel-test-flux-v3"
+	folderName := "/tmp/" + c.gitUser + "-" + c.gitRepo + "-" + c.cluster
 	files = add(folderName+"/"+path, path, s, files)
-	appName := c.cluster + "-" + cid + "-" + app
+	appName := c.cluster
 
 	commitMessage := "Adding Status for " + path + " to branch " + appName
+
 	// commitfiles
-	// err = c.CommitFiles(context.Background(), "main", commitMessage, appName, files)
-
-	// if err != nil {
-	// 	return err
-	// }
-
-	err = commitFiles(commitMessage, appName, folderName, "main", files)
-	//(message, appName, folderName, branch, commitMessage string, files []CommitFile)
+	err = commitFiles(c.url, c.gitToken, c.gitUser, commitMessage, appName, folderName, "main", files)
 	if err != nil {
 		log.Error("ApplyConfig:: Commit files err", log.Fields{"err": err, "files": files})
 	}
@@ -332,12 +334,15 @@ func createFile(fileName string, content string) error {
 		return err2
 	}
 
-	fmt.Println("done")
 	return nil
 }
 
 // function to commit files to a branch
-func commitFiles(commitMessage, appName, folderName, branch string, files []CommitFile) error {
+func commitFiles(url, token, userName, commitMessage, appName, folderName, branch string, files []CommitFile) error {
+
+	// Only one process to commit to Github location to avoid conflicts
+	mutex.Lock()
+	defer mutex.Unlock()
 
 	branchName := appName
 
@@ -350,6 +355,8 @@ func commitFiles(commitMessage, appName, folderName, branch string, files []Comm
 			return err
 		}
 		// // clone the repo
+		log.Info("URL", log.Fields{"URL": url})
+		fmt.Println("URL %s", url)
 		repo, err := git.Clone("https://github.com/chitti-intel/test-flux-v3", folderName, &git.CloneOptions{CheckoutBranch: branch, CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
 		if err != nil {
 			log.Error("Error cloning the repo", log.Fields{"Error": err})
@@ -370,10 +377,6 @@ func commitFiles(commitMessage, appName, folderName, branch string, files []Comm
 		Email: "a.v@gmail.com",
 		When:  time.Now(),
 	}
-
-	// Only one process to commit to Github location to avoid conflicts
-	mutex.Lock()
-	defer mutex.Unlock()
 
 	var targetID *git.Oid
 	//create a new branch
@@ -459,18 +462,18 @@ func commitFiles(commitMessage, appName, folderName, branch string, files []Comm
 		log.Error("Error in creating a commit", log.Fields{"err": err, "branchName": branchName})
 		return err
 	}
-	err = pushBranch(repo, branchName)
+	err = pushBranch(repo, branchName, userName, token)
 
 	return nil
 }
 
 // function to push branch to remote origin
-func pushBranch(repo *git.Repository, branchName string) error {
+func pushBranch(repo *git.Repository, branchName, userName, token string) error {
 	// push the branch to origin
 	remote, err := repo.Remotes.Lookup("origin")
 
 	cbs := &git.RemoteCallbacks{
-		CredentialsCallback: credentialsCallback,
+		CredentialsCallback: getCredCallBack(userName, token),
 	}
 
 	err = remote.Push([]string{"refs/heads/" + branchName}, &git.PushOptions{RemoteCallbacks: *cbs})
@@ -483,22 +486,22 @@ func pushBranch(repo *git.Repository, branchName string) error {
 }
 
 // function to push branch to remote origin
-func pushDeleteBranch(repo *git.Repository, branchName string) error {
-	// push the branch to origin
-	remote, err := repo.Remotes.Lookup("origin")
+// func pushDeleteBranch(repo *git.Repository, branchName string) error {
+// 	// push the branch to origin
+// 	remote, err := repo.Remotes.Lookup("origin")
 
-	cbs := &git.RemoteCallbacks{
-		CredentialsCallback: credentialsCallback,
-	}
+// 	cbs := &git.RemoteCallbacks{
+// 		CredentialsCallback: credentialsCallback,
+// 	}
 
-	err = remote.Push([]string{":refs/heads/" + branchName}, &git.PushOptions{RemoteCallbacks: *cbs})
-	if err != nil {
-		log.Error("Error in Pushing the branch", log.Fields{"err": err, "branchName": branchName})
-		return err
-	}
+// 	err = remote.Push([]string{":refs/heads/" + branchName}, &git.PushOptions{RemoteCallbacks: *cbs})
+// 	if err != nil {
+// 		log.Error("Error in Pushing the branch", log.Fields{"err": err, "branchName": branchName})
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 //function to merge branch to main (Should include a commit as well)
 func mergeToMain(repo *git.Repository, branchName string, signature *git.Signature) error {

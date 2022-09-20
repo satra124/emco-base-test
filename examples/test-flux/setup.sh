@@ -73,6 +73,15 @@ function create_common_values {
       - Name: collectd
         Cluster:
           - cluster2
+      - Name: operator
+        Cluster:
+          - cluster2
+      - Name: http-server
+        Cluster:
+          - cluster2
+      - Name: http-client
+        Cluster:
+          - cluster2
 
 NET
 }
