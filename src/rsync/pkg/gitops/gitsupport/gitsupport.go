@@ -17,7 +17,6 @@ import (
 	v1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
 	emcogit "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit"
-	emcogit2go "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit2go"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 )
@@ -137,7 +136,8 @@ func (p *GitProvider) Create(name string, ref interface{}, content []byte) (inte
 
 	path := p.GetPath("context") + name + ".yaml"
 	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	files := emcogit2go.Add(folderName+"/"+path, path, string(content), ref)
+	//files := emcogit2go.Add(folderName+"/"+path, path, string(content), ref)
+	files := Add(folderName+"/"+path, path, string(content), ref)
 	return files, nil
 }
 
@@ -150,7 +150,8 @@ func (p *GitProvider) Apply(ctx context.Context, name string, ref interface{}, c
 
 	path := p.GetPath("context") + name + ".yaml"
 	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	files := emcogit2go.Add(folderName+"/"+path, path, string(content), ref)
+	//files := emcogit2go.Add(folderName+"/"+path, path, string(content), ref)
+	files := Add(folderName+"/"+path, path, string(content), ref)
 	return files, nil
 
 }
@@ -164,7 +165,8 @@ func (p *GitProvider) Delete(name string, ref interface{}, content []byte) (inte
 
 	path := p.GetPath("context") + name + ".yaml"
 	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	files := emcogit2go.Delete(folderName+"/"+path, path, ref)
+	//files := emcogit2go.Delete(folderName+"/"+path, path, ref)
+	files := Delete(folderName+"/"+path, path, ref)
 	return files, nil
 
 }
@@ -188,7 +190,8 @@ func (p *GitProvider) Commit(ctx context.Context, ref interface{}) error {
 
 	var exists bool
 	switch ref.(type) {
-	case []emcogit2go.CommitFile:
+	// case []emcogit2go.CommitFile:
+	case []CommitFile:
 		exists = true
 	default:
 		exists = false
@@ -200,8 +203,9 @@ func (p *GitProvider) Commit(ctx context.Context, ref interface{}) error {
 		return nil
 	}
 	// appName := p.Cid + "-" + p.App
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	err := emcogit2go.CommitFiles(p.Url, "Commit for "+p.GetPath("context"), p.Branch, folderName, p.UserName, p.GitToken, ref.([]emcogit2go.CommitFile))
+	// folderName := "/tmp/" + p.UserName + "-" + p.RepoName
+	// err := emcogit2go.CommitFiles(p.Url, "Commit for "+p.GetPath("context"), p.Branch, folderName, p.UserName, p.GitToken, ref.([]emcogit2go.CommitFile))
+	err := p.CommitFiles("Commit for "+p.GetPath("context"), ref.([]CommitFile))
 	return err
 }
 
@@ -265,7 +269,7 @@ func (p *GitProvider) StartClusterWatcher(ctx context.Context) error {
 
 				// // git pull
 				mutex.Lock()
-				err := emcogit2go.GitPull(p.Url, folderName, branch, p.UserName)
+				err := p.GitPull(folderName, branch)
 				mutex.Unlock()
 
 				if err != nil {
@@ -275,21 +279,16 @@ func (p *GitProvider) StartClusterWatcher(ctx context.Context) error {
 
 				//obtain the latest commit SHA
 				mutex.Lock()
-				latestCommitSHA, err := emcogit2go.GetLatestCommit(folderName, branch)
+				latestCommitSHA, err := GetLatestCommit(folderName, branch)
 				mutex.Unlock()
 				if err != nil {
 					log.Error("Error in obtaining latest commit SHA", log.Fields{"err": err})
 				}
 
-				fmt.Println("Latest value")
-				fmt.Println(latestCommitSHA)
-
-				fmt.Println("Last Value")
-				fmt.Println(lastCommitSHA)
-
 				if lastCommitSHA != latestCommitSHA || lastCommitSHA == nil {
 					log.Debug("New Status File, pulling files", log.Fields{"LatestSHA": latestCommitSHA, "LastSHA": lastCommitSHA})
-					files, err := emcogit2go.GetFilesInPath(folderName + "/" + path)
+					// files, err := emcogit2go.GetFilesInPath(folderName + "/" + path)
+					files, err := GetFilesInPath(folderName + "/" + path)
 					if err != nil {
 						log.Debug("Status file not available", log.Fields{"error": err, "resource": path})
 						continue
@@ -298,7 +297,8 @@ func (p *GitProvider) StartClusterWatcher(ctx context.Context) error {
 
 					if len(files) > 0 {
 						// Only one file expected in the location
-						fileContent, err := emcogit2go.GetFileContent(files[0])
+						// fileContent, err := emcogit2go.GetFileContent(files[0])
+						fileContent, err := GetFileContent(files[0])
 						if err != nil {
 							log.Error("", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
 							return err
@@ -344,19 +344,31 @@ func (p *GitProvider) DeleteClusterStatusCR(ctx context.Context) error {
 	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
 	// // // // open a repo
 	//obtain files to be delete
-	path := "clusters/" + p.Cluster + "/context/" + p.Cid + "/"
+	path := "clusters/" + p.Cluster + "/context/" + p.Cid + "/app/" + p.App + "/" + p.Cid + "-" + p.App + ".yaml"
 
-	files, err := emcogit2go.GetFilesToDelete(folderName, path)
+	// files, err := emcogit2go.GetFilesToDelete(folderName, path)
+	// files, err := GetFilesToDelete(folderName, path)
+	// if err != nil {
+	// 	log.Error("Error in obtaining files to Delete", log.Fields{"path": path})
+	// }
+	check, err := Exists(folderName + "/" + path)
 	if err != nil {
-		log.Error("Error in obtaining files to Delete", log.Fields{"path": path})
+		return err
 	}
-
-	if len(files) != 0 {
-		err = emcogit2go.CommitFiles(p.Url, "Deleting status CR files "+path, p.Branch, folderName, p.UserName, p.GitToken, files)
+	if check {
+		files := Delete(folderName+"/"+path, path, []CommitFile{})
+		err := p.CommitFiles("Deleting status CR files "+path, files)
 		if err != nil {
 			log.Error("Error in commiting files to Delete", log.Fields{"path": path})
 		}
 	}
+	// if len(files) != 0 {
+	// 	// err = emcogit2go.CommitFiles(p.Url, "Deleting status CR files "+path, p.Branch, folderName, p.UserName, p.GitToken, files)
+	// 	err := p.CommitFiles("Deleting status CR files "+path, files)
+	// 	if err != nil {
+	// 		log.Error("Error in commiting files to Delete", log.Fields{"path": path})
+	// 	}
+	// }
 	// err = emcogit2go.DeleteBranch(repo, branch)
 	// if err != nil {
 	// 	return err
