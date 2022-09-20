@@ -4,7 +4,6 @@
 package fluxv2
 
 import (
-	"EMCO_LAB_MAIN/emco-base/src/rsync/pkg/internal/utils"
 	"context"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	yaml "github.com/ghodss/yaml"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	emcogit2go "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit2go"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -140,13 +140,13 @@ func (p *Fluxv2Provider) DeleteConfig(ctx context.Context, config interface{}) e
 	// gp := emcogit.Delete(path, []gitprovider.CommitFile{}, p.gitProvider.GitType)
 	files := emcogit2go.Delete(folderName+"/"+path, path, []emcogit2go.CommitFile{})
 
-	path = "clusters/" + p.gitProvider.Cluster + "/" + "kcust" + p.gitProvider.Cid + ".yaml"
+	path = "clusters/" + p.gitProvider.Cluster + "/" + "kust" + p.gitProvider.Cid + ".yaml"
 	files = emcogit2go.Delete(folderName+"/"+path, path, files)
 	appName := p.gitProvider.Cid + "-" + p.gitProvider.App + "-config"
 	// err := emcogit.CommitFiles(ctx, p.gitProvider.Client, p.gitProvider.UserName, p.gitProvider.RepoName, p.gitProvider.Branch, "Commit for "+p.gitProvider.GetPath("context"), appName, gp, p.gitProvider.GitType)
 	err := emcogit2go.CommitFiles("Commit for "+p.gitProvider.GetPath("context"), appName, folderName, files)
 	if err != nil {
-		log.Error("ApplyConfig:: Commit files err", log.Fields{"err": err, "files": files})
+		log.Error("DeleteConfig:: Commit files err", log.Fields{"err": err, "files": files})
 	}
 	return err
 }

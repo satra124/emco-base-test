@@ -9,11 +9,13 @@ FROM ubuntu:20.04
 ENV LD_LIBRARY_PATH=/opt/emco/rsync
 WORKDIR /opt/emco/rsync
 
+RUN apt-get upgrade
 RUN apt-get update
 RUN apt -y install libssl-dev
 RUN apt-get install openssl
 RUN apt-get install coreutils
 RUN apt-get install -y ca-certificates
+RUN apt-get install -y git
 
 #RUN addgroup emco 
 #RUN adduser emco emco

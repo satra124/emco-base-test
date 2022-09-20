@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/fluxcd/go-git-providers v0.5.4
 	github.com/google/go-github/v41 v41.0.0
+	github.com/libgit2/git2go/v33 v33.0.9
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
 	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-00010101000000-000000000000
@@ -81,7 +82,7 @@ require (
 
 replace (
 	gitlab.com/project-emco/core/emco-base/src/clm => ../clm
-	gitlab.com/project-emco/core/emco-base/src/monitor => ../monitor
+	gitlab.com/project-emco/core/emco-base/src/monitor => ./
 	gitlab.com/project-emco/core/emco-base/src/orchestrator => ../orchestrator
 	gitlab.com/project-emco/core/emco-base/src/rsync => ../rsync
 )

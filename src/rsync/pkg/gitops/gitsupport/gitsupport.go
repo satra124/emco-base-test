@@ -11,7 +11,7 @@ import (
 
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
+	git "github.com/libgit2/git2go/v33"
 	pkgerrors "github.com/pkg/errors"
 	v1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
@@ -19,8 +19,6 @@ import (
 	emcogit2go "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit2go"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type GitProvider struct {
@@ -228,33 +226,63 @@ var waitTime int = 60
 func (p *GitProvider) StartClusterWatcher(ctx context.Context) error {
 	// obtain the sha key for main
 	//obtain shaake
-	latestSHA, err := emcogit.GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, p.Branch, "", p.GitType)
-	if err != nil {
-		return err
-	}
-	// create branch for status
-	branch := p.Cluster + "-" + p.Cid + "-" + p.App
-	err = emcogit.CreateBranch(ctx, p.Client, latestSHA, p.UserName, p.RepoName, branch, p.GitType)
-	if err != nil {
-		if !strings.Contains(err.Error(), "422 Reference already exists") {
-			return err
-		}
-	}
+	// ctx := context.Background()
 
+	// latestSHA, err := emcogit.GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, p.Branch, "", p.GitType)
+	// if err != nil {
+	// 	return err
+	// }
+	// // create branch for status
+	// branch := p.Cluster + "-" + p.Cid + "-" + p.App
+	// err = emcogit.CreateBranch(ctx, p.Client, latestSHA, p.UserName, p.RepoName, branch, p.GitType)
+	// if err != nil {
+	// 	if !strings.Contains(err.Error(), "422 Reference already exists") {
+	// 		return err
+	// 	}
+	// }
+
+	// create a dummy branch for verification
+	folderName := "/tmp/" + p.Cluster + "-status"
+	// _, err := emcogit2go.CreateBranch(folderName, branch)
+	// if err != nil {
+	// 	if !strings.Contains(err.Error(), "a reference with that name already exists") {
+	// 		return err
+	// 	}
+	// } else {
+	// 	// push this dummy branch
+	// 	// // // open a repo
+	// 	repo, err := git.OpenRepository(folderName)
+	// 	if err != nil {
+	// 		log.Error("Error in Opening the git repository", log.Fields{"err": err})
+	// 		return err
+	// 	}
+	// 	localBranch, err := repo.LookupBranch(branch, git.BranchLocal)
+
+	// 	err = emcogit2go.PushBranch(repo, branch)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	// Setting upstream to origin branch
+	// 	err = localBranch.SetUpstream("origin/" + branch)
+	// 	if err != nil {
+	// 		log.Error("Failed to create upstream to origin/", log.Fields{"err": err, "branch": branch})
+	// 		return err
+	// 	}
+	// 	// // Get remote master
+	// 	// remoteBranchTest, err := repo.References.Lookup("refs/remotes/origin/" + branch)
+	// 	// fmt.Println("remoteBranchTest")
+	// 	// fmt.Println(remoteBranchTest)
+	// 	// fmt.Println("commit")
+	// 	// fmt.Println(remoteBranchTest.Target())
+	// 	// log.Info("GitSupport Branch Info ", log.Fields{"remoteBranchTest": remoteBranchTest, "commit": remoteBranchTest.Target()})
+	// 	// if err != nil {
+	// 	// 	return err
+	// 	// }
+	// }
 	// Start thread to sync monitor CR
 	go func() error {
-		// This function is executed asynchronously, so we must create
-		// a new (not derived) context to prevent the context from
-		// being cancelled when the caller completes: a cancelled
-		// context will cause the below work to exit early.  A link is
-		// used so that the traces can be associated.
-		tracer := otel.Tracer("rsync")
-		ctx, span := tracer.Start(context.Background(), "StartClusterWatcher",
-			trace.WithLinks(trace.LinkFromContext(ctx)),
-		)
-		defer span.End()
-
-		var lastCommitSHA string
+		ctx := context.Background()
+		var lastCommitSHA *git.Oid
 		for {
 			select {
 			case <-time.After(time.Duration(waitTime) * time.Second):
@@ -273,32 +301,75 @@ func (p *GitProvider) StartClusterWatcher(ctx context.Context) error {
 				// branch to track
 				branch := p.Cluster + "-" + p.Cid + "-" + p.App
 
-				latestCommitSHA, err := emcogit.GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, branch, path, p.GitType)
+				// // git pull
+				err := emcogit2go.GitPull(folderName, branch)
+				// err := emcogit2go.GitPullCMD(folderName, branch)
+
+				//git pull new
+				// err = emcogit2go.PullBranch(folderName, "origin", branch, "Adarsh", "adarsh@cool.com")
+				if err != nil {
+
+					log.Error("Error in Pulling Branch", log.Fields{"err": err})
+					continue
+				}
+				// latestCommitSHA, err := emcogit.GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, branch, path, p.GitType)
+				// if err != nil {
+				// 	log.Error("Error in obtaining latest commit SHA", log.Fields{"err": err})
+				// }
+
+				latestCommitSHA, err := emcogit2go.GetLatestCommit(folderName, branch)
 				if err != nil {
 					log.Error("Error in obtaining latest commit SHA", log.Fields{"err": err})
 				}
-
+				fmt.Println("Target value")
+				fmt.Println(latestCommitSHA)
 				if lastCommitSHA != latestCommitSHA {
 					// new commit get files
 					// Read file
+					// log.Debug("New Status File, pulling files", log.Fields{"LatestSHA": latestCommitSHA, "LastSHA": lastCommitSHA})
+					// c, err := emcogit.GetFiles(ctx, p.Client, p.UserName, p.RepoName, branch, path, p.GitType)
+					// if err != nil {
+					// 	log.Debug("Status file not available", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
+					// 	continue
+					// }
+					// cp := c.([]*gitprovider.CommitFile)
+					// if len(cp) > 0 {
+					// 	// Only one file expected in the location
+					// 	content := &v1alpha1.ResourceBundleState{}
+					// 	_, err := utils.DecodeYAMLData(*cp[0].Content, content)
+					// 	if err != nil {
+					// 		log.Error("", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
+					// 		return err
+					// 	}
+					// 	status.HandleResourcesStatus(p.Cid, p.App, p.Cluster, content)
+					// }
+
 					log.Debug("New Status File, pulling files", log.Fields{"LatestSHA": latestCommitSHA, "LastSHA": lastCommitSHA})
-					c, err := emcogit.GetFiles(ctx, p.Client, p.UserName, p.RepoName, branch, path, p.GitType)
+					files, err := emcogit2go.GetFilesInPath(folderName + "/" + path)
 					if err != nil {
-						log.Debug("Status file not available", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
+						log.Debug("Status file not available", log.Fields{"error": err, "resource": path})
 						continue
 					}
-					cp := c.([]*gitprovider.CommitFile)
-					if len(cp) > 0 {
+					log.Info("FILES", log.Fields{"files": files})
+					fmt.Println(files)
+					if len(files) > 1 {
 						// Only one file expected in the location
+						fileContent, err := emcogit2go.GetFileContent(files[1])
+						if err != nil {
+							log.Error("", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
+							return err
+						}
 						content := &v1alpha1.ResourceBundleState{}
-						_, err := utils.DecodeYAMLData(*cp[0].Content, content)
+						_, err = utils.DecodeYAMLData(fileContent, content)
 						if err != nil {
 							log.Error("", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
 							return err
 						}
 						status.HandleResourcesStatus(ctx, p.Cid, p.App, p.Cluster, content)
 					}
+
 					lastCommitSHA = latestCommitSHA
+
 				}
 
 			// Check if the context is canceled
@@ -314,13 +385,38 @@ func (p *GitProvider) StartClusterWatcher(ctx context.Context) error {
 func (p *GitProvider) DeleteClusterStatusCR(ctx context.Context) error {
 	// Delete the status CR
 	// branch to track
-	branch := p.Cluster + "-" + p.Cid + "-" + p.App
+	// branch := p.Cluster + "-" + p.Cid + "-" + p.App
 
-	// Delete the branch
-	err := emcogit.DeleteBranch(ctx, p.Client, p.UserName, p.RepoName, branch, p.GitType)
-	if err != nil {
-		log.Error("Error in deleting branch", log.Fields{"err": err})
-		return err
-	}
+	// ctx := context.Background()
+
+	// // Delete the branch
+	// err := emcogit.DeleteBranch(ctx, p.Client, p.UserName, p.RepoName, branch, p.GitType)
+	// if err != nil {
+	// 	log.Error("Error in deleting branch", log.Fields{"err": err})
+	// 	return err
+	// }
+
+	//delete the dummy branch as well
+	// folderName := "/tmp/" + p.Cluster + "-" + p.Cid
+	// // // // open a repo
+	// repo, err := git.OpenRepository(folderName)
+	// if err != nil {
+	// 	log.Error("Error in Opening the git repository", log.Fields{"err": err})
+	// 	return err
+	// }
+	// err = emcogit2go.DeleteBranch(repo, branch)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// err = emcogit2go.PushDeleteBranch(repo, branch)
+	// if err != nil {
+	// 	return err
+	// }
+	// remove the local folder
+	// err := os.RemoveAll(folderName)
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
