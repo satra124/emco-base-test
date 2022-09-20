@@ -16,6 +16,7 @@ import (
 	v1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
 	emcogit "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit"
+	emcogit2go "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit2go"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 	"go.opentelemetry.io/otel"
@@ -136,8 +137,10 @@ func (p *GitProvider) GetPath(t string) string {
 func (p *GitProvider) Create(name string, ref interface{}, content []byte) (interface{}, error) {
 
 	path := p.GetPath("context") + name + ".yaml"
-	ref = emcogit.Add(path, string(content), ref, p.GitType)
-	return ref, nil
+	folderName := "/tmp/" + p.Cluster + "-" + p.Cid
+	// ref = emcogit.Add(path, string(content), ref, p.GitType)
+	files := emcogit2go.Add(folderName+"/"+path, path, string(content), ref)
+	return files, nil
 }
 
 /*
@@ -148,8 +151,10 @@ func (p *GitProvider) Create(name string, ref interface{}, content []byte) (inte
 func (p *GitProvider) Apply(ctx context.Context, name string, ref interface{}, content []byte) (interface{}, error) {
 
 	path := p.GetPath("context") + name + ".yaml"
-	ref = emcogit.Add(path, string(content), ref, p.GitType)
-	return ref, nil
+	folderName := "/tmp/" + p.Cluster + "-" + p.Cid
+	// ref = emcogit.Add(path, string(content), ref, p.GitType)
+	files := emcogit2go.Add(folderName+"/"+path, path, string(content), ref)
+	return files, nil
 
 }
 
@@ -161,8 +166,10 @@ func (p *GitProvider) Apply(ctx context.Context, name string, ref interface{}, c
 func (p *GitProvider) Delete(name string, ref interface{}, content []byte) (interface{}, error) {
 
 	path := p.GetPath("context") + name + ".yaml"
-	ref = emcogit.Delete(path, ref, p.GitType)
-	return ref, nil
+	folderName := "/tmp/" + p.Cluster + "-" + p.Cid
+	// ref = emcogit.Delete(path, ref, p.GitType)
+	files := emcogit2go.Delete(folderName+"/"+path, path, ref)
+	return files, nil
 
 }
 
@@ -185,7 +192,7 @@ func (p *GitProvider) Commit(ctx context.Context, ref interface{}) error {
 
 	var exists bool
 	switch ref.(type) {
-	case []gitprovider.CommitFile:
+	case []emcogit2go.CommitFile:
 		exists = true
 	default:
 		exists = false
@@ -197,8 +204,9 @@ func (p *GitProvider) Commit(ctx context.Context, ref interface{}) error {
 		return nil
 	}
 	appName := p.Cid + "-" + p.App
-	err := emcogit.CommitFiles(ctx, p.Client, p.UserName, p.RepoName, p.Branch, "Commit for "+p.GetPath("context"), appName, ref.([]gitprovider.CommitFile), p.GitType)
-
+	folderName := "/tmp/" + p.Cluster + "-" + p.Cid
+	//err := emcogit.CommitFiles(ctx, p.Client, p.UserName, p.RepoName, p.Branch, "Commit for "+p.GetPath("context"), appName, ref.([]gitprovider.CommitFile), p.GitType)
+	err := emcogit2go.CommitFiles("Commit for "+p.GetPath("context"), appName, folderName, ref.([]emcogit2go.CommitFile))
 	return err
 }
 

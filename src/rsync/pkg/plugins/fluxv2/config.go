@@ -4,16 +4,15 @@
 package fluxv2
 
 import (
+	"EMCO_LAB_MAIN/emco-base/src/rsync/pkg/internal/utils"
 	"context"
 	"time"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomize "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	fluxsc "github.com/fluxcd/source-controller/api/v1beta1"
 	yaml "github.com/ghodss/yaml"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
-	emcogit "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit"
-	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
+	emcogit2go "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit2go"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -35,8 +34,8 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 	}
 	var namespace, kName string
 	var skip bool
-	var gp interface{}
-
+	// var gp interface{}
+	files := []emcogit2go.CommitFile{}
 	// Special case creating a logical cloud
 	if level == "0" && lcn != "" {
 		namespace = "flux-system"
@@ -69,8 +68,15 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 			return err
 		}
 		path := "clusters/" + p.gitProvider.Cluster + "/" + gr.Name + ".yaml"
-		// Add to the commit
-		gp = emcogit.Add(path, string(x), []gitprovider.CommitFile{}, p.gitProvider.GitType)
+		folderName := "/tmp/" + p.gitProvider.Cluster + "-" + p.gitProvider.Cid
+
+		//check if these files exist already
+		check, err := emcogit2go.Exists(folderName + "/" + path)
+		if !check {
+			// Add to the commit
+			files = emcogit2go.Add(folderName+"/"+path, path, string(x), files)
+		}
+
 		kName = gr.Name
 	}
 	kc := kustomize.Kustomization{
@@ -101,26 +107,46 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 		return err
 	}
 	path := "clusters/" + p.gitProvider.Cluster + "/" + kc.Name + ".yaml"
-	gp = emcogit.Add(path, string(y), gp, p.gitProvider.GitType)
+	folderName := "/tmp/" + p.gitProvider.Cluster + "-" + p.gitProvider.Cid
+	// gp = emcogit.Add(path, string(y), gp, p.gitProvider.GitType)
+	//check if these files exist already
+	check, err := emcogit2go.Exists(folderName + "/" + path)
+	if !check {
+		// Add to the commit
+		// gp := emcogit.Add(path, string(x), []gitprovider.CommitFile{}, p.gitProvider.GitType)
+		files = emcogit2go.Add(folderName+"/"+path, path, string(y), files)
+	}
+
 	// Commit
 	appName := p.gitProvider.Cid + "-" + p.gitProvider.App + "-config"
-	err = emcogit.CommitFiles(ctx, p.gitProvider.Client, p.gitProvider.UserName, p.gitProvider.RepoName, p.gitProvider.Branch, "Commit for "+p.gitProvider.GetPath("context"), appName, gp, p.gitProvider.GitType)
-	if err != nil {
-		log.Error("ApplyConfig:: Commit files err", log.Fields{"err": err, "gp": gp})
+	// err = emcogit.CommitFiles(ctx, p.gitProvider.Client, p.gitProvider.UserName, p.gitProvider.RepoName, p.gitProvider.Branch, "Commit for "+p.gitProvider.GetPath("context"), appName, gp, p.gitProvider.GitType)
+	// commit file to the new branch
+	// // // open the git repo
+	if len(files) != 0 {
+		err = emcogit2go.CommitFiles("Commit for "+p.gitProvider.GetPath("context"), appName, folderName, files)
+		if err != nil {
+			log.Error("ApplyConfig:: Commit files err", log.Fields{"err": err, "files": files})
+		}
+		return err
 	}
-	return err
+
+	return nil
 }
 
 // Delete GitRepository and Kustomization CR's for Flux
 func (p *Fluxv2Provider) DeleteConfig(ctx context.Context, config interface{}) error {
 	path := "clusters/" + p.gitProvider.Cluster + "/" + p.gitProvider.Cid + ".yaml"
-	gp := emcogit.Delete(path, []gitprovider.CommitFile{}, p.gitProvider.GitType)
-	path = "clusters/" + p.gitProvider.Cluster + "/" + "kust" + p.gitProvider.Cid + ".yaml"
-	gp = emcogit.Delete(path, gp, p.gitProvider.GitType)
+	folderName := "/tmp/" + p.gitProvider.Cluster + "-" + p.gitProvider.Cid
+	// gp := emcogit.Delete(path, []gitprovider.CommitFile{}, p.gitProvider.GitType)
+	files := emcogit2go.Delete(folderName+"/"+path, path, []emcogit2go.CommitFile{})
+
+	path = "clusters/" + p.gitProvider.Cluster + "/" + "kcust" + p.gitProvider.Cid + ".yaml"
+	files = emcogit2go.Delete(folderName+"/"+path, path, files)
 	appName := p.gitProvider.Cid + "-" + p.gitProvider.App + "-config"
-	err := emcogit.CommitFiles(ctx, p.gitProvider.Client, p.gitProvider.UserName, p.gitProvider.RepoName, p.gitProvider.Branch, "Commit for "+p.gitProvider.GetPath("context"), appName, gp, p.gitProvider.GitType)
+	// err := emcogit.CommitFiles(ctx, p.gitProvider.Client, p.gitProvider.UserName, p.gitProvider.RepoName, p.gitProvider.Branch, "Commit for "+p.gitProvider.GetPath("context"), appName, gp, p.gitProvider.GitType)
+	err := emcogit2go.CommitFiles("Commit for "+p.gitProvider.GetPath("context"), appName, folderName, files)
 	if err != nil {
-		log.Error("ApplyConfig:: Commit files err", log.Fields{"err": err, "gp": gp})
+		log.Error("ApplyConfig:: Commit files err", log.Fields{"err": err, "files": files})
 	}
 	return err
 }

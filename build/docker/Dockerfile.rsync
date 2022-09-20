@@ -4,16 +4,25 @@
 ARG MAINDOCKERREPO
 ARG SERVICE_BASE_IMAGE_NAME
 ARG SERVICE_BASE_IMAGE_VERSION
-FROM ${MAINDOCKERREPO}${SERVICE_BASE_IMAGE_NAME}:${SERVICE_BASE_IMAGE_VERSION}
-
+#FROM ${MAINDOCKERREPO}${SERVICE_BASE_IMAGE_NAME}:${SERVICE_BASE_IMAGE_VERSION}
+FROM ubuntu:20.04
+ENV LD_LIBRARY_PATH=/opt/emco/rsync
 WORKDIR /opt/emco/rsync
 
-RUN addgroup -S emco && adduser -S -G emco emco
-RUN chown emco:emco . -R
+RUN apt-get update
+RUN apt -y install libssl-dev
+RUN apt-get install openssl
+RUN apt-get install coreutils
+RUN apt-get install -y ca-certificates
 
-COPY --chown=emco ./rsync ./
-COPY --chown=emco ./config.json ./
+#RUN addgroup emco 
+#RUN adduser emco emco
+#RUN chown emco:emco . -R
 
-USER emco
+COPY ./rsync ./
+COPY ./config.json ./
+COPY ./libgit2.so.1.3 ./
+
+#USER emco
 
 ENTRYPOINT ["./rsync"]

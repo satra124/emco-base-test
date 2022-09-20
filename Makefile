@@ -90,7 +90,7 @@ compile: pre-compile
 
 deploy-compile: check-env
 	@echo "Building microservices within Docker build container"
-	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo golang:${GO_VERSION} /bin/sh -c "cd /repo; make compile"
+	docker run --rm --user `id -u`:`id -g` --env LD_LIBRARY_PATH=/repo/src/rsync/libgitv1.3/libgit2-1.3.1/build/libgit2.so --env CGO_LDFLAGS=/repo/src/rsync/libgitv1.3/libgit2-1.3.1/build/libgit2.so --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo golang:${GO_VERSION} /bin/sh -c "cd /repo; make compile"
 	@echo "    Done."
 
 # Modules that follow naming conventions are done in a loop, rest later
@@ -151,4 +151,7 @@ develop-compile: check-env
 	@echo "    Done."
 
 develop: develop-compile build-containers
+	@MODS=`echo ${MODS} | sed 's/ovnaction/ovn/;s/genericactioncontroller/gac/;s/orchestrator/orch/;'` ./scripts/push_to_registry.sh
+
+rsync-develop: build-containers
 	@MODS=`echo ${MODS} | sed 's/ovnaction/ovn/;s/genericactioncontroller/gac/;s/orchestrator/orch/;'` ./scripts/push_to_registry.sh
