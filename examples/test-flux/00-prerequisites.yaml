@@ -101,11 +101,12 @@ metadata:
   name: {{ $.GitObj}}
 spec:
   kv:
-  - gitType: github
+  - gitType: {{ $.GitType }}
   - userName: {{ $.GithubUser }}
   - gitToken:  {{ $.GithubToken }}
   - repoName: {{ $.GithubRepo }}
-  - branch: main
+  - branch: {{ $.GitBranch }}
+  - url: {{ $.GitUrl }}
 
 ---
 #creating cluster provider kv pair

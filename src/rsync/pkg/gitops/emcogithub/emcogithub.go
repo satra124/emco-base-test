@@ -16,7 +16,6 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 
-	gitUtils "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 )
@@ -276,7 +275,7 @@ func convertToCommitFile(ref interface{}) []gitprovider.CommitFile {
 	params : path , content, files (gitprovider commitfile array)
 	return : files (gitprovider commitfile array)
 */
-func (p *Github) Add(path, filename, content string, ref interface{}) interface{} {
+func (p *Github) AddToCommit(path, content string, ref interface{}) interface{} {
 	files := append(convertToCommitFile(ref), gitprovider.CommitFile{
 		Path:    &path,
 		Content: &content,
@@ -290,7 +289,7 @@ func (p *Github) Add(path, filename, content string, ref interface{}) interface{
 	params : path, files (gitprovider commitfile array)
 	return : files (gitprovider commitfile array)
 */
-func (p *Github) Delete(path string, ref interface{}) interface{} {
+func (p *Github) DeleteToCommit(path string, ref interface{}) interface{} {
 	files := append(convertToCommitFile(ref), gitprovider.CommitFile{
 		Path:    &path,
 		Content: nil,
@@ -545,49 +544,27 @@ func (p *Github) DeleteClusterStatusCR(cid, app, cluster string) error {
 	// 	return err
 	// }
 
-	//delete the dummy branch as well
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	// // // // open a repo
-	//obtain files to be delete
+	//Delete the CR from context folder
+	var ref interface{}
 	path := "clusters/" + cluster + "/context/" + cid + "/app/" + app + "/" + cid + "-" + app + ".yaml"
-
-	// files, err := emcogit2go.GetFilesToDelete(folderName, path)
-	// files, err := GetFilesToDelete(folderName, path)
-	// if err != nil {
-	// 	log.Error("Error in obtaining files to Delete", log.Fields{"path": path})
-	// }
-	check, err := gitUtils.Exists(folderName + "/" + path)
+	files := p.DeleteToCommit(path, ref)
+	err := p.CommitFiles("Deleting status CR files "+path, files)
 	if err != nil {
+		log.Error("Error in commiting files to Delete", log.Fields{"path": path})
+	}
+
+	// Delete the status branch
+	branch := p.Cluster + "-" + p.Cid + "-" + p.App
+
+	ctx := context.Background()
+
+	// Delete the branch
+	err = DeleteBranch(ctx, p.Client, p.UserName, p.RepoName, branch)
+	if err != nil {
+		log.Error("Error in deleting branch", log.Fields{"err": err})
 		return err
 	}
-	var ref interface{}
-	if check {
-		files := p.Delete(folderName+"/"+path, ref)
-		err := p.CommitFiles("Deleting status CR files "+path, files)
-		if err != nil {
-			log.Error("Error in commiting files to Delete", log.Fields{"path": path})
-		}
-	}
-	// if len(files) != 0 {
-	// 	// err = emcogit2go.CommitFiles(p.Url, "Deleting status CR files "+path, p.Branch, folderName, p.UserName, p.GitToken, files)
-	// 	err := p.CommitFiles("Deleting status CR files "+path, files)
-	// 	if err != nil {
-	// 		log.Error("Error in commiting files to Delete", log.Fields{"path": path})
-	// 	}
-	// }
-	// err = emcogit2go.DeleteBranch(repo, branch)
-	// if err != nil {
-	// 	return err
-	// }
 
-	// err = emcogit2go.PushDeleteBranch(repo, branch)
-	// if err != nil {
-	// 	return err
-	// }
-	// remove the local folder
-	// err := os.RemoveAll(folderName)
-	// if err != nil {
-	// 	return err
-	// }
 	return nil
+
 }

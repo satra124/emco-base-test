@@ -19,6 +19,9 @@ KUBE_PATH1=${KUBE_PATH1:-"oops"}
 GITHUB_USER=${GITHUB_USER:-"oops"}
 GITHUB_TOKEN=${GITHUB_TOKEN:-"oops"}
 GITHUB_REPO=${GITHUB_REPO:-"oops"}
+GIT_TYPE=${GIT_TYPE:-"oops"}
+GIT_BRANCH=${GIT_BRANCH:-"oops"}
+GIT_URL=${GIT_URL:-"oops"}
 OUTPUT_DIR=output
 TIME_OUT=${TIME_OUT:-"60"}
 SYNC_INTERVAL=${SYNC_INTERVAL:-"60"}
@@ -56,7 +59,9 @@ function create_common_values {
     GithubUser: $GITHUB_USER
     GithubToken: $GITHUB_TOKEN
     GithubRepo: $GITHUB_REPO
-    branch: main
+    GitUrl: $GIT_URL
+    GitType: $GIT_TYPE
+    GitBranch: $GIT_BRANCH
     TimeOut: $TIME_OUT
     SyncInterval: $SYNC_INTERVAL
     RetryInterval: $RETRY_INTERVAL
@@ -71,15 +76,6 @@ function create_common_values {
       - Name: cluster2
     Applist:
       - Name: collectd
-        Cluster:
-          - cluster2
-      - Name: operator
-        Cluster:
-          - cluster2
-      - Name: http-server
-        Cluster:
-          - cluster2
-      - Name: http-client
         Cluster:
           - cluster2
 

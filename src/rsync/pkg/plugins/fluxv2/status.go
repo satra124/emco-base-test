@@ -34,7 +34,8 @@ func (p *Fluxv2Provider) ApplyStatusCR(ctx context.Context, name string, content
 	if err != nil {
 		return err
 	}
-	ref, err := p.gitProvider.Apply(ctx, name, nil, b)
+	path := p.gitProvider.GetPath("context") + name + ".yaml"
+	ref, err := p.gitProvider.Apply(path, nil, b)
 	if err != nil {
 		return err
 	}
@@ -44,8 +45,9 @@ func (p *Fluxv2Provider) ApplyStatusCR(ctx context.Context, name string, content
 }
 
 // DeleteStatusCR deletes status CR
-func (p *Fluxv2Provider) DeleteStatusCR(ctx context.Context, name string, content []byte) error {
-	ref, err := p.gitProvider.Delete(name, nil, content)
+func (p *Fluxv2Provider) DeleteStatusCR(name string, content []byte) error {
+	path := p.gitProvider.GetPath("context") + name + ".yaml"
+	ref, err := p.gitProvider.Delete(path, nil, content)
 	if err != nil {
 		return err
 	}

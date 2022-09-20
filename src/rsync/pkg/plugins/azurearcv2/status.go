@@ -14,8 +14,9 @@ func (p *AzureArcV2Provider) StartClusterWatcher(ctx context.Context) error {
 }
 
 // ApplyStatusCR applies status CR
-func (p *AzureArcV2Provider) ApplyStatusCR(ctx context.Context, name string, content []byte) error {
-	ref, err := p.gitProvider.Apply(ctx, name, nil, content)
+func (p *AzureArcV2Provider) ApplyStatusCR(name string, content []byte) error {
+	path := p.gitProvider.GetPath("context") + name + ".yaml"
+	ref, err := p.gitProvider.Apply(path, nil, content)
 	if err != nil {
 		return err
 	}
@@ -25,7 +26,8 @@ func (p *AzureArcV2Provider) ApplyStatusCR(ctx context.Context, name string, con
 // DeleteStatusCR deletes status CR
 func (p *AzureArcV2Provider) DeleteStatusCR(ctx context.Context, name string, content []byte) error {
 
-	ref, err := p.gitProvider.Delete(name, nil, content)
+	path := p.gitProvider.GetPath("context") + name + ".yaml"
+	ref, err := p.gitProvider.Delete(path, nil, content)
 	if err != nil {
 		return err
 	}

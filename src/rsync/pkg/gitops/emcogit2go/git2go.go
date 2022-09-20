@@ -1,8 +1,8 @@
 package emcogit2go
 
 import (
-	"errors"
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -14,10 +14,10 @@ import (
 
 	git "github.com/libgit2/git2go/v33"
 	v1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
-	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 	gitUtils "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
-//	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
+	//	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
 )
 
 type Git2go struct {
@@ -26,14 +26,13 @@ type Git2go struct {
 	UserName string
 	RepoName string
 	GitToken string
-
 }
 
 func NewGit2Go(url, branch, user, repo, token string) *Git2go {
 
-	g := Git2go {
-		Url: url,
-		Branch: branch,
+	g := Git2go{
+		Url:      url,
+		Branch:   branch,
 		UserName: user,
 		RepoName: repo,
 		GitToken: token,
@@ -54,7 +53,7 @@ func getCredCallBack(userName, token string) func(url string, username string, a
 	}
 }
 
-// CommitFile contains high-level information about a file added to a commit.
+// CommitFile contains high-level information about a file  ed to a commit.
 type CommitFile struct {
 	// Path is path where this file is located.
 	// +required
@@ -286,7 +285,9 @@ func deleteFromCommit(idx *git.Index, path, fileName string) (*git.Index, error)
 }
 
 // function to add file to commit files array
-func (p *Git2go)Add(path, fileName, content string, ref interface{}) interface{} {
+func (p *Git2go) AddToCommit(fileName, content string, ref interface{}) interface{} {
+	path := "/tmp/" + p.UserName + "-" + p.RepoName + "/" + fileName
+	//check if file exists
 	files := append(convertToCommitFile(ref), CommitFile{
 		Add:      true,
 		Path:     &path,
@@ -299,11 +300,12 @@ func (p *Git2go)Add(path, fileName, content string, ref interface{}) interface{}
 }
 
 // function to delete file from commit files array
-func (p *Git2go)Delete(path string, ref interface{}) interface{} {
+func (p *Git2go) DeleteToCommit(fileName string, ref interface{}) interface{} {
+	path := "/tmp/" + p.UserName + "-" + p.RepoName + "/" + fileName
 	files := append(convertToCommitFile(ref), CommitFile{
 		Add:      false,
 		Path:     &path,
-		FileName: &path, // TODO: FixME
+		FileName: &fileName,
 	})
 
 	return files
@@ -675,29 +677,7 @@ func GetLatestCommit(path, branchName string) (*git.Oid, error) {
 
 	return headCommit, nil
 }
-/*
-//function to delete all files in a path
-func GetFilesToDelete(folderName, filePath string) ([]CommitFile, error) {
-	var files []CommitFile
-	path := folderName + "/" + filePath
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		file, err := os.Open(path)
-		fileInfo, err := file.Stat()
-		if err != nil {
-			return err
-		}
 
-		//Add only if the path is not a directory
-		if !fileInfo.IsDir() {
-			s := strings.TrimPrefix(path, folderName+"/")
-			files = Delete(path, s, files)
-		}
-		return nil
-	})
-
-	return files, err
-}
-*/
 // function to push branch to remote origin
 func PushDeleteBranch(repo *git.Repository, branchName, userName, token string) error {
 	// push the branch to origin
@@ -813,7 +793,7 @@ func commitMergeToMaster(repo *git.Repository, signature *git.Signature, message
 	return nil
 }
 
-func (p *Git2go)ClusterWatcher(cid, app, cluster string, waitTime int) error {
+func (p *Git2go) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 
 	// foldername for status
 	folderName := "/tmp/" + cluster + "-status"
@@ -897,65 +877,24 @@ func (p *Git2go)ClusterWatcher(cid, app, cluster string, waitTime int) error {
 	return nil
 }
 
-
 // DeleteClusterStatusCR deletes the status CR provided by the monitor on the cluster
 func (p *Git2go) DeleteClusterStatusCR(cid, app, cluster string) error {
-	// Delete the status CR
-	// branch to track
-	// branch := p.Cluster + "-" + p.Cid + "-" + p.App
 
-	// ctx := context.Background()
-
-	// // Delete the branch
-	// err := emcogit.DeleteBranch(ctx, p.Client, p.UserName, p.RepoName, branch, p.GitType)
-	// if err != nil {
-	// 	log.Error("Error in deleting branch", log.Fields{"err": err})
-	// 	return err
-	// }
-
-	//delete the dummy branch as well
 	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
 	// // // // open a repo
 	//obtain files to be delete
 	path := "clusters/" + cluster + "/context/" + cid + "/app/" + app + "/" + cid + "-" + app + ".yaml"
-
-	// files, err := emcogit2go.GetFilesToDelete(folderName, path)
-	// files, err := GetFilesToDelete(folderName, path)
-	// if err != nil {
-	// 	log.Error("Error in obtaining files to Delete", log.Fields{"path": path})
-	// }
 	check, err := gitUtils.Exists(folderName + "/" + path)
 	if err != nil {
 		return err
 	}
 	var ref interface{}
 	if check {
-		files := p.Delete(folderName+"/"+path, ref)
+		files := p.DeleteToCommit(path, ref)
 		err := p.CommitFiles("Deleting status CR files "+path, files)
 		if err != nil {
 			log.Error("Error in commiting files to Delete", log.Fields{"path": path})
 		}
 	}
-	// if len(files) != 0 {
-	// 	// err = emcogit2go.CommitFiles(p.Url, "Deleting status CR files "+path, p.Branch, folderName, p.UserName, p.GitToken, files)
-	// 	err := p.CommitFiles("Deleting status CR files "+path, files)
-	// 	if err != nil {
-	// 		log.Error("Error in commiting files to Delete", log.Fields{"path": path})
-	// 	}
-	// }
-	// err = emcogit2go.DeleteBranch(repo, branch)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// err = emcogit2go.PushDeleteBranch(repo, branch)
-	// if err != nil {
-	// 	return err
-	// }
-	// remove the local folder
-	// err := os.RemoveAll(folderName)
-	// if err != nil {
-	// 	return err
-	// }
 	return nil
 }

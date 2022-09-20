@@ -36,8 +36,8 @@ type GitProvider struct {
 }
 
 type GitInterfaceProvider interface {
-	Add(path, fileName, content string, ref interface{}) interface{}
-	Delete(path string, ref interface{}) interface{}
+	AddToCommit(fileName, content string, ref interface{}) interface{}
+	DeleteToCommit(fileName string, ref interface{}) interface{}
 	CommitFiles(message string, files interface{}) error
 	ClusterWatcher(cid, app, cluster string, waitTime int) error
 }
@@ -66,7 +66,7 @@ func NewGitProvider(ctx context.Context, cid, app, cluster, level, namespace str
 
 	kvRef := refObject.Spec.Kv
 
-	var gitType, gitToken, branch, userName, repoName string
+	var gitType, gitToken, branch, userName, repoName, url string
 
 	for _, kvpair := range kvRef {
 		log.Info("kvpair", log.Fields{"kvpair": kvpair})
@@ -95,9 +95,14 @@ func NewGitProvider(ctx context.Context, cid, app, cluster, level, namespace str
 			branch = fmt.Sprintf("%v", v)
 			continue
 		}
+		v, ok = kvpair["url"]
+		if ok {
+			url = fmt.Sprintf("%v", v)
+			continue
+		}
 	}
-	if len(gitType) <= 0 || len(gitToken) <= 0 || len(branch) <= 0 || len(userName) <= 0 || len(repoName) <= 0 {
-		log.Error("Missing information for Git", log.Fields{"gitType": gitType, "token": gitToken, "branch": branch, "userName": userName, "repoName": repoName})
+	if len(gitType) <= 0 || len(gitToken) <= 0 || len(branch) <= 0 || len(userName) <= 0 || len(repoName) <= 0 || len(url) <= 0 {
+		log.Error("Missing information for Git", log.Fields{"gitType": gitType, "token": gitToken, "branch": branch, "userName": userName, "repoName": repoName, "url": url})
 		return nil, pkgerrors.Errorf("Missing Information for Git")
 	}
 
@@ -112,7 +117,7 @@ func NewGitProvider(ctx context.Context, cid, app, cluster, level, namespace str
 		Branch:    branch,
 		UserName:  userName,
 		RepoName:  repoName,
-		Url:       "https://" + gitType + ".com/" + userName + "/" + repoName,
+		Url:       url,
 	}
 
 	if strings.EqualFold(gitType, "github") {
@@ -142,9 +147,7 @@ func (p *GitProvider) GetPath(t string) string {
 func (p *GitProvider) Create(name string, ref interface{}, content []byte) (interface{}, error) {
 
 	path := p.GetPath("context") + name + ".yaml"
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	//files := emcogit2go.Add(folderName+"/"+path, path, string(content), ref)
-	files := p.gitInterface.Add(folderName+"/"+path, path, string(content), ref)
+	files := p.gitInterface.AddToCommit(path, string(content), ref)
 	return files, nil
 }
 
@@ -153,12 +156,9 @@ func (p *GitProvider) Create(name string, ref interface{}, content []byte) (inte
 	params : name string, ref interface{}, content []byte
 	return : interface{}, error
 */
-func (p *GitProvider) Apply(ctx context.Context, name string, ref interface{}, content []byte) (interface{}, error) {
+func (p *GitProvider) Apply(path string, ref interface{}, content []byte) (interface{}, error) {
 
-	path := p.GetPath("context") + name + ".yaml"
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	//files := emcogit2go.Add(folderName+"/"+path, path, string(content), ref)
-	files := p.gitInterface.Add(folderName+"/"+path, path, string(content), ref)
+	files := p.gitInterface.AddToCommit(path, string(content), ref)
 	return files, nil
 
 }
@@ -168,27 +168,9 @@ func (p *GitProvider) Apply(ctx context.Context, name string, ref interface{}, c
 	params : name string, ref interface{}, content []byte
 	return : interface{}, error
 */
-func (p *GitProvider) Delete(name string, ref interface{}, content []byte) (interface{}, error) {
+func (p *GitProvider) Delete(path string, ref interface{}, content []byte) (interface{}, error) {
 
-	path := p.GetPath("context") + name + ".yaml"
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	//files := emcogit2go.Delete(folderName+"/"+path, path, ref)
-	files := p.gitInterface.Delete(folderName+"/"+path, ref)
-	return files, nil
-
-}
-
-/*
-	Function to add resource from the cluster
-	params : name string, ref interface{}, content []byte
-	return : interface{}, error
-*/
-func (p *GitProvider) Add(name string, fileName string, content string, ref interface{}) (interface{}, error) {
-	// TODO: FIXME
-	path := p.GetPath("context") + name + ".yaml"
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	//files := emcogit2go.Delete(folderName+"/"+path, path, ref)
-	files := p.gitInterface.Add(folderName+"/"+path, path, content, ref)
+	files := p.gitInterface.DeleteToCommit(path, ref)
 	return files, nil
 
 }
@@ -210,9 +192,6 @@ func (p *GitProvider) Get(name string, gvkRes []byte) ([]byte, error) {
 */
 func (p *GitProvider) Commit(ctx context.Context, ref interface{}) error {
 
-	// appName := p.Cid + "-" + p.App
-	// folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	// err := emcogit2go.CommitFiles(p.Url, "Commit for "+p.GetPath("context"), p.Branch, folderName, p.UserName, p.GitToken, ref.([]emcogit2go.CommitFile))
 	err := p.gitInterface.CommitFiles("Commit for "+p.GetPath("context"), ref)
 	return err
 }

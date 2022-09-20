@@ -39,7 +39,8 @@ func (p *Fluxv2Provider) Apply(ctx context.Context, name string, ref interface{}
 	if err != nil {
 		return nil, err
 	}
-	res, err := p.gitProvider.Apply(ctx, name, ref, b)
+	path := p.gitProvider.GetPath("context") + name + ".yaml"
+	res, err := p.gitProvider.Apply(path, ref, b)
 	return res, err
 
 }
@@ -47,7 +48,8 @@ func (p *Fluxv2Provider) Apply(ctx context.Context, name string, ref interface{}
 // Delete resource from the cluster
 func (p *Fluxv2Provider) Delete(name string, ref interface{}, content []byte) (interface{}, error) {
 
-	res, err := p.gitProvider.Delete(name, ref, content)
+	path := p.gitProvider.GetPath("context") + name + ".yaml"
+	res, err := p.gitProvider.Delete(path, ref, content)
 	return res, err
 
 }

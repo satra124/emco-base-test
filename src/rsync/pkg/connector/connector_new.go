@@ -13,7 +13,6 @@ import (
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/anthos"
-	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/azurearc"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/azurearcv2"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/fluxv2"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/plugins/k8s"
@@ -92,12 +91,12 @@ func (p *Provider) GetClientProviders(ctx context.Context, app, cluster, level, 
 			return nil, err
 		}
 		return cl, nil
-	case "azureArc":
-		cl, err := azurearc.NewAzureArcProvider(ctx, p.cid, app, cluster, level, namespace)
-		if err != nil {
-			return nil, err
-		}
-		return cl, nil
+	// case "azureArc":
+	// 	cl, err := azurearc.NewAzureArcProvider(p.cid, app, cluster, level, namespace)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	return cl, nil
 	case "azureArcV2":
 		cl, err := azurearcv2.NewAzureArcProvider(ctx, p.cid, app, cluster, level, namespace)
 		if err != nil {

@@ -13,13 +13,14 @@ import (
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	gitUtils "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/utils"
 )
 
 // Create GitRepository and Kustomization CR's for Flux
 func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) error {
 
 	var sa string
+	var files interface{}
+
 	acUtils, err := utils.NewAppContextReference(ctx, p.gitProvider.Cid)
 	if err != nil {
 		return nil
@@ -34,9 +35,7 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 	}
 	var namespace, kName string
 	var skip bool
-	// var gp interface{}
-	//files := []emcogit2go.CommitFile{}
-	//files := []gitsupport.CommitFile{}
+
 	// Special case creating a logical cloud
 	if level == "0" && lcn != "" {
 		namespace = "flux-system"
@@ -69,18 +68,7 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 			return err
 		}
 		path := "clusters/" + p.gitProvider.Cluster + "/" + gr.Name + ".yaml"
-		// folderName := "/tmp/" + p.gitProvider.Cluster + "-" + p.gitProvider.Cid
-		folderName := "/tmp/" + p.gitProvider.UserName + "-" + p.gitProvider.RepoName
-
-		//check if these files exist already
-		// check, err := emcogit2go.Exists(folderName + "/" + path)
-		check, err := gitUtils.Exists(folderName + "/" + path)
-		var files interface{}
-		if !check {
-			// Add to the commit
-			//files = emcogit2go.Add(folderName+"/"+path, path, string(x), files)
-			files, err = p.gitProvider.Add(folderName+"/"+path, path, string(x), files)
-		}
+		files, err = p.gitProvider.Apply(path, files, x)
 
 		kName = gr.Name
 	}
@@ -112,19 +100,21 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 		return err
 	}
 	path := "clusters/" + p.gitProvider.Cluster + "/" + kc.Name + ".yaml"
-	folderName := "/tmp/" + p.gitProvider.UserName + "-" + p.gitProvider.RepoName
+	// folderName := "/tmp/" + p.gitProvider.UserName + "-" + p.gitProvider.RepoName
 	// gp = emcogit.Add(path, string(y), gp, p.gitProvider.GitType)
 	//check if these files exist already
 	//check, err := emcogit2go.Exists(folderName + "/" + path)
-	check, err := gitUtils.Exists(folderName + "/" + path)
-	var files interface{}
-	if !check {
-		// Add to the commit
-		// gp := emcogit.Add(path, string(x), []gitprovider.CommitFile{}, p.gitProvider.GitType)
-		//files = emcogit2go.Add(folderName+"/"+path, path, string(y), files)
-		p.gitProvider.GetPath("s")
-		files, err = p.gitProvider.Add(folderName+"/"+path, path, string(y), files)
-	}
+	// check, err := gitUtils.Exists(folderName + "/" + path)
+	// if !check {
+	// 	// Add to the commit
+	// 	// gp := emcogit.Add(path, string(x), []gitprovider.CommitFile{}, p.gitProvider.GitType)
+	// 	//files = emcogit2go.Add(folderName+"/"+path, path, string(y), files)
+	// 	p.gitProvider.GetPath("s")
+	// 	files, err = p.gitProvider.Add(folderName+"/"+path, path, string(y), files)
+	// }
+
+	p.gitProvider.GetPath("s")
+	files, err = p.gitProvider.Apply(path, files, y)
 
 	// Commit
 	// appName := p.gitProvider.Cid + "-" + p.gitProvider.App + "-config"
@@ -132,13 +122,13 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 	// commit file to the new branch
 	// // // open the git repo
 	//if len(files) != 0 {
-		// err = emcogit2go.CommitFiles(p.gitProvider.Url, "Commit for "+p.gitProvider.GetPath("context"), p.gitProvider.Branch, folderName, p.gitProvider.UserName, p.gitProvider.GitToken, files)
-		err = p.gitProvider.Commit(context.Background(), files)
+	// err = emcogit2go.CommitFiles(p.gitProvider.Url, "Commit for "+p.gitProvider.GetPath("context"), p.gitProvider.Branch, folderName, p.gitProvider.UserName, p.gitProvider.GitToken, files)
+	err = p.gitProvider.Commit(context.Background(), files)
 
-		if err != nil {
-			log.Error("ApplyConfig:: Commit files err", log.Fields{"err": err, "files": files})
-		}
-		return err
+	if err != nil {
+		log.Error("ApplyConfig:: Commit files err", log.Fields{"err": err, "files": files})
+	}
+	return err
 	//}
 
 	return nil
@@ -146,19 +136,15 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 
 // Delete GitRepository and Kustomization CR's for Flux
 func (p *Fluxv2Provider) DeleteConfig(ctx context.Context, config interface{}) error {
-	path := "clusters/" + p.gitProvider.Cluster + "/" + p.gitProvider.Cid + ".yaml"
-	// folderName := "/tmp/" + p.gitProvider.Cluster + "-" + p.gitProvider.Cid
-	folderName := "/tmp/" + p.gitProvider.UserName + "-" + p.gitProvider.RepoName
-	// gp := emcogit.Delete(path, []gitprovider.CommitFile{}, p.gitProvider.GitType)
-	//files := emcogit2go.Delete(folderName+"/"+path, path, []emcogit2go.CommitFile{})
+
 	var files interface{}
-	files, err := p.gitProvider.Delete(folderName+"/"+path, files, nil)
+
+	path := "clusters/" + p.gitProvider.Cluster + "/" + p.gitProvider.Cid + ".yaml"
+	files, err := p.gitProvider.Delete(path, files, nil)
+
 	path = "clusters/" + p.gitProvider.Cluster + "/" + "kust" + p.gitProvider.Cid + ".yaml"
-	// files = emcogit2go.Delete(folderName+"/"+path, path, files)
-	files, err = p.gitProvider.Delete(folderName+"/"+path, files, nil)
-	// appName := p.gitProvider.Cid + "-" + p.gitProvider.App + "-config"
-	// err := emcogit.CommitFiles(ctx, p.gitProvider.Client, p.gitProvider.UserName, p.gitProvider.RepoName, p.gitProvider.Branch, "Commit for "+p.gitProvider.GetPath("context"), appName, gp, p.gitProvider.GitType)
-	// err := emcogit2go.CommitFiles(p.gitProvider.Url, "Commit for "+p.gitProvider.GetPath("context"), p.gitProvider.Branch, folderName, p.gitProvider.UserName, p.gitProvider.GitToken, files)
+	files, err = p.gitProvider.Delete(path, files, nil)
+
 	err = p.gitProvider.Commit(context.Background(), files)
 	if err != nil {
 		log.Error("DeleteConfig:: Commit files err", log.Fields{"err": err, "files": files})
