@@ -16,18 +16,6 @@ import (
 )
 
 type GitProvider struct {
-	// Cid       string
-	// Cluster   string
-	// App       string
-	// Namespace string
-	// Level     string
-	// GitType   string
-	// GitToken  string
-	// UserName  string
-	// Branch    string
-	// RepoName  string
-	// Url       string
-
 	GitUser      string
 	GitRepo      string
 	GitToken     string
@@ -39,11 +27,11 @@ type GitProvider struct {
 }
 
 type GitInterfaceProvider interface {
-	AddToCommit(fileName, folderName, content string, ref interface{}) interface{}
-	DeleteToCommit(fileName, folderName string, ref interface{}) interface{}
-	CommitFiles(app, message, folderName string, files interface{}) error
+	AddToCommit(fileName, content string, ref interface{}) interface{}
+	DeleteToCommit(fileName, ref interface{}) interface{}
+	CommitFiles(app, message string, files interface{}) error
 	ClusterWatcher(cid, app, cluster string, waitTime int) error
-	CommitFilesToBranch(commitMessage, branchName, folderName string, files interface{}) error
+	CommitFilesToBranch(commitMessage, branchName string, files interface{}) error
 }
 
 /*
@@ -52,63 +40,6 @@ type GitInterfaceProvider interface {
 	return : GitProvider, error
 */
 func NewGitProvider() (*GitProvider, error) {
-
-	// result := strings.SplitN(cluster, "+", 2)
-
-	// c, err := utils.GetGitOpsConfig(cluster, "0", "default")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// // Read from database
-	// ccc := db.NewCloudConfigClient()
-	// refObject, err := ccc.GetClusterSyncObjects(result[0], c.Props.GitOpsReferenceObject)
-
-	// if err != nil {
-	// 	log.Error("Invalid refObject :", log.Fields{"refObj": c.Props.GitOpsReferenceObject, "error": err})
-	// 	return nil, err
-	// }
-
-	// kvRef := refObject.Spec.Kv
-
-	// var gitType, gitToken, branch, userName, repoName, url string
-
-	// for _, kvpair := range kvRef {
-	// 	log.Info("kvpair", log.Fields{"kvpair": kvpair})
-	// 	v, ok := kvpair["gitType"]
-	// 	if ok {
-	// 		gitType = fmt.Sprintf("%v", v)
-	// 		continue
-	// 	}
-	// 	v, ok = kvpair["gitToken"]
-	// 	if ok {
-	// 		gitToken = fmt.Sprintf("%v", v)
-	// 		continue
-	// 	}
-	// 	v, ok = kvpair["repoName"]
-	// 	if ok {
-	// 		repoName = fmt.Sprintf("%v", v)
-	// 		continue
-	// 	}
-	// 	v, ok = kvpair["userName"]
-	// 	if ok {
-	// 		userName = fmt.Sprintf("%v", v)
-	// 		continue
-	// 	}
-	// 	v, ok = kvpair["branch"]
-	// 	if ok {
-	// 		branch = fmt.Sprintf("%v", v)
-	// 		continue
-	// 	}
-	// 	v, ok = kvpair["url"]
-	// 	if ok {
-	// 		url = fmt.Sprintf("%v", v)
-	// 		continue
-	// 	}
-	// }
-	// if len(gitType) <= 0 || len(gitToken) <= 0 || len(branch) <= 0 || len(userName) <= 0 || len(repoName) <= 0 || len(url) <= 0 {
-	// 	log.Error("Missing information for Git", log.Fields{"gitType": gitType, "token": gitToken, "branch": branch, "userName": userName, "repoName": repoName, "url": url})
-	// 	return nil, pkgerrors.Errorf("Missing Information for Git")
-	// }
 
 	gitBranch := os.Getenv("GIT_BRANCH")
 	gitType := os.Getenv("GIT_TYPE")
@@ -145,36 +76,13 @@ func NewGitProvider() (*GitProvider, error) {
 }
 
 /*
-	Function to get path of files stored in git
-	params : string
-	return : string
-*/
-
-// func (p *GitProvider) GetPath(t string) string {
-// 	return "clusters/" + p.Cluster + "/" + t + "/" + p.Cid + "/app/" + p.App + "/"
-// }
-
-// /*
-// 	Function to create a new resource if the not already existing
-// 	params : name string, ref interface{}, content []byte
-// 	return : interface{}, error
-// */
-// func (p *GitProvider) Create(name string, ref interface{}, content []byte) (interface{}, error) {
-
-// 	path := p.GetPath("context") + name + ".yaml"
-// 	files := p.gitInterface.AddToCommit(path, string(content), ref)
-// 	return files, nil
-// }
-
-/*
 	Function to apply resource to the cluster
 	params : name string, ref interface{}, content []byte
 	return : interface{}, error
 */
 func (p *GitProvider) Apply(path string, ref interface{}, content []byte) (interface{}, error) {
 
-	folderName := "/tmp/" + p.GitUser + "-" + p.GitRepo + "-" + p.Cluster
-	files := p.gitInterface.AddToCommit(path, folderName, string(content), ref)
+	files := p.gitInterface.AddToCommit(path, string(content), ref)
 	return files, nil
 
 }
@@ -186,8 +94,7 @@ func (p *GitProvider) Apply(path string, ref interface{}, content []byte) (inter
 */
 func (p *GitProvider) Delete(path string, ref interface{}, content []byte) (interface{}, error) {
 
-	folderName := "/tmp/" + p.GitUser + "-" + p.GitRepo + "-" + p.Cluster
-	files := p.gitInterface.DeleteToCommit(path, folderName, ref)
+	files := p.gitInterface.DeleteToCommit(path, ref)
 	return files, nil
 
 }
@@ -207,9 +114,9 @@ func (p *GitProvider) Get(name string, gvkRes []byte) ([]byte, error) {
 	params : ctx context.Context, ref interface{}
 	return : error
 */
-func (p *GitProvider) CommitFiles(commitMessage, branchName, folderName string, files interface{}) error {
+func (p *GitProvider) CommitFilesToBranch(commitMessage, branchName string, files interface{}) error {
 
-	err := p.gitInterface.CommitFilesToBranch(commitMessage, branchName, folderName, files)
+	err := p.gitInterface.CommitFilesToBranch(commitMessage, branchName, files)
 	return err
 }
 

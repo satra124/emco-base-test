@@ -91,12 +91,6 @@ func (p *Provider) GetClientProviders(ctx context.Context, app, cluster, level, 
 			return nil, err
 		}
 		return cl, nil
-	// case "azureArc":
-	// 	cl, err := azurearc.NewAzureArcProvider(p.cid, app, cluster, level, namespace)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	return cl, nil
 	case "azureArcV2":
 		cl, err := azurearcv2.NewAzureArcProvider(ctx, p.cid, app, cluster, level, namespace)
 		if err != nil {

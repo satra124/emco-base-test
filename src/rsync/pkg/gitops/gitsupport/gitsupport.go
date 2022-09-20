@@ -13,7 +13,6 @@ import (
 	pkgerrors "github.com/pkg/errors"
 
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
-	//emcogit "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit"
 	emcogit2go "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit2go"
 	emcogithub "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogithub"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
@@ -36,9 +35,9 @@ type GitProvider struct {
 }
 
 type GitInterfaceProvider interface {
-	AddToCommit(fileName, folderName, content string, ref interface{}) interface{}
-	DeleteToCommit(fileName, folderName string, ref interface{}) interface{}
-	CommitFiles(app, message, folderName string, files interface{}) error
+	AddToCommit(fileName, content string, ref interface{}) interface{}
+	DeleteToCommit(fileName string, ref interface{}) interface{}
+	CommitFiles(app, message string, files interface{}) error
 	ClusterWatcher(cid, app, cluster string, waitTime int) error
 }
 
@@ -146,9 +145,8 @@ func (p *GitProvider) GetPath(t string) string {
 */
 func (p *GitProvider) Create(name string, ref interface{}, content []byte) (interface{}, error) {
 
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
 	path := p.GetPath("context") + name + ".yaml"
-	files := p.gitInterface.AddToCommit(path, string(content), folderName, ref)
+	files := p.gitInterface.AddToCommit(path, string(content), ref)
 	return files, nil
 }
 
@@ -159,8 +157,7 @@ func (p *GitProvider) Create(name string, ref interface{}, content []byte) (inte
 */
 func (p *GitProvider) Apply(path string, ref interface{}, content []byte) (interface{}, error) {
 
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	files := p.gitInterface.AddToCommit(path, folderName, string(content), ref)
+	files := p.gitInterface.AddToCommit(path, string(content), ref)
 	return files, nil
 
 }
@@ -172,8 +169,7 @@ func (p *GitProvider) Apply(path string, ref interface{}, content []byte) (inter
 */
 func (p *GitProvider) Delete(path string, ref interface{}, content []byte) (interface{}, error) {
 
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	files := p.gitInterface.DeleteToCommit(path, folderName, ref)
+	files := p.gitInterface.DeleteToCommit(path, ref)
 	return files, nil
 
 }
@@ -195,8 +191,7 @@ func (p *GitProvider) Get(name string, gvkRes []byte) ([]byte, error) {
 */
 func (p *GitProvider) Commit(ctx context.Context, ref interface{}) error {
 
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	err := p.gitInterface.CommitFiles(p.App, "Commit for "+p.GetPath("context"), folderName, ref)
+	err := p.gitInterface.CommitFiles(p.App, "Commit for "+p.GetPath("context"), ref)
 	return err
 }
 

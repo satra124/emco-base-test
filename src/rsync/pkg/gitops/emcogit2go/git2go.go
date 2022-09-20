@@ -22,28 +22,47 @@ import (
 )
 
 type Git2go struct {
-	Url      string
-	Branch   string
-	UserName string
-	RepoName string
-	GitToken string
+	Url        string
+	Branch     string
+	UserName   string
+	RepoName   string
+	GitToken   string
+	FolderName string
 }
 
-func NewGit2Go(url, branch, user, repo, token string) *Git2go {
+func NewGit2Go(url, branch, user, repo, token string) (*Git2go, error) {
 
+	folderName := "/tmp/" + user + "-" + repo
 	g := Git2go{
-		Url:      url,
-		Branch:   branch,
-		UserName: user,
-		RepoName: repo,
-		GitToken: token,
+		Url:        url,
+		Branch:     branch,
+		UserName:   user,
+		RepoName:   repo,
+		GitToken:   token,
+		FolderName: folderName,
 	}
-	return &g
-}
 
-const (
-	maxrand = 0x7fffffffffffffff
-)
+	//check if git repo exists, if not clone
+	check, err := gitUtils.Exists(folderName)
+	if err != nil {
+		return nil, err
+	}
+	//Clone the git repo if not already cloned
+	if !check {
+		if err := os.Mkdir(folderName, os.ModePerm); err != nil {
+			log.Error("Error in creating the dir", log.Fields{"Error": err})
+			return nil, err
+		}
+		// // clone the repo
+		repo, err = git.Clone(url, folderName, &git.CloneOptions{CheckoutBranch: branch, CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
+		if err != nil {
+			log.Error("Error cloning the repo", log.Fields{"Error": err})
+			return nil, err
+		}
+
+	}
+	return &g, nil
+}
 
 func getCredCallBack(userName, token string) func(url string, username string, allowedTypes git.CredType) (*git.Credential, error) {
 	return func(url string, username string, allowedTypes git.CredType) (*git.Credential, error) {
@@ -56,16 +75,15 @@ func getCredCallBack(userName, token string) func(url string, username string, a
 
 // CommitFile contains high-level information about a file  ed to a commit.
 type CommitFile struct {
-	// Path is path where this file is located.
-	// +required
-	Add bool `json:"add"`
 
+	// true if file is to be added and false for delete
+	Add bool `json:"add"`
+	// Path is path where this file is located.
 	Path *string `json:"path"`
 
 	FileName *string `json:"filename"`
 
 	// Content is the content of the file.
-	// +required
 	Content *string `json:"content,omitempty"`
 }
 
@@ -109,35 +127,17 @@ func createFile(fileName string, content string) error {
 var mutex = sync.Mutex{}
 
 // function to commit files to a branch
-func (p *Git2go) CommitFiles(app, message, folderName string, files interface{}) error {
+func (p *Git2go) CommitFiles(app, message string, files interface{}) error {
 
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	var repo *git.Repository
 
-	url := p.Url
 	branchName := p.Branch
-	// folderName := "/tmp/" + p.UserName + "-" + p.RepoName
 	userName := p.UserName
 
-	//check if git repo exists, if not clone
-	check, err := gitUtils.Exists(folderName)
-
-	if !check {
-		if err := os.Mkdir(folderName, os.ModePerm); err != nil {
-			log.Error("Error in creating the dir", log.Fields{"Error": err})
-			return err
-		}
-		// // clone the repo
-		repo, err = git.Clone(url, folderName, &git.CloneOptions{CheckoutBranch: branchName, CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
-		if err != nil {
-			log.Error("Error cloning the repo", log.Fields{"Error": err})
-			return err
-		}
-
-	}
-	repo, err = git.OpenRepository(folderName)
+	repo, err := git.OpenRepository(p.FolderName)
 	if err != nil {
 		log.Error("Error in Opening the git repository", log.Fields{"err": err, "branchName": branchName})
 		return err
@@ -286,8 +286,8 @@ func deleteFromCommit(idx *git.Index, path, fileName string) (*git.Index, error)
 }
 
 // function to add file to commit files array
-func (p *Git2go) AddToCommit(fileName, folderName, content string, ref interface{}) interface{} {
-	path := folderName + "/" + fileName
+func (p *Git2go) AddToCommit(fileName, content string, ref interface{}) interface{} {
+	path := p.FolderName + "/" + fileName
 	//check if file exists
 	files := append(convertToCommitFile(ref), CommitFile{
 		Add:      true,
@@ -301,8 +301,8 @@ func (p *Git2go) AddToCommit(fileName, folderName, content string, ref interface
 }
 
 // function to delete file from commit files array
-func (p *Git2go) DeleteToCommit(fileName, folderName string, ref interface{}) interface{} {
-	path := folderName + "/" + fileName
+func (p *Git2go) DeleteToCommit(fileName string, ref interface{}) interface{} {
+	path := p.FolderName + "/" + fileName
 	files := append(convertToCommitFile(ref), CommitFile{
 		Add:      false,
 		Path:     &path,
@@ -344,9 +344,8 @@ func CreateBranch(folderName, branchName string) (*git.Branch, error) {
 		return nil, err
 	}
 
-	// create the new branch (May cause problems, try to get the headCommit of main)
+	// create the new branch
 	//checkout the new branch
-	// set head to point to the created branch
 	err = repo.SetHead("refs/heads/" + "main")
 	if err != nil {
 		log.Error("Error in settting the head", log.Fields{"err": err, "branchName": branchName})
@@ -460,10 +459,10 @@ func (p *Git2go) GitPull(folderName, branchName string) error {
 	}
 
 	if analysis&git.MergeAnalysisUpToDate != 0 {
-		log.Info("MergeAnalysisUpToDate", log.Fields{"analysis": analysis})
+		log.Debug("MergeAnalysisUpToDate", log.Fields{"analysis": analysis})
 		return nil
 	} else if analysis&git.MergeAnalysisNormal != 0 {
-		log.Info("MergeAnalysisNormal", log.Fields{"analysis": analysis})
+		log.Debug("MergeAnalysisNormal", log.Fields{"analysis": analysis})
 
 		// Just merge changes
 		if err := repo.Merge([]*git.AnnotatedCommit{annotatedCommit}, nil, nil); err != nil {
@@ -520,7 +519,7 @@ func (p *Git2go) GitPull(folderName, branchName string) error {
 		// Clean up
 		repo.StateCleanup()
 	} else if analysis&git.MergeAnalysisFastForward != 0 {
-		log.Info("MergeAnalysisFastForward", log.Fields{"analysis": analysis})
+		log.Debug("MergeAnalysisFastForward", log.Fields{"analysis": analysis})
 		// Fast-forward changes
 		// Get remote tree
 		remoteTree, err := repo.LookupTree(remoteBranchID)
@@ -840,7 +839,6 @@ func (p *Git2go) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 
 				if lastCommitSHA != latestCommitSHA || lastCommitSHA == nil {
 					log.Debug("New Status File, pulling files", log.Fields{"LatestSHA": latestCommitSHA, "LastSHA": lastCommitSHA})
-					// files, err := emcogit2go.GetFilesInPath(folderName + "/" + path)
 					files, err := GetFilesInPath(folderName + "/" + path)
 					if err != nil {
 						log.Debug("Status file not available", log.Fields{"error": err, "resource": path})
@@ -850,7 +848,6 @@ func (p *Git2go) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 
 					if len(files) > 0 {
 						// Only one file expected in the location
-						// fileContent, err := emcogit2go.GetFileContent(files[0])
 						fileContent, err := GetFileContent(files[0])
 						if err != nil {
 							log.Error("", log.Fields{"error": err, "cluster": cluster, "resource": path})
@@ -881,18 +878,17 @@ func (p *Git2go) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 // DeleteClusterStatusCR deletes the status CR provided by the monitor on the cluster
 func (p *Git2go) DeleteClusterStatusCR(cid, app, cluster string) error {
 
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
 	// // // // open a repo
 	//obtain files to be delete
 	path := "clusters/" + cluster + "/context/" + cid + "/app/" + app + "/" + cid + "-" + app + ".yaml"
-	check, err := gitUtils.Exists(folderName + "/" + path)
+	check, err := gitUtils.Exists(p.FolderName + "/" + path)
 	if err != nil {
 		return err
 	}
 	var ref interface{}
 	if check {
-		files := p.DeleteToCommit(path, folderName, ref)
-		err := p.CommitFiles(app, "Deleting status CR files "+path, folderName, files)
+		files := p.DeleteToCommit(path, ref)
+		err := p.CommitFiles(app, "Deleting status CR files "+path, files)
 		if err != nil {
 			log.Error("Error in commiting files to Delete", log.Fields{"path": path})
 		}
@@ -901,34 +897,10 @@ func (p *Git2go) DeleteClusterStatusCR(cid, app, cluster string) error {
 }
 
 // function to commit files to a branch
-func (p *Git2go) CommitFilesToBranch(commitMessage, branchName, folderName string, files interface{}) error {
+func (p *Git2go) CommitFilesToBranch(commitMessage, branchName string, files interface{}) error {
 
-	// Only one process to commit to Github location to avoid conflicts
-	// mutex.Lock()
-	// defer mutex.Unlock()
-
-	url := p.Url
 	userName := p.UserName
-
-	// clone git the repo to local repo
-	check, err := gitUtils.Exists(folderName)
-
-	if !check {
-		if err := os.Mkdir(folderName, os.ModePerm); err != nil {
-			log.Error("Error in creating the dir", log.Fields{"Error": err})
-			return err
-		}
-		// // clone the repo
-		log.Info("URL", log.Fields{"URL": url})
-		fmt.Println("URL %s", url)
-		repo, err := git.Clone(url, folderName, &git.CloneOptions{CheckoutBranch: p.Branch, CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
-		if err != nil {
-			log.Error("Error cloning the repo", log.Fields{"Error": err})
-			return err
-		}
-		fmt.Println(repo)
-	}
-
+	folderName := p.FolderName
 	// // // open a repo
 	repo, err := git.OpenRepository(folderName)
 	if err != nil {
@@ -944,8 +916,8 @@ func (p *Git2go) CommitFilesToBranch(commitMessage, branchName, folderName strin
 
 	var targetID *git.Oid
 	//create a new branch
-	//check if branch already exists then skip create branch
-	// check if a local branch exitst if not do a checkout
+	//check if branch already exists, if yes then skip create branch
+	// check if a local branch exists, if not do a checkout
 	localBranch, err := repo.LookupBranch(branchName, git.BranchLocal)
 	// No local branch, lets create one
 	if localBranch == nil || err != nil {

@@ -133,7 +133,7 @@ func CreateRepo(ctx context.Context, c interface{}, repoName string, userName st
 	return : nil/error
 */
 //func (p *Github)CommitFiles(ctx context.Context, c interface{}, userName, repoName, branch, commitMessage, appName string, files []gitprovider.CommitFile) error {
-func (p *Github) CommitFiles(app, commitMessage, folderName string, files interface{}) error {
+func (p *Github) CommitFiles(app, commitMessage string, files interface{}) error {
 
 	// obtain client
 	client := convertToClient(p.Client)
@@ -271,7 +271,7 @@ func convertToCommitFile(ref interface{}) []gitprovider.CommitFile {
 	params : path , content, files (gitprovider commitfile array)
 	return : files (gitprovider commitfile array)
 */
-func (p *Github) AddToCommit(path, folderName, content string, ref interface{}) interface{} {
+func (p *Github) AddToCommit(path, content string, ref interface{}) interface{} {
 	files := append(convertToCommitFile(ref), gitprovider.CommitFile{
 		Path:    &path,
 		Content: &content,
@@ -285,7 +285,7 @@ func (p *Github) AddToCommit(path, folderName, content string, ref interface{}) 
 	params : path, files (gitprovider commitfile array)
 	return : files (gitprovider commitfile array)
 */
-func (p *Github) DeleteToCommit(path, folderName string, ref interface{}) interface{} {
+func (p *Github) DeleteToCommit(path, ref interface{}) interface{} {
 	files := append(convertToCommitFile(ref), gitprovider.CommitFile{
 		Path:    &path,
 		Content: nil,
@@ -527,24 +527,12 @@ func (p *Github) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 }
 
 func (p *Github) DeleteClusterStatusCR(cid, app, cluster string) error {
-	// Delete the status CR
-	// branch to track
-	// branch := p.Cluster + "-" + p.Cid + "-" + p.App
-
-	// ctx := context.Background()
-
-	// // Delete the branch
-	// err := emcogit.DeleteBranch(ctx, p.Client, p.UserName, p.RepoName, branch, p.GitType)
-	// if err != nil {
-	// 	log.Error("Error in deleting branch", log.Fields{"err": err})
-	// 	return err
-	// }
 
 	//Delete the CR from context folder
 	var ref interface{}
 	path := "clusters/" + cluster + "/context/" + cid + "/app/" + app + "/" + cid + "-" + app + ".yaml"
-	files := p.DeleteToCommit(path, "", ref)
-	err := p.CommitFiles(app, "Deleting status CR files "+path, "", files)
+	files := p.DeleteToCommit(path, ref)
+	err := p.CommitFiles(app, "Deleting status CR files "+path, files)
 	if err != nil {
 		log.Error("Error in commiting files to Delete", log.Fields{"path": path})
 	}
@@ -570,15 +558,12 @@ func (p *Github) DeleteClusterStatusCR(cid, app, cluster string) error {
 	params : context, Branch Name, Commit Message, appName, files ([]gitprovider.CommitFile)
 	return : nil/error
 */
-func (p *Github) CommitFilesToBranch(commitMessage, branchName, folderName string, files interface{}) error {
+func (p *Github) CommitFilesToBranch(commitMessage, branchName string, files interface{}) error {
 
 	// obtain client
 	client := convertToClient(p.Client)
 	mergeBranch := branchName
 	ctx := context.Background()
-	// Only one process to commit to Github location to avoid conflicts
-	// mutex.Lock()
-	// defer mutex.Unlock()
 
 	// commit the files to this new branch
 	// create repo reference
