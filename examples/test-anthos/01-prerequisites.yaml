@@ -19,9 +19,9 @@ metadata:
 spec:
   kv:
   - gitType: github
-  - userName: {{ $.GithubUser }}
-  - gitToken:  {{ $.GithubToken }}
-  - repoName: {{ $.GithubRepo }}
+  - userName: {{ $.GitUser }}
+  - gitToken:  {{ $.GitToken }}
+  - repoName: {{ $.GitRepo }}
   - branch: {{ $.Branch }}
 
 ---

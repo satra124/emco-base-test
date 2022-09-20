@@ -16,9 +16,9 @@ deployment_folder=../../../deployments/
 
 HOST_IP=${HOST_IP:-"oops"}
 KUBE_PATH1=${KUBE_PATH1:-"oops"}
-GITHUB_USER=${GITHUB_USER:-"oops"}
-GITHUB_TOKEN=${GITHUB_TOKEN:-"oops"}
-GITHUB_REPO=${GITHUB_REPO:-"oops"}
+GIT_USER=${GIT_USER:-"oops"}
+GIT_TOKEN=${GIT_TOKEN:-"oops"}
+GIT_REPO=${GIT_REPO:-"oops"}
 GIT_TYPE=${GIT_TYPE:-"oops"}
 GIT_BRANCH=${GIT_BRANCH:-"oops"}
 GIT_URL=${GIT_URL:-"oops"}
@@ -56,9 +56,9 @@ function create_common_values {
     APP3: operator
     GitObj: GitObjectFluxRepo
     GitResObj: GitObjectFluxRes
-    GithubUser: $GITHUB_USER
-    GithubToken: $GITHUB_TOKEN
-    GithubRepo: $GITHUB_REPO
+    GitUser: $GIT_USER
+    GitToken: $GIT_TOKEN
+    GitRepo: $GIT_REPO
     GitUrl: $GIT_URL
     GitType: $GIT_TYPE
     GitBranch: $GIT_BRANCH
@@ -104,16 +104,16 @@ case "$1" in
             echo -e "ERROR - KUBE_PATH1 must be defined"
             exit
         fi
-        if [ "${GITHUB_TOKEN}" == "oops"  ] ; then
-            echo -e "ERROR - GITHUB_TOKEN must be defined"
+        if [ "${GIT_TOKEN}" == "oops"  ] ; then
+            echo -e "ERROR - GIT_TOKEN must be defined"
             exit
         fi
-        if [ "${GITHUB_REPO}" == "oops"  ] ; then
-            echo -e "ERROR - GITHUB_REPO must be defined"
+        if [ "${GIT_REPO}" == "oops"  ] ; then
+            echo -e "ERROR - GIT_REPO must be defined"
             exit
         fi
-        if [ "${GITHUB_USER}" == "oops" ] ; then
-            echo -e "GITHUB_USER must be defined"
+        if [ "${GIT_USER}" == "oops" ] ; then
+            echo -e "GIT_USER must be defined"
         else
             create_common_values $OUTPUT_DIR $HOST_IP
             echo "Done create!!!"

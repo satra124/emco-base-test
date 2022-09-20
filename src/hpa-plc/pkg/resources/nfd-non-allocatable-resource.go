@@ -9,7 +9,7 @@ import (
 	hpaModel "gitlab.com/project-emco/core/emco-base/src/hpa-plc/pkg/model"
 	hpaUtils "gitlab.com/project-emco/core/emco-base/src/hpa-plc/pkg/utils"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
-	connector "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/connector"
+	connector "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/utils"
 )
 
 // NFDResource holds the definition of a NFD resource

@@ -13,6 +13,8 @@ export SERVICE_BASE_IMAGE_NAME := $(shell cat $(CONFIG) | grep 'SERVICE_BASE_IMA
 export SERVICE_BASE_IMAGE_VERSION := $(shell cat $(CONFIG) | grep 'SERVICE_BASE_IMAGE_VERSION' | cut -d'=' -f2)
 export EMCODOCKERREPO_CONFIG := $(shell cat $(CONFIG) | grep 'EMCODOCKERREPO' | cut -d'=' -f2)
 export MAINDOCKERREPO_CONFIG := $(shell cat $(CONFIG) | grep 'MAINDOCKERREPO' | cut -d'=' -f2)
+export GIT_SERVICE_IMAGE_NAME := $(shell cat $(CONFIG) | grep 'GIT_SERVICE_IMAGE_NAME' | cut -d'=' -f2)
+export GIT_SERVICE_IMAGE_VERSION := $(shell cat $(CONFIG) | grep 'GIT_SERVICE_IMAGE_VERSION' | cut -d'=' -f2)
 
 # docker registry URL defined in environment take precedence over ones defined in the $(CONFIG) file:
 ifndef EMCODOCKERREPO
@@ -54,6 +56,12 @@ ifeq ($(BUILD_CAUSE), RELEASE)
  endif
 endif
 
+ifeq ($(BUILD_BASE),true)
+	export BASEDOCKERREPO=${EMCODOCKERREPO}
+else
+	export BASEDOCKERREPO=registry.gitlab.com/project-emco/core/emco-base/
+endif
+
 clean-all:
 	@echo "Cleaning artifacts"
 	@for m in $(MODS); do \
@@ -90,13 +98,13 @@ compile: pre-compile
 
 deploy-compile: check-env
 	@echo "Building microservices within Docker build container"
-	docker run --rm --user `id -u`:`id -g` --env LD_LIBRARY_PATH=/repo/src/rsync/libgitv1.3/libgit2-1.3.1/build/libgit2.so --env CGO_LDFLAGS=/repo/src/rsync/libgitv1.3/libgit2-1.3.1/build/libgit2.so --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo golang:${GO_VERSION} /bin/sh -c "cd /repo; make compile"
+	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo ${BASEDOCKERREPO}${BUILD_BASE_IMAGE_NAME}:${BUILD_BASE_IMAGE_VERSION} /bin/sh -c "cd /repo; make compile"
 	@echo "    Done."
 
 # Modules that follow naming conventions are done in a loop, rest later
 build-containers:
 	@echo "Packaging microservices "
-	@export ARGS="--build-arg EMCODOCKERREPO=${EMCODOCKERREPO} --build-arg MAINDOCKERREPO=${MAINDOCKERREPO} --build-arg SERVICE_BASE_IMAGE_NAME=${SERVICE_BASE_IMAGE_NAME} --build-arg SERVICE_BASE_IMAGE_VERSION=${SERVICE_BASE_IMAGE_VERSION}"; \
+	@export ARGS="--build-arg BASEDOCKERREPO=${BASEDOCKERREPO} --build-arg EMCODOCKERREPO=${EMCODOCKERREPO} --build-arg MAINDOCKERREPO=${MAINDOCKERREPO} --build-arg SERVICE_BASE_IMAGE_NAME=${SERVICE_BASE_IMAGE_NAME} --build-arg SERVICE_BASE_IMAGE_VERSION=${SERVICE_BASE_IMAGE_VERSION} --build-arg GIT_SERVICE_IMAGE_NAME=${GIT_SERVICE_IMAGE_NAME} --build-arg GIT_SERVICE_IMAGE_VERSION=${GIT_SERVICE_IMAGE_VERSION}"; \
 	 for m in $(MODS); do \
 	    case $$m in \
 	      "tools/emcoctl") continue;; \
@@ -112,7 +120,7 @@ build-containers:
 
 deploy: check-env deploy-compile build-containers
 	@echo "Creating helm charts. Pushing microservices to registry & copying docker-compose files if BUILD_CAUSE set to DEV_TEST"
-	@docker run --env USER=${USER} --env EMCODOCKERREPO=${EMCODOCKERREPO} --env MAINDOCKERREPO=${MAINDOCKERREPO} --env BUILD_CAUSE=${BUILD_CAUSE} --env BRANCH=${BRANCH} --env TAG=${TAG} --env EMCOSRV_RELEASE_TAG=${EMCOSRV_RELEASE_TAG} --rm --user `id -u`:`id -g` --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache -v `pwd`:/repo ${EMCODOCKERREPO}${BUILD_BASE_IMAGE_NAME}:${BUILD_BASE_IMAGE_VERSION} /bin/sh -c "cd /repo/scripts ; sh deploy_emco.sh"
+	@docker run --env USER=${USER} --env BASEDOCKERREPO=${BASEDOCKERREPO} --env EMCODOCKERREPO=${EMCODOCKERREPO} --env MAINDOCKERREPO=${MAINDOCKERREPO} --env BUILD_CAUSE=${BUILD_CAUSE} --env BRANCH=${BRANCH} --env TAG=${TAG} --env EMCOSRV_RELEASE_TAG=${EMCOSRV_RELEASE_TAG} --rm --user `id -u`:`id -g` --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache -v `pwd`:/repo ${BASEDOCKERREPO}${BUILD_BASE_IMAGE_NAME}:${BUILD_BASE_IMAGE_VERSION} /bin/sh -c "cd /repo/scripts ; bash deploy_emco.sh"
 	@MODS=`echo ${MODS} | sed 's/ovnaction/ovn/;s/genericactioncontroller/gac/;s/orchestrator/orch/;'` ./scripts/push_to_registry.sh
 	@echo "    Done."
 
@@ -132,7 +140,7 @@ test:
 	if [ ! -z "$$TESTFAILED" -a "$$TESTFAILED" != " " ]; then \
 	    echo "One or more test case(s) of $$TESTFAILED failed"; \
 	    exit 1; \
-	fi 
+	fi
 
 tidy:
 	@echo "Cleaning up dependencies"
@@ -143,15 +151,12 @@ tidy:
 
 build-base:
 	@echo "Building emco-build-base image and pushing to registry"
-	./scripts/build-base-images.sh
+	export BASEDOCKERREPO=${EMCODOCKERREPO} && ./scripts/build-base-images.sh
 
 develop-compile: check-env
 	@echo "Building microservices for development within Docker build container with GOPATH set"
-	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo golang:${GO_VERSION} /bin/sh -c "cd /repo; make compile"
+	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo ${BASEDOCKERREPO}${BUILD_BASE_IMAGE_NAME}:${BUILD_BASE_IMAGE_VERSION} /bin/sh -c "cd /repo; make compile"
 	@echo "    Done."
 
 develop: develop-compile build-containers
-	@MODS=`echo ${MODS} | sed 's/ovnaction/ovn/;s/genericactioncontroller/gac/;s/orchestrator/orch/;'` ./scripts/push_to_registry.sh
-
-rsync-develop: build-containers
 	@MODS=`echo ${MODS} | sed 's/ovnaction/ovn/;s/genericactioncontroller/gac/;s/orchestrator/orch/;'` ./scripts/push_to_registry.sh

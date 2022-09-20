@@ -80,6 +80,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-git-monitor
                   key: gitbranch
+            - name: GIT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-git-monitor
+                  key: giturl
               {{- end }}
       volumes:
       - name: config-volume

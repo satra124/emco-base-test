@@ -11,7 +11,7 @@ For testing an application (collectd) deployed on 2 clusters - a Flux v2 based c
 
     - For direct-access clusters, export `KUBE_PATH1`
 
-    - For Flux v2 based clusters export variables `GITHUB_USER`, `GITHUB_TOKEN` and `GITHUB_REPO`
+    - For Flux v2 based clusters export variables `GIT_USER`, `GIT_TOKEN` and `GIT_REPO`
 
     - `HOST_IP`: IP address of the cluster where EMCO is installed
 
@@ -20,9 +20,9 @@ For testing an application (collectd) deployed on 2 clusters - a Flux v2 based c
     Example variables for GitHub repository https://github.com/myusername/emcoflux:
 
     ```
-    export GITHUB_OWNER=myusername
-    export GITHUB_REPO=emco
-    export GITHUB_TOKEN=<token previously obtained from GitHub API>
+    export GIT_OWNER=myusername
+    export GIT_REPO=emco
+    export GIT_TOKEN=<token previously obtained from GitHub API>
     ```
 
 2. Setup script:
@@ -43,13 +43,13 @@ For testing an application (collectd) deployed on 2 clusters - a Flux v2 based c
     Install flux using the fluxctl instructions. (https://fluxcd.io/docs/installation/#github-and-github-enterprise). Provide the name of the cluster to be of the format providername+clustername format. In the following example the provider name registered with EMCO is provider1flux and the cluster name registerd with EMCO is cluster2.
 
     ```
-    $ flux bootstrap github --owner=$GITHUB_USER --repository=$GITHUB_REPO --branch=main --path=./clusters/provider1flux+cluster2 --personal
+    $ flux bootstrap github --owner=$GIT_USER --repository=$GIT_REPO --branch=main --path=./clusters/provider1flux+cluster2 --personal
     ```
 
     On the edge cluster that supports Flux v2 install monitor like the example below. Note the name of the cluster. That name should match the name provided above.
 
     ```
-    emco-base/deployments/helm/monitor$ helm  install --kubeconfig $KUBE_PATH  --set git.token=$GITHUB_TOKEN --set git.repo=$GITHUB_REPO --set git.username=$GITHUB_USER --set git.clustername="provider1flux+cluster2" --set git.enabled=true  -n emco monitor .
+    emco-base/deployments/helm/monitor$ helm  install --kubeconfig $KUBE_PATH  --set git.token=$GIT_TOKEN --set git.repo=$GIT_REPO --set git.username=$GIT_USER --set git.clustername="provider1flux+cluster2" --set git.enabled=true  -n emco monitor .
     ```
 
 ## Create all resources and instantiate

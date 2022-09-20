@@ -122,7 +122,7 @@ func NewGitProvider(ctx context.Context, cid, app, cluster, level, namespace str
 	if strings.EqualFold(gitType, "github") {
 		p.gitInterface, err = emcogithub.NewGithub(p.Cluster, p.Url, p.Branch, p.UserName, p.RepoName, p.GitToken)
 	} else {
-		p.gitInterface = emcogit2go.NewGit2Go(p.Url, p.Branch, p.UserName, p.RepoName, p.GitToken)
+		p.gitInterface, err = emcogit2go.NewGit2Go(p.Url, p.Branch, p.UserName, p.RepoName, p.GitToken)
 	}
 
 	return &p, nil

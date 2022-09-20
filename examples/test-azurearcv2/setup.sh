@@ -16,9 +16,9 @@ deployment_folder=../../../deployments/
 
 HOST_IP=${HOST_IP:-"oops"}
 KUBE_PATH1=${KUBE_PATH1:-"oops"}
-GITHUB_USER=${GITHUB_USER:-"oops"}
-GITHUB_TOKEN=${GITHUB_TOKEN:-"oops"}
-GITHUB_REPO=${GITHUB_REPO:-"oops"}
+GIT_USER=${GIT_USER:-"oops"}
+GIT_TOKEN=${GIT_TOKEN:-"oops"}
+GIT_REPO=${GIT_REPO:-"oops"}
 OUTPUT_DIR=output
 CLIENT_ID=${CLIENT_ID:-"oops"}
 TENANT_ID=${TENANT_ID:-"oops"}
@@ -26,7 +26,9 @@ CLIENT_SECRET=${CLIENT_SECRET:-"oops"}
 SUB_ID=${SUB_ID:-"oops"}
 ARC_CLUSTER=${ARC_CLUSTER:-"oops"}
 ARC_RG=${ARC_RG:-"oops"}
+GIT_TYPE=${GIT_TYPE:-"oops"}
 GIT_BRANCH=${GIT_BRANCH:-"oops"}
+GIT_URL=${GIT_URL:-"oops"}
 TIME_OUT=${TIME_OUT:-"60"}
 SYNC_INTERVAL=${SYNC_INTERVAL:-"60"}
 RETRY_INTERVAL=${RETRY_INTERVAL:-"60"}
@@ -59,10 +61,12 @@ function create_common_values {
     APP2: collectd
     APP3: operator
     GitObj: GitObjectFluxRepo
-    GithubUser: $GITHUB_USER
-    GithubToken: $GITHUB_TOKEN
-    GithubRepo: $GITHUB_REPO
-    Branch: $GIT_BRANCH
+    GitUser: $GIT_USER
+    GitToken: $GIT_TOKEN
+    GitRepo: $GIT_REPO
+    GitUrl: $GIT_URL
+    GitType: $GIT_TYPE
+    GitBranch: $GIT_BRANCH
     GitResObj: GitObjectAzure
     ClientID: $CLIENT_ID
     TenantID: $TENANT_ID
@@ -113,16 +117,16 @@ case "$1" in
             echo -e "ERROR - KUBE_PATH1 must be defined"
             exit
         fi
-        if [ "${GITHUB_TOKEN}" == "oops"  ] ; then
-            echo -e "ERROR - GITHUB_TOKEN must be defined"
+        if [ "${GIT_TOKEN}" == "oops"  ] ; then
+            echo -e "ERROR - GIT_TOKEN must be defined"
             exit
         fi
-        if [ "${GITHUB_REPO}" == "oops"  ] ; then
-            echo -e "ERROR - GITHUB_REPO must be defined"
+        if [ "${GIT_REPO}" == "oops"  ] ; then
+            echo -e "ERROR - GIT_REPO must be defined"
             exit
         fi
-        if [ "${GITHUB_USER}" == "oops" ] ; then
-            echo -e "GITHUB_USER must be defined"
+        if [ "${GIT_USER}" == "oops" ] ; then
+            echo -e "GIT_USER must be defined"
         else
             create_common_values $OUTPUT_DIR $HOST_IP
             echo "Done create!!!"

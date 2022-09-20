@@ -18,7 +18,6 @@ import (
 	gitUtils "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
-	//	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
 )
 
 type Git2go struct {
@@ -54,7 +53,7 @@ func NewGit2Go(url, branch, user, repo, token string) (*Git2go, error) {
 			return nil, err
 		}
 		// // clone the repo
-		repo, err = git.Clone(url, folderName, &git.CloneOptions{CheckoutBranch: branch, CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
+		_, err = git.Clone(url, folderName, &git.CloneOptions{CheckoutBranch: branch, CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
 		if err != nil {
 			log.Error("Error cloning the repo", log.Fields{"Error": err})
 			return nil, err
@@ -214,7 +213,7 @@ func (p *Git2go) CommitFiles(app, message string, files interface{}) error {
 	}
 
 	//push branch to origin remote
-	err = p.PushBranch(repo)
+	err = p.PushBranch(repo, branchName)
 	if err != nil {
 		return err
 	}
@@ -223,10 +222,9 @@ func (p *Git2go) CommitFiles(app, message string, files interface{}) error {
 }
 
 // function to push branch to remote origin
-func (p *Git2go) PushBranch(repo *git.Repository) error {
+func (p *Git2go) PushBranch(repo *git.Repository, branchName string) error {
 	// push the branch to origin
 
-	branchName := p.Branch
 	userName := p.UserName
 	token := p.GitToken
 
@@ -696,7 +694,7 @@ func PushDeleteBranch(repo *git.Repository, branchName, userName, token string) 
 	return nil
 }
 
-//function to merge branch to main (Should include a commit as well)
+//function to merge branch to main
 func mergeToMain(repo *git.Repository, branchName string, signature *git.Signature) error {
 	// get reference for the target merge branch
 	mergeBranch, err := repo.References.Lookup("refs/heads/" + branchName)
@@ -897,7 +895,7 @@ func (p *Git2go) DeleteClusterStatusCR(cid, app, cluster string) error {
 }
 
 // function to commit files to a branch
-func (p *Git2go) CommitFilesToBranch(commitMessage, branchName string, files interface{}) error {
+func (p *Git2go) CommitStatus(commitMessage, branchName, cid, app string, files interface{}) error {
 
 	userName := p.UserName
 	folderName := p.FolderName
@@ -998,7 +996,7 @@ func (p *Git2go) CommitFilesToBranch(commitMessage, branchName string, files int
 		log.Error("Error in creating a commit", log.Fields{"err": err, "branchName": branchName})
 		return err
 	}
-	err = p.PushBranch(repo)
+	err = p.PushBranch(repo, branchName)
 
 	return nil
 }

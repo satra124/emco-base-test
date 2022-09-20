@@ -132,7 +132,6 @@ func CreateRepo(ctx context.Context, c interface{}, repoName string, userName st
 	params : context, github client, User Name, Repo Name, BranchName, Commit Message, files ([]gitprovider.CommitFile)
 	return : nil/error
 */
-//func (p *Github)CommitFiles(ctx context.Context, c interface{}, userName, repoName, branch, commitMessage, appName string, files []gitprovider.CommitFile) error {
 func (p *Github) CommitFiles(app, commitMessage string, files interface{}) error {
 
 	// obtain client
@@ -285,7 +284,7 @@ func (p *Github) AddToCommit(path, content string, ref interface{}) interface{} 
 	params : path, files (gitprovider commitfile array)
 	return : files (gitprovider commitfile array)
 */
-func (p *Github) DeleteToCommit(path, ref interface{}) interface{} {
+func (p *Github) DeleteToCommit(path string, ref interface{}) interface{} {
 	files := append(convertToCommitFile(ref), gitprovider.CommitFile{
 		Path:    &path,
 		Content: nil,
@@ -558,11 +557,11 @@ func (p *Github) DeleteClusterStatusCR(cid, app, cluster string) error {
 	params : context, Branch Name, Commit Message, appName, files ([]gitprovider.CommitFile)
 	return : nil/error
 */
-func (p *Github) CommitFilesToBranch(commitMessage, branchName string, files interface{}) error {
+func (p *Github) CommitStatus(commitMessage, branchName, cid, app string, files interface{}) error {
 
 	// obtain client
 	client := convertToClient(p.Client)
-	mergeBranch := branchName
+	mergeBranch := branchName + "-" + cid + "-" + app
 	ctx := context.Background()
 
 	// commit the files to this new branch

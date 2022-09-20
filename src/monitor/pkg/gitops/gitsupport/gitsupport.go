@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	pkgerrors "github.com/pkg/errors"
+
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 
 	//emcogit "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit"
@@ -28,10 +29,10 @@ type GitProvider struct {
 
 type GitInterfaceProvider interface {
 	AddToCommit(fileName, content string, ref interface{}) interface{}
-	DeleteToCommit(fileName, ref interface{}) interface{}
+	DeleteToCommit(fileName string, ref interface{}) interface{}
 	CommitFiles(app, message string, files interface{}) error
 	ClusterWatcher(cid, app, cluster string, waitTime int) error
-	CommitFilesToBranch(commitMessage, branchName string, files interface{}) error
+	CommitStatus(commitMessage, branchName, cid, app string, files interface{}) error
 }
 
 /*
@@ -51,10 +52,11 @@ func NewGitProvider() (*GitProvider, error) {
 
 	// If any value is not provided then can't store in Git location
 	if len(gitRepo) <= 0 || len(gitToken) <= 0 || len(gitUser) <= 0 || len(clusterName) <= 0 || len(gitUrl) <= 0 {
-		log.Info("Github information not found:: Skipping Github storage", log.Fields{})
+		log.Info("Git information not found:: Skipping Git storage", log.Fields{})
 		return nil, pkgerrors.Errorf("Missing Information for Git")
 	}
-	log.Info("GitHub Info found", log.Fields{"gitRepo::": gitRepo, "cluster::": clusterName})
+
+	log.Info("Git Info found", log.Fields{"gitRepo::": gitRepo, "cluster::": clusterName})
 
 	p := GitProvider{
 		GitUser:   gitUser,
@@ -66,10 +68,19 @@ func NewGitProvider() (*GitProvider, error) {
 		Url:       gitUrl,
 	}
 
+	var err error
 	if strings.EqualFold(gitType, "github") {
-		p.gitInterface, _ = emcogithub.NewGithub(p.Cluster, p.Url, p.GitBranch, p.GitUser, p.GitRepo, p.GitToken)
+		p.gitInterface, err = emcogithub.NewGithub(p.Cluster, p.Url, p.GitBranch, p.GitUser, p.GitRepo, p.GitToken)
+		if err != nil {
+			log.Error("Error in creating a github client", log.Fields{"err": err})
+			return nil, err
+		}
 	} else {
-		p.gitInterface = emcogit2go.NewGit2Go(p.Url, p.GitBranch, p.GitUser, p.GitRepo, p.GitToken)
+		p.gitInterface, err = emcogit2go.NewGit2Go(p.Url, p.GitBranch, p.GitUser, p.GitRepo, p.GitToken)
+		if err != nil {
+			log.Error("Error in creating a emcogit2go client", log.Fields{"err": err})
+			return nil, err
+		}
 	}
 
 	return &p, nil
@@ -114,9 +125,9 @@ func (p *GitProvider) Get(name string, gvkRes []byte) ([]byte, error) {
 	params : ctx context.Context, ref interface{}
 	return : error
 */
-func (p *GitProvider) CommitFilesToBranch(commitMessage, branchName string, files interface{}) error {
+func (p *GitProvider) CommitStatus(commitMessage, branchName, cid, app string, files interface{}) error {
 
-	err := p.gitInterface.CommitFilesToBranch(commitMessage, branchName, files)
+	err := p.gitInterface.CommitStatus(commitMessage, branchName, cid, app, files)
 	return err
 }
 

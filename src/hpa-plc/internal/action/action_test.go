@@ -19,7 +19,7 @@ import (
 	hpaMod "gitlab.com/project-emco/core/emco-base/src/hpa-plc/pkg/module"
 	orchLog "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	orchMod "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module"
-	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/connector"
+	connector "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/utils"
 )
 
 type contextForCompositeApp struct {

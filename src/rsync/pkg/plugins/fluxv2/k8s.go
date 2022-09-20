@@ -108,7 +108,6 @@ func NewFluxv2Provider(ctx context.Context, cid, app, cluster, level, namespace 
 		syncInterval:  syncInterval,
 		retryInterval: retryInterval,
 	}
-
 	return &p, nil
 }
 

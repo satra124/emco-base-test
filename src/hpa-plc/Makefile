@@ -5,8 +5,8 @@ export GO111MODULE=on
 
 all: clean
 	@echo -e "\nBuilding HPA Placement Controller .."
-	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-	go build -tags static,system_libgit2,netgo -o ../../bin/hpa-plc/hpa-plc ./cmd/main.go
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+	go build -tags netgo -o ../../bin/hpa-plc/hpa-plc ./cmd/main.go
 
 # The following is done this way as each patch on CI runs build and each merge runs deploy. So for build we don't need to build binary and hence
 # no need to create a static binary with additional flags. However, for generating binary, additional build flags are necessary. This if used with

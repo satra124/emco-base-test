@@ -8,7 +8,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc/contextupdate"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
-	con "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/context"
+	con "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/utils"
 	"gitlab.com/project-emco/core/emco-base/src/tac/pkg/module"
 	eta "gitlab.com/project-emco/core/emco-base/src/workflowmgr/pkg/emcotemporalapi"
 

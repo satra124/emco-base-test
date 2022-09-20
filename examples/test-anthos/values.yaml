@@ -18,9 +18,9 @@
     APP2: collectd
     APP3: operator
     GitObj: GitObject
-    GithubUser: REPLACE_WITH_GITHUB_USER
-    GithubToken: REPLACE_WITH_GITHUB_ACCESS_TOKEN
-    GithubRepo: REPLACE_WITH_GITHUB_REPO_NAME
+    GitUser: REPLACE_WITH_GIT_USER
+    GitToken: REPLACE_WITH_GIT_ACCESS_TOKEN
+    GitRepo: REPLACE_WITH_GIT_REPO_NAME
     Branch: REPLACE_WITH_GIT_BRANCH_NAME
 
     Clusters:

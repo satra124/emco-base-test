@@ -16,9 +16,9 @@ deployment_folder=../../../deployments/
 
 HOST_IP=${HOST_IP:-"oops"}
 KUBE_PATH1=${KUBE_PATH1:-"oops"}
-GITHUB_USER=${GITHUB_USER:-"oops"}
-GITHUB_TOKEN=${GITHUB_TOKEN:-"oops"}
-GITHUB_REPO=${GITHUB_REPO:-"oops"}
+GIT_USER=${GIT_USER:-"oops"}
+GIT_TOKEN=${GIT_TOKEN:-"oops"}
+GIT_REPO=${GIT_REPO:-"oops"}
 OUTPUT_DIR=output
 DELAY=${DELAY:-"oops"}
 GIT_BRANCH=${GIT_BRANCH:-"oops"}
@@ -51,9 +51,9 @@ function create_common_values {
     APP2: collectd
     APP3: operator
     GitObj: GitObject
-    GithubUser: $GITHUB_USER
-    GithubToken: $GITHUB_TOKEN
-    GithubRepo: $GITHUB_REPO
+    GitUser: $GIT_USER
+    GitToken: $GIT_TOKEN
+    GitRepo: $GIT_REPO
     Branch: $GIT_BRANCH
     GitResObj: GitResObject
     ConfigDeleteDelay: $DELAY
@@ -87,16 +87,16 @@ case "$1" in
             echo -e "ERROR - Environment variable HOST_IP must be set"
             exit
         fi
-        if [ "${GITHUB_TOKEN}" == "oops"  ] ; then
-            echo -e "ERROR - GITHUB_TOKEN must be defined"
+        if [ "${GIT_TOKEN}" == "oops"  ] ; then
+            echo -e "ERROR - GIT_TOKEN must be defined"
             exit
         fi
-        if [ "${GITHUB_REPO}" == "oops"  ] ; then
-            echo -e "ERROR - GITHUB_REPO must be defined"
+        if [ "${GITB_REPO}" == "oops"  ] ; then
+            echo -e "ERROR - GIT_REPO must be defined"
             exit
         fi
-        if [ "${GITHUB_USER}" == "oops" ] ; then
-            echo -e "GITHUB_USER must be defined"
+        if [ "${GIT_USER}" == "oops" ] ; then
+            echo -e "GIT_USER must be defined"
         else
             create_common_values $OUTPUT_DIR $HOST_IP
             echo "Done create!!!"

@@ -102,9 +102,9 @@ metadata:
 spec:
   kv:
   - gitType: {{ $.GitType }}
-  - userName: {{ $.GithubUser }}
-  - gitToken:  {{ $.GithubToken }}
-  - repoName: {{ $.GithubRepo }}
+  - userName: {{ $.GitUser }}
+  - gitToken:  {{ $.GitToken }}
+  - repoName: {{ $.GitRepo }}
   - branch: {{ $.GitBranch }}
   - url: {{ $.GitUrl }}
 
