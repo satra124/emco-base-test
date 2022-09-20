@@ -119,12 +119,12 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 	}
 
 	// Commit
-	appName := p.gitProvider.Cid + "-" + p.gitProvider.App + "-config"
+	// appName := p.gitProvider.Cid + "-" + p.gitProvider.App + "-config"
 	// err = emcogit.CommitFiles(ctx, p.gitProvider.Client, p.gitProvider.UserName, p.gitProvider.RepoName, p.gitProvider.Branch, "Commit for "+p.gitProvider.GetPath("context"), appName, gp, p.gitProvider.GitType)
 	// commit file to the new branch
 	// // // open the git repo
 	if len(files) != 0 {
-		err = emcogit2go.CommitFiles(p.gitProvider.Url, "Commit for "+p.gitProvider.GetPath("context"), appName, folderName, p.gitProvider.UserName, p.gitProvider.GitToken, files)
+		err = emcogit2go.CommitFiles(p.gitProvider.Url, "Commit for "+p.gitProvider.GetPath("context"), p.gitProvider.Branch, folderName, p.gitProvider.UserName, p.gitProvider.GitToken, files)
 		if err != nil {
 			log.Error("ApplyConfig:: Commit files err", log.Fields{"err": err, "files": files})
 		}
@@ -144,9 +144,9 @@ func (p *Fluxv2Provider) DeleteConfig(ctx context.Context, config interface{}) e
 
 	path = "clusters/" + p.gitProvider.Cluster + "/" + "kust" + p.gitProvider.Cid + ".yaml"
 	files = emcogit2go.Delete(folderName+"/"+path, path, files)
-	appName := p.gitProvider.Cid + "-" + p.gitProvider.App + "-config"
+	// appName := p.gitProvider.Cid + "-" + p.gitProvider.App + "-config"
 	// err := emcogit.CommitFiles(ctx, p.gitProvider.Client, p.gitProvider.UserName, p.gitProvider.RepoName, p.gitProvider.Branch, "Commit for "+p.gitProvider.GetPath("context"), appName, gp, p.gitProvider.GitType)
-	err := emcogit2go.CommitFiles(p.gitProvider.Url, "Commit for "+p.gitProvider.GetPath("context"), appName, folderName, p.gitProvider.UserName, p.gitProvider.GitToken, files)
+	err := emcogit2go.CommitFiles(p.gitProvider.Url, "Commit for "+p.gitProvider.GetPath("context"), p.gitProvider.Branch, folderName, p.gitProvider.UserName, p.gitProvider.GitToken, files)
 	if err != nil {
 		log.Error("DeleteConfig:: Commit files err", log.Fields{"err": err, "files": files})
 	}

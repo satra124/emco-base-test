@@ -70,6 +70,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-git-monitor
                   key: clustername
+            - name: GIT_TYPE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-git-monitor
+                  key: gittype
               {{- end }}
       volumes:
       - name: config-volume

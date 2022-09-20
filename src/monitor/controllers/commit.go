@@ -34,13 +34,6 @@ func getCredCallBack(userName, token string) func(url string, username string, a
 	}
 }
 
-// func credentialsCallback(url string, username string, allowedTypes git.CredType) (*git.Credential, error) {
-// 	username = "chitti-intel"
-// 	password := "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"
-// 	cred, err := git.NewCredUserpassPlaintext(username, password)
-// 	return cred, err
-// }
-
 // CommitFile contains high-level information about a file added to a commit.
 type CommitFile struct {
 	// Path is path where this file is located.
@@ -293,12 +286,6 @@ func createBranch(ctx context.Context, c GitClient, latestCommitSHA, userName, r
 	return nil
 }
 
-// new commit files
-// 1) check if the repo exits in tmp, if not clone again
-// 2) switch to the branch in the repo (Should we create a local branch for it? check)
-// 3) write files and push the branch
-// 4) What happens if a new branch comes in to the picture? as in a new app is created
-
 //function to delete a file
 func deleteFile(filenName string) error {
 	// Removing file from the directory
@@ -357,7 +344,7 @@ func commitFiles(url, token, userName, commitMessage, appName, folderName, branc
 		// // clone the repo
 		log.Info("URL", log.Fields{"URL": url})
 		fmt.Println("URL %s", url)
-		repo, err := git.Clone("https://github.com/chitti-intel/test-flux-v3", folderName, &git.CloneOptions{CheckoutBranch: branch, CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
+		repo, err := git.Clone(url, folderName, &git.CloneOptions{CheckoutBranch: branch, CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
 		if err != nil {
 			log.Error("Error cloning the repo", log.Fields{"Error": err})
 			return err
@@ -373,8 +360,8 @@ func commitFiles(url, token, userName, commitMessage, appName, folderName, branc
 	}
 
 	signature := &git.Signature{
-		Name:  "Adarsh Vincent",
-		Email: "a.v@gmail.com",
+		Name:  userName,
+		Email: userName + "@gmail.com",
 		When:  time.Now(),
 	}
 
@@ -476,7 +463,7 @@ func pushBranch(repo *git.Repository, branchName, userName, token string) error 
 		CredentialsCallback: getCredCallBack(userName, token),
 	}
 
-	err = remote.Push([]string{"refs/heads/" + branchName}, &git.PushOptions{RemoteCallbacks: *cbs})
+	err = remote.Push([]string{"+refs/heads/" + branchName}, &git.PushOptions{RemoteCallbacks: *cbs})
 	if err != nil {
 		log.Error("Error in Pushing the branch", log.Fields{"err": err, "branchName": branchName})
 		return err
@@ -486,22 +473,22 @@ func pushBranch(repo *git.Repository, branchName, userName, token string) error 
 }
 
 // function to push branch to remote origin
-// func pushDeleteBranch(repo *git.Repository, branchName string) error {
-// 	// push the branch to origin
-// 	remote, err := repo.Remotes.Lookup("origin")
+func pushDeleteBranch(repo *git.Repository, branchName, userName, token string) error {
+	// push the branch to origin
+	remote, err := repo.Remotes.Lookup("origin")
 
-// 	cbs := &git.RemoteCallbacks{
-// 		CredentialsCallback: credentialsCallback,
-// 	}
+	cbs := &git.RemoteCallbacks{
+		CredentialsCallback: getCredCallBack(userName, token),
+	}
 
-// 	err = remote.Push([]string{":refs/heads/" + branchName}, &git.PushOptions{RemoteCallbacks: *cbs})
-// 	if err != nil {
-// 		log.Error("Error in Pushing the branch", log.Fields{"err": err, "branchName": branchName})
-// 		return err
-// 	}
+	err = remote.Push([]string{":refs/heads/" + branchName}, &git.PushOptions{RemoteCallbacks: *cbs})
+	if err != nil {
+		log.Error("Error in Pushing the branch", log.Fields{"err": err, "branchName": branchName})
+		return err
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
 //function to merge branch to main (Should include a commit as well)
 func mergeToMain(repo *git.Repository, branchName string, signature *git.Signature) error {
@@ -726,4 +713,49 @@ func CreateBranch(folderName, branchName string) (*git.Branch, error) {
 	}
 
 	return branch, nil
+}
+
+//function to delete status folder for git
+func (c *GithubAccessClient) DeleteStatusFromGit(appName string) error {
+
+	s := strings.SplitN(appName, "-", 2)
+	cid := s[0]
+	app := s[1]
+	path := "clusters/" + c.cluster + "/status/" + cid + "/app/" + app + "/" + appName
+	folderName := "/tmp/" + c.gitUser + "-" + c.gitRepo + "-" + c.cluster
+	statusBranchName := c.cluster
+
+	//get files to be deleted
+	// files, err := getFilesToDelete(folderName, path)
+	// if err != nil {
+	// 	log.Error("Error in obtaining files to be deleted", log.Fields{"folderName": folderName, "path": path})
+	// }
+
+	files := delete(folderName+"/"+path, path, []CommitFile{})
+
+	err := commitFiles(c.url, c.gitToken, c.gitUser, "Deleting status for "+appName, statusBranchName, folderName, "main", files)
+
+	return err
+}
+
+//function to delete all files in a path
+func getFilesToDelete(folderName, filePath string) ([]CommitFile, error) {
+	var files []CommitFile
+	path := folderName + "/" + filePath
+	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		file, err := os.Open(path)
+		fileInfo, err := file.Stat()
+		if err != nil {
+			return err
+		}
+
+		//Add only if the path is not a directory
+		if !fileInfo.IsDir() {
+			s := strings.TrimPrefix(path, folderName+"/")
+			files = delete(path, s, files)
+		}
+		return nil
+	})
+
+	return files, err
 }

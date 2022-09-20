@@ -109,25 +109,6 @@ func NewFluxv2Provider(ctx context.Context, cid, app, cluster, level, namespace 
 		retryInterval: retryInterval,
 	}
 
-	// // clone git the repo to local repo (for now combination of cluster + cid)
-	// folderName := "/tmp/" + cluster + "-" + cid
-
-	// check, err := emcogit2go.Exists(folderName)
-
-	// if !check {
-	// 	if err := os.Mkdir(folderName, os.ModePerm); err != nil {
-	// 		log.Error("Error in creating the dir", log.Fields{"Error": err})
-	// 		return nil, err
-	// 	}
-	// 	// // clone the repo
-	// 	repo, err := git.Clone("https://github.com/chitti-intel/test-flux-v3", folderName, &git.CloneOptions{CheckoutBranch: "main", CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
-	// 	if err != nil {
-	// 		log.Error("Error cloning the repo", log.Fields{"Error": err})
-	// 		return nil, err
-	// 	}
-	// 	fmt.Println(repo)
-	// }
-
 	return &p, nil
 }
 

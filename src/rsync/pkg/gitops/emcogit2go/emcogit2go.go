@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -83,15 +84,14 @@ func createFile(fileName string, content string) error {
 }
 
 // function to commit files to a branch
-func CommitFiles(url, message, appName, folderName, userName, token string, files []CommitFile) error {
+func CommitFiles(url, message, branchName, folderName, userName, token string, files []CommitFile) error {
 
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	var repo *git.Repository
-	// // // open a repo
-	//clone the repo
-	// clone git the repo to local repo
+
+	//check if git repo exists, if not clone
 	check, err := Exists(folderName)
 
 	if !check {
@@ -100,7 +100,7 @@ func CommitFiles(url, message, appName, folderName, userName, token string, file
 			return err
 		}
 		// // clone the repo
-		repo, err = git.Clone(url, folderName, &git.CloneOptions{CheckoutBranch: "main", CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
+		repo, err = git.Clone(url, folderName, &git.CloneOptions{CheckoutBranch: branchName, CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
 		if err != nil {
 			log.Error("Error cloning the repo", log.Fields{"Error": err})
 			return err
@@ -109,61 +109,28 @@ func CommitFiles(url, message, appName, folderName, userName, token string, file
 	}
 	repo, err = git.OpenRepository(folderName)
 	if err != nil {
-		log.Error("Error in Opening the git repository", log.Fields{"err": err, "appName": appName})
+		log.Error("Error in Opening the git repository", log.Fields{"err": err, "branchName": branchName})
 		return err
 	}
 
 	signature := &git.Signature{
-		Name:  "Adarsh Vincent",
-		Email: "a.v@gmail.com",
+		Name:  userName,
+		Email: userName + "@gmail.com",
 		When:  time.Now(),
 	}
-	// //create a new branch from main
-	// ra := rand.New(rand.NewSource(time.Now().UnixNano()))
-	// rn := ra.Int63n(maxrand)
-	// id := fmt.Sprintf("%v", rn)
 
-	// branchName := appName + "-" + id
-
-	// create the new branch (May cause problems, try to get the headCommit of main)
-	//checkout the new branch
-	// set head to point to the created branch
-	err = repo.SetHead("refs/heads/" + "main")
+	// set head to point to the branch
+	err = repo.SetHead("refs/heads/" + branchName)
 	if err != nil {
-		log.Error("Error in settting the head", log.Fields{"err": err, "branchName": "main"})
+		log.Error("Error in settting the head", log.Fields{"err": err, "branchName": branchName})
 		return err
 	}
 
-	branch, err := repo.References.Lookup("refs/heads/" + "main")
+	branch, err := repo.References.Lookup("refs/heads/" + branchName)
 	if err != nil {
 		log.Info("Error in looking up ref", log.Fields{"err": err})
 		return err
 	}
-
-	// head, err := repo.Head()
-	// if err != nil {
-	// 	log.Error("Error in obtaining the head of the repo", log.Fields{"err": err})
-	// 	return err
-	// }
-
-	// headCommit, err := repo.LookupCommit(head.Target())
-	// if err != nil {
-	// 	log.Error("Error in obtainging the head commit", log.Fields{"err": err, "headCommit": headCommit})
-	// 	return err
-	// }
-	// branch, err := repo.CreateBranch(branchName, headCommit, false)
-	// if err != nil {
-	// 	log.Error("Error in Creating branch", log.Fields{"err": err, "branchName": branchName, "headCommit": headCommit, "branch": branch})
-	// 	return err
-	// }
-
-	// //checkout the new branch
-	// // set head to point to the created branch
-	// err = repo.SetHead("refs/heads/" + branchName)
-	// if err != nil {
-	// 	log.Error("Error in settting the head", log.Fields{"err": err, "branchName": branchName})
-	// 	return err
-	// }
 
 	//Update the index with files and obtain the latest index
 	//loop through all files and update the index
@@ -210,22 +177,14 @@ func CommitFiles(url, message, appName, folderName, userName, token string, file
 		return err
 	}
 
-	branchName := "main"
 	_, err = repo.CreateCommit("refs/heads/"+branchName, signature, signature, message, tree, commitTarget)
 	if err != nil {
 		log.Error("Error in creating a commit", log.Fields{"err": err, "branchName": branchName})
 		return err
 	}
 
-	// //merge branch to main
-	// err = mergeToMain(repo, branchName, signature)
-	// //set head to master
-	// err = repo.SetHead("refs/heads/main")
-	// //delete the created branch
-	// err = DeleteBranch(repo, branchName)
-	//push master to origin remote
-	err = PushBranch(repo, "main", userName, token)
-
+	//push branch to origin remote
+	err = PushBranch(repo, branchName, userName, token)
 	if err != nil {
 		return err
 	}
@@ -237,7 +196,10 @@ func CommitFiles(url, message, appName, folderName, userName, token string, file
 func PushBranch(repo *git.Repository, branchName, userName, token string) error {
 	// push the branch to origin
 	remote, err := repo.Remotes.Lookup("origin")
-
+	if err != nil {
+		log.Error("Error in obtaining remote", log.Fields{"err": err, "branchName": branchName})
+		return err
+	}
 	cbs := &git.RemoteCallbacks{
 		CredentialsCallback: getCredCallBack(userName, token),
 	}
@@ -248,74 +210,6 @@ func PushBranch(repo *git.Repository, branchName, userName, token string) error 
 		return err
 	}
 
-	return nil
-}
-
-// function to push branch to remote origin
-// func PushDeleteBranch(repo *git.Repository, branchName string) error {
-// 	// push the branch to origin
-// 	remote, err := repo.Remotes.Lookup("origin")
-
-// 	cbs := &git.RemoteCallbacks{
-// 		CredentialsCallback: getCredCallBack(userName, token),
-// 	}
-
-// 	err = remote.Push([]string{":refs/heads/" + branchName}, &git.PushOptions{RemoteCallbacks: *cbs})
-// 	if err != nil {
-// 		log.Error("Error in Pushing the branch", log.Fields{"err": err, "branchName": branchName})
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
-//function to merge branch to main (Should include a commit as well)
-func mergeToMain(repo *git.Repository, branchName string, signature *git.Signature) error {
-	// get reference for the target merge branch
-	mergeBranch, err := repo.References.Lookup("refs/heads/" + branchName)
-	if err != nil {
-		log.Error("Error in obtaining the reference for branch to merge to main", log.Fields{"err": err, "branchName": branchName})
-		return err
-	}
-
-	mergeHeadMergeBranch, err := repo.AnnotatedCommitFromRef(mergeBranch)
-	if err != nil {
-		log.Error("Error in obtaining the head of the branch to merge", log.Fields{"err": err, "mergeHeadMergeBranch": mergeHeadMergeBranch})
-		return err
-	}
-	mergeHeads := make([]*git.AnnotatedCommit, 1)
-
-	mergeHeads[0] = mergeHeadMergeBranch
-
-	err = repo.Merge(mergeHeads, nil, nil)
-	if err != nil {
-		log.Error("Error in Merging the branch", log.Fields{"err": err, "mergeHeads": mergeHeads})
-		return err
-	}
-
-	mergeMessage, err := repo.Message()
-	if err != nil {
-		return err
-	}
-
-	log.Debug("Merge Message", log.Fields{"mergeMessage": mergeMessage})
-
-	err = commitMergeToMaster(repo, signature, "Merge commit to main")
-	if err != nil {
-		log.Error("Error in commit Merge to main", log.Fields{"err": err})
-		return err
-	}
-
-	return nil
-}
-
-//function to delete branch
-func DeleteBranch(repo *git.Repository, branchName string) error {
-	branchA, err := repo.LookupBranch(branchName, git.BranchLocal)
-	err = branchA.Delete()
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -361,7 +255,6 @@ func deleteFromCommit(idx *git.Index, path, fileName string) (*git.Index, error)
 		if err != nil {
 			return nil, err
 		}
-
 		err = deleteFile(path)
 		if err != nil {
 			return nil, err
@@ -392,53 +285,6 @@ func Delete(path, fileName string, ref interface{}) []CommitFile {
 	})
 
 	return files
-}
-
-func commitMergeToMaster(repo *git.Repository, signature *git.Signature, message string) error {
-	//commit the merge to main
-	branchName := "main"
-	idx, err := repo.Index()
-	if err != nil {
-		log.Error("commitMergeToMaster: Error in obtaining the repo index", log.Fields{"err": err, "idx": idx})
-		return err
-	}
-
-	branchMain, err := repo.LookupBranch(branchName, git.BranchLocal)
-	if err != nil {
-		return err
-	}
-
-	treeId, err := idx.WriteTree()
-	if err != nil {
-		log.Error("commitMergeToMaster: Error from idx.WriteTree()", log.Fields{"err": err})
-		return err
-	}
-
-	err = idx.Write()
-	if err != nil {
-		log.Error("commitMergeToMaster: Error in Deleting file from idx.Write()", log.Fields{"err": err})
-		return err
-	}
-
-	tree, err := repo.LookupTree(treeId)
-	if err != nil {
-		log.Error("commitMergeToMaster: Error in looking up tree", log.Fields{"err": err, "treeId": treeId})
-		return err
-	}
-
-	commitTarget, err := repo.LookupCommit(branchMain.Target())
-	if err != nil {
-		log.Error("commitMergeToMaster: Error in Looking up Commit for commit", log.Fields{"err": err})
-		return err
-	}
-
-	_, err = repo.CreateCommit("refs/heads/"+branchName, signature, signature, message, tree, commitTarget)
-	if err != nil {
-		log.Error("commitMergeToMaster:Error in creating a commit", log.Fields{"err": err, "branchName": branchName})
-		return err
-	}
-
-	return nil
 }
 
 /*
@@ -503,7 +349,7 @@ func CreateBranch(folderName, branchName string) (*git.Branch, error) {
 }
 
 //function to pull branch
-func GitPull(url, folderName, branchName string) error {
+func GitPull(url, folderName, branchName, userName string) error {
 	check, err := Exists(folderName)
 
 	if !check {
@@ -608,7 +454,7 @@ func GitPull(url, folderName, branchName string) error {
 		}
 
 		// Make the merge commit
-		sig := &git.Signature{Name: "Adarsh", Email: "adarsh@cool", When: time.Now()}
+		sig := &git.Signature{Name: userName, Email: userName + "@cool", When: time.Now()}
 		if err != nil {
 			return err
 		}
@@ -804,6 +650,143 @@ func GetLatestCommit(path, branchName string) (*git.Oid, error) {
 	headCommit := head.Target()
 
 	return headCommit, nil
+}
+
+//function to delete all files in a path
+func GetFilesToDelete(folderName, filePath string) ([]CommitFile, error) {
+	var files []CommitFile
+	path := folderName + "/" + filePath
+	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		file, err := os.Open(path)
+		fileInfo, err := file.Stat()
+		if err != nil {
+			return err
+		}
+
+		//Add only if the path is not a directory
+		if !fileInfo.IsDir() {
+			s := strings.TrimPrefix(path, folderName+"/")
+			files = Delete(path, s, files)
+		}
+		return nil
+	})
+
+	return files, err
+}
+
+// function to push branch to remote origin
+func PushDeleteBranch(repo *git.Repository, branchName, userName, token string) error {
+	// push the branch to origin
+	remote, err := repo.Remotes.Lookup("origin")
+
+	cbs := &git.RemoteCallbacks{
+		CredentialsCallback: getCredCallBack(userName, token),
+	}
+
+	err = remote.Push([]string{":refs/heads/" + branchName}, &git.PushOptions{RemoteCallbacks: *cbs})
+	if err != nil {
+		log.Error("Error in Pushing the branch", log.Fields{"err": err, "branchName": branchName})
+		return err
+	}
+
+	return nil
+}
+
+//function to merge branch to main (Should include a commit as well)
+func mergeToMain(repo *git.Repository, branchName string, signature *git.Signature) error {
+	// get reference for the target merge branch
+	mergeBranch, err := repo.References.Lookup("refs/heads/" + branchName)
+	if err != nil {
+		log.Error("Error in obtaining the reference for branch to merge to main", log.Fields{"err": err, "branchName": branchName})
+		return err
+	}
+
+	mergeHeadMergeBranch, err := repo.AnnotatedCommitFromRef(mergeBranch)
+	if err != nil {
+		log.Error("Error in obtaining the head of the branch to merge", log.Fields{"err": err, "mergeHeadMergeBranch": mergeHeadMergeBranch})
+		return err
+	}
+	mergeHeads := make([]*git.AnnotatedCommit, 1)
+
+	mergeHeads[0] = mergeHeadMergeBranch
+
+	err = repo.Merge(mergeHeads, nil, nil)
+	if err != nil {
+		log.Error("Error in Merging the branch", log.Fields{"err": err, "mergeHeads": mergeHeads})
+		return err
+	}
+
+	mergeMessage, err := repo.Message()
+	if err != nil {
+		return err
+	}
+
+	log.Debug("Merge Message", log.Fields{"mergeMessage": mergeMessage})
+
+	err = commitMergeToMaster(repo, signature, "Merge commit to main")
+	if err != nil {
+		log.Error("Error in commit Merge to main", log.Fields{"err": err})
+		return err
+	}
+
+	return nil
+}
+
+//function to delete branch
+func DeleteBranch(repo *git.Repository, branchName string) error {
+	branchA, err := repo.LookupBranch(branchName, git.BranchLocal)
+	err = branchA.Delete()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func commitMergeToMaster(repo *git.Repository, signature *git.Signature, message string) error {
+	//commit the merge to main
+	branchName := "main"
+	idx, err := repo.Index()
+	if err != nil {
+		log.Error("commitMergeToMaster: Error in obtaining the repo index", log.Fields{"err": err, "idx": idx})
+		return err
+	}
+
+	branchMain, err := repo.LookupBranch(branchName, git.BranchLocal)
+	if err != nil {
+		return err
+	}
+
+	treeId, err := idx.WriteTree()
+	if err != nil {
+		log.Error("commitMergeToMaster: Error from idx.WriteTree()", log.Fields{"err": err})
+		return err
+	}
+
+	err = idx.Write()
+	if err != nil {
+		log.Error("commitMergeToMaster: Error in Deleting file from idx.Write()", log.Fields{"err": err})
+		return err
+	}
+
+	tree, err := repo.LookupTree(treeId)
+	if err != nil {
+		log.Error("commitMergeToMaster: Error in looking up tree", log.Fields{"err": err, "treeId": treeId})
+		return err
+	}
+
+	commitTarget, err := repo.LookupCommit(branchMain.Target())
+	if err != nil {
+		log.Error("commitMergeToMaster: Error in Looking up Commit for commit", log.Fields{"err": err})
+		return err
+	}
+
+	_, err = repo.CreateCommit("refs/heads/"+branchName, signature, signature, message, tree, commitTarget)
+	if err != nil {
+		log.Error("commitMergeToMaster:Error in creating a commit", log.Fields{"err": err, "branchName": branchName})
+		return err
+	}
+
+	return nil
 }
 
 // git pull using command
