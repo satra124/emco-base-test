@@ -14,7 +14,6 @@ import (
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/tracing"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
 )
 
@@ -23,13 +22,7 @@ func main() {
 
 	ctx := context.Background()
 
-	err := tracing.InitializeTracer()
-	if err != nil {
-		log.Error("Unable to initialize tracing", log.Fields{"Error": err})
-		os.Exit(1)
-	}
-
-	err = db.InitializeDatabaseConnection(ctx, "emco")
+	err := db.InitializeDatabaseConnection(ctx, "emco")
 	if err != nil {
 		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
 		os.Exit(1)
@@ -40,11 +33,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	httpRouter := api.NewRouter(nil)
-	httpRouter.Use(tracing.Middleware)
-
 	server, err := controller.NewControllerServer("clm",
-		httpRouter,
+		api.NewRouter(nil),
 		nil)
 	if err != nil {
 		log.Error("Unable to create server", log.Fields{"Error": err})

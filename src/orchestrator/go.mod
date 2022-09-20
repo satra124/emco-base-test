@@ -25,7 +25,6 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.8.0
-	github.com/soheilhy/cmux v0.1.5
 	github.com/tidwall/gjson v1.14.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/yourbasic/graph v0.0.0-20210606180040-8ecfec1c2869

@@ -22,7 +22,6 @@ import (
 	updatepb "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/updateapp"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/grpc/updateappserver"
 
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/tracing"
 	con "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/context"
 	"google.golang.org/grpc"
 )
@@ -38,13 +37,7 @@ func main() {
 
 	ctx := context.Background()
 
-	err := tracing.InitializeTracer()
-	if err != nil {
-		log.Error("Unable to initialize tracing", log.Fields{"Error": err})
-		os.Exit(1)
-	}
-
-	err = db.InitializeDatabaseConnection(ctx, "emco")
+	err := db.InitializeDatabaseConnection(ctx, "emco")
 	if err != nil {
 		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
 		os.Exit(1)

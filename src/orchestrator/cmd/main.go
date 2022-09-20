@@ -16,7 +16,6 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/tracing"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/statusnotify"
 )
@@ -26,13 +25,7 @@ func main() {
 
 	ctx := context.Background()
 
-	err := tracing.InitializeTracer()
-	if err != nil {
-		log.Error("Unable to initialize tracing", log.Fields{"Error": err})
-		os.Exit(1)
-	}
-
-	err = db.InitializeDatabaseConnection(ctx, "emco")
+	err := db.InitializeDatabaseConnection(ctx, "emco")
 	if err != nil {
 		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
 		os.Exit(1)
@@ -43,9 +36,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	httpRouter := api.NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
-	httpRouter.Use(tracing.Middleware)
-
 	grpcServer, err := register.NewGrpcServer("orchestrator", "ORCHESTRATOR_NAME", 9016,
 		register.RegisterStatusNotifyService, statusnotify.StartStatusNotifyServer())
 	if err != nil {
@@ -54,7 +44,7 @@ func main() {
 	}
 
 	server, err := controller.NewControllerServer("orchestrator",
-		httpRouter,
+		api.NewRouter(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil),
 		grpcServer)
 	if err != nil {
 		log.Error("Unable to create server", log.Fields{"Error": err})

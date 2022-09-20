@@ -24,6 +24,7 @@ import (
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/metrics"
 	rpc "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/rpc"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/tracing"
 	mtypes "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
 )
 
@@ -216,6 +217,11 @@ func NewControllerServer(name string, httpRouter *mux.Router, grpcServer *regist
 		return nil, errors.New("NewControllerServer: must provide non-nil httpRouter or grpcServer")
 	}
 
+	err := tracing.InitializeTracer()
+	if err != nil {
+		return nil, errors.New("Unable to initialize tracing")
+	}
+
 	prometheus.MustRegister(metrics.NewBuildInfoCollector(name))
 
 	httpServerPort := config.GetConfiguration().ServicePort
@@ -225,6 +231,7 @@ func NewControllerServer(name string, httpRouter *mux.Router, grpcServer *regist
 	if httpRouter == nil {
 		httpRouter = mux.NewRouter()
 	}
+	httpRouter.Use(tracing.Middleware)
 	httpServer, err := newHttpServer(httpServerPort, httpRouter)
 	if err != nil {
 		log.Error("Unable to create HTTP server", log.Fields{"Error": err})
