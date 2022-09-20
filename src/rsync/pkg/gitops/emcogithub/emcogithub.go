@@ -36,13 +36,11 @@ type Github struct {
 	UserName string
 	RepoName string
 	GitToken string
-	Cid      string
-	App      string
 	Cluster  string
 	Client   interface{}
 }
 
-func NewGithub(cid, app, cluster, url, branch, user, repo, token string) (*Github, error) {
+func NewGithub(cluster, url, branch, user, repo, token string) (*Github, error) {
 
 	g := Github{
 		Url:      url,
@@ -50,8 +48,6 @@ func NewGithub(cid, app, cluster, url, branch, user, repo, token string) (*Githu
 		UserName: user,
 		RepoName: repo,
 		GitToken: token,
-		Cid:      cid,
-		App:      app,
 		Cluster:  cluster,
 	}
 	client, err := CreateClient(user, token)
@@ -137,7 +133,7 @@ func CreateRepo(ctx context.Context, c interface{}, repoName string, userName st
 	return : nil/error
 */
 //func (p *Github)CommitFiles(ctx context.Context, c interface{}, userName, repoName, branch, commitMessage, appName string, files []gitprovider.CommitFile) error {
-func (p *Github) CommitFiles(commitMessage string, files interface{}) error {
+func (p *Github) CommitFiles(app, commitMessage, folderName string, files interface{}) error {
 
 	// obtain client
 	client := convertToClient(p.Client)
@@ -157,7 +153,7 @@ func (p *Github) CommitFiles(commitMessage string, files interface{}) error {
 		rn := ra.Int63n(maxrand)
 		id := fmt.Sprintf("%v", rn)
 
-		mergeBranch := p.App + "-" + id
+		mergeBranch := app + "-" + id
 		err = CreateBranch(ctx, client, latestSHA, p.UserName, p.RepoName, mergeBranch)
 
 		// defer deletion of the created branch
@@ -275,7 +271,7 @@ func convertToCommitFile(ref interface{}) []gitprovider.CommitFile {
 	params : path , content, files (gitprovider commitfile array)
 	return : files (gitprovider commitfile array)
 */
-func (p *Github) AddToCommit(path, content string, ref interface{}) interface{} {
+func (p *Github) AddToCommit(path, folderName, content string, ref interface{}) interface{} {
 	files := append(convertToCommitFile(ref), gitprovider.CommitFile{
 		Path:    &path,
 		Content: &content,
@@ -289,7 +285,7 @@ func (p *Github) AddToCommit(path, content string, ref interface{}) interface{} 
 	params : path, files (gitprovider commitfile array)
 	return : files (gitprovider commitfile array)
 */
-func (p *Github) DeleteToCommit(path string, ref interface{}) interface{} {
+func (p *Github) DeleteToCommit(path, folderName string, ref interface{}) interface{} {
 	files := append(convertToCommitFile(ref), gitprovider.CommitFile{
 		Path:    &path,
 		Content: nil,
@@ -481,7 +477,7 @@ func (p *Github) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 					return ctx.Err()
 				}
 				// Check if AppContext doesn't exist then exit the thread
-				if _, err := utils.NewAppContextReference(p.Cid); err != nil {
+				if _, err := utils.NewAppContextReference(cid); err != nil {
 					// Delete the Status CR updated by Monitor running on the cluster
 					log.Info("Deleting cluster StatusCR", log.Fields{})
 					p.DeleteClusterStatusCR(cid, app, cluster)
@@ -491,7 +487,7 @@ func (p *Github) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 				//path := p.GetPath("status")
 				path := "clusters/" + cluster + "/" + "status" + "/" + cid + "/app/" + app + "/"
 				// branch to track
-				branch := p.Cluster + "-" + p.Cid + "-" + p.App
+				branch := p.Cluster + "-" + cid + "-" + app
 
 				latestCommitSHA, err := GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, branch, path)
 				if err != nil {
@@ -516,7 +512,7 @@ func (p *Github) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 							log.Error("", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
 							return err
 						}
-						status.HandleResourcesStatus(p.Cid, p.App, p.Cluster, content)
+						status.HandleResourcesStatus(cid, app, p.Cluster, content)
 					}
 					lastCommitSHA = latestCommitSHA
 				}
@@ -547,14 +543,14 @@ func (p *Github) DeleteClusterStatusCR(cid, app, cluster string) error {
 	//Delete the CR from context folder
 	var ref interface{}
 	path := "clusters/" + cluster + "/context/" + cid + "/app/" + app + "/" + cid + "-" + app + ".yaml"
-	files := p.DeleteToCommit(path, ref)
-	err := p.CommitFiles("Deleting status CR files "+path, files)
+	files := p.DeleteToCommit(path, "", ref)
+	err := p.CommitFiles(app, "Deleting status CR files "+path, "", files)
 	if err != nil {
 		log.Error("Error in commiting files to Delete", log.Fields{"path": path})
 	}
 
 	// Delete the status branch
-	branch := p.Cluster + "-" + p.Cid + "-" + p.App
+	branch := p.Cluster + "-" + cid + "-" + app
 
 	ctx := context.Background()
 
@@ -567,4 +563,47 @@ func (p *Github) DeleteClusterStatusCR(cid, app, cluster string) error {
 
 	return nil
 
+}
+
+/*
+	Function to commit multiple files to the github repo
+	params : context, Branch Name, Commit Message, appName, files ([]gitprovider.CommitFile)
+	return : nil/error
+*/
+func (p *Github) CommitFilesToBranch(commitMessage, branchName, folderName string, files interface{}) error {
+
+	// obtain client
+	client := convertToClient(p.Client)
+	mergeBranch := branchName
+	ctx := context.Background()
+	// Only one process to commit to Github location to avoid conflicts
+	// mutex.Lock()
+	// defer mutex.Unlock()
+
+	// commit the files to this new branch
+	// create repo reference
+	log.Info("Creating Repo Reference. ", log.Fields{})
+	userRepoRef := getRepoRef(p.UserName, p.RepoName)
+	log.Info("UserRepoRef:", log.Fields{"UserRepoRef": userRepoRef})
+
+	log.Info("Obtaining user repo. ", log.Fields{})
+	userRepo, err := client.gitProviderClient.UserRepositories().Get(ctx, userRepoRef)
+	if err != nil {
+		log.Error("Error in commiting the files", log.Fields{"err": err, "mergeBranch": mergeBranch, "commitMessage": commitMessage, "files": files})
+		return err
+	}
+	log.Info("UserRepo:", log.Fields{"UserRepo": userRepo})
+
+	log.Info("Commiting Files:", log.Fields{"files": files})
+	//Commit file to this repo
+	resp, err := userRepo.Commits().Create(ctx, mergeBranch, commitMessage, convertToCommitFile(files))
+	if err != nil {
+		if !strings.Contains(err.Error(), "404 Not Found") {
+			log.Error("Error in commiting the files", log.Fields{"err": err, "mergeBranch": mergeBranch, "commitMessage": commitMessage, "files": files})
+		}
+		return err
+
+	}
+	log.Info("CommitResponse for userRepo:", log.Fields{"resp": resp})
+	return nil
 }

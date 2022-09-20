@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -108,7 +109,7 @@ func createFile(fileName string, content string) error {
 var mutex = sync.Mutex{}
 
 // function to commit files to a branch
-func (p *Git2go) CommitFiles(message string, files interface{}) error {
+func (p *Git2go) CommitFiles(app, message, folderName string, files interface{}) error {
 
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -117,7 +118,7 @@ func (p *Git2go) CommitFiles(message string, files interface{}) error {
 
 	url := p.Url
 	branchName := p.Branch
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
+	// folderName := "/tmp/" + p.UserName + "-" + p.RepoName
 	userName := p.UserName
 
 	//check if git repo exists, if not clone
@@ -285,8 +286,8 @@ func deleteFromCommit(idx *git.Index, path, fileName string) (*git.Index, error)
 }
 
 // function to add file to commit files array
-func (p *Git2go) AddToCommit(fileName, content string, ref interface{}) interface{} {
-	path := "/tmp/" + p.UserName + "-" + p.RepoName + "/" + fileName
+func (p *Git2go) AddToCommit(fileName, folderName, content string, ref interface{}) interface{} {
+	path := folderName + "/" + fileName
 	//check if file exists
 	files := append(convertToCommitFile(ref), CommitFile{
 		Add:      true,
@@ -300,8 +301,8 @@ func (p *Git2go) AddToCommit(fileName, content string, ref interface{}) interfac
 }
 
 // function to delete file from commit files array
-func (p *Git2go) DeleteToCommit(fileName string, ref interface{}) interface{} {
-	path := "/tmp/" + p.UserName + "-" + p.RepoName + "/" + fileName
+func (p *Git2go) DeleteToCommit(fileName, folderName string, ref interface{}) interface{} {
+	path := folderName + "/" + fileName
 	files := append(convertToCommitFile(ref), CommitFile{
 		Add:      false,
 		Path:     &path,
@@ -890,11 +891,142 @@ func (p *Git2go) DeleteClusterStatusCR(cid, app, cluster string) error {
 	}
 	var ref interface{}
 	if check {
-		files := p.DeleteToCommit(path, ref)
-		err := p.CommitFiles("Deleting status CR files "+path, files)
+		files := p.DeleteToCommit(path, folderName, ref)
+		err := p.CommitFiles(app, "Deleting status CR files "+path, folderName, files)
 		if err != nil {
 			log.Error("Error in commiting files to Delete", log.Fields{"path": path})
 		}
 	}
+	return nil
+}
+
+// function to commit files to a branch
+func (p *Git2go) CommitFilesToBranch(commitMessage, branchName, folderName string, files interface{}) error {
+
+	// Only one process to commit to Github location to avoid conflicts
+	// mutex.Lock()
+	// defer mutex.Unlock()
+
+	url := p.Url
+	userName := p.UserName
+
+	// clone git the repo to local repo
+	check, err := gitUtils.Exists(folderName)
+
+	if !check {
+		if err := os.Mkdir(folderName, os.ModePerm); err != nil {
+			log.Error("Error in creating the dir", log.Fields{"Error": err})
+			return err
+		}
+		// // clone the repo
+		log.Info("URL", log.Fields{"URL": url})
+		fmt.Println("URL %s", url)
+		repo, err := git.Clone(url, folderName, &git.CloneOptions{CheckoutBranch: p.Branch, CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
+		if err != nil {
+			log.Error("Error cloning the repo", log.Fields{"Error": err})
+			return err
+		}
+		fmt.Println(repo)
+	}
+
+	// // // open a repo
+	repo, err := git.OpenRepository(folderName)
+	if err != nil {
+		log.Error("Error in Opening the git repository", log.Fields{"err": err, "branchName": branchName})
+		return err
+	}
+
+	signature := &git.Signature{
+		Name:  userName,
+		Email: userName + "@gmail.com",
+		When:  time.Now(),
+	}
+
+	var targetID *git.Oid
+	//create a new branch
+	//check if branch already exists then skip create branch
+	// check if a local branch exitst if not do a checkout
+	localBranch, err := repo.LookupBranch(branchName, git.BranchLocal)
+	// No local branch, lets create one
+	if localBranch == nil || err != nil {
+		branchHandle, err := CreateBranch(folderName, branchName)
+		if err != nil {
+			if !strings.Contains(err.Error(), "a reference with that name already exists") {
+				return err
+			}
+		}
+		targetID = branchHandle.Target()
+	} else {
+		branchRef, err := repo.References.Lookup("refs/heads/" + branchName)
+		if err != nil {
+			log.Info("Error in looking up ref", log.Fields{"err": err})
+			return err
+		}
+
+		targetID = branchRef.Target()
+	}
+
+	//commit files to the branch
+	//push the branch
+
+	// set head to point to the created branch
+	err = repo.SetHead("refs/heads/" + branchName)
+	if err != nil {
+		log.Error("Error in settting the head", log.Fields{"err": err, "branchName": branchName})
+		return err
+	}
+
+	//Update the index with files and obtain the latest index
+	//loop through all files and update the index
+	idx, err := repo.Index()
+	if err != nil {
+		log.Error("Error in obtaining the repo index", log.Fields{"err": err, "idx": idx})
+		return err
+	}
+	f := convertToCommitFile(files)
+	for _, file := range f {
+		if file.Add {
+			idx, err = addToCommit(idx, *file.Path, *file.FileName, *file.Content)
+		} else {
+			idx, err = deleteFromCommit(idx, *file.Path, *file.FileName)
+		}
+
+		if err != nil {
+			log.Error("Error in adding or deleting file to commit", log.Fields{"err": err, "idx": idx})
+			return err
+		}
+	}
+	//commit the files to the branch
+	treeId, err := idx.WriteTree()
+	if err != nil {
+		log.Error("Error from idx.WriteTree()", log.Fields{"err": err})
+		return err
+	}
+
+	err = idx.Write()
+	if err != nil {
+		log.Error("Error in Deleting file from idx.Write()", log.Fields{"err": err})
+		return err
+	}
+
+	tree, err := repo.LookupTree(treeId)
+	if err != nil {
+		log.Error("Error in looking up tree", log.Fields{"err": err, "treeId": treeId})
+		return err
+	}
+
+	commitTarget, err := repo.LookupCommit(targetID)
+	if err != nil {
+		log.Error("Error in Looking up Commit for commit", log.Fields{"err": err})
+		return err
+	}
+
+	_, err = repo.CreateCommit("refs/heads/"+branchName, signature, signature, commitMessage, tree, commitTarget)
+	if err != nil {
+		log.Error("Error in creating a commit", log.Fields{"err": err, "branchName": branchName})
+		return err
+	}
+	err = p.PushBranch(repo)
+
 	return nil
 }

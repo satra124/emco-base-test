@@ -100,7 +100,7 @@ func (p *Fluxv2Provider) ApplyConfig(ctx context.Context, config interface{}) er
 		return err
 	}
 	path := "clusters/" + p.gitProvider.Cluster + "/" + kc.Name + ".yaml"
-	// folderName := "/tmp/" + p.gitProvider.UserName + "-" + p.gitProvider.RepoName
+
 	// gp = emcogit.Add(path, string(y), gp, p.gitProvider.GitType)
 	//check if these files exist already
 	//check, err := emcogit2go.Exists(folderName + "/" + path)

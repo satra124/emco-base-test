@@ -75,6 +75,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-git-monitor
                   key: gittype
+            - name: GIT_BRANCH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-git-monitor
+                  key: gitbranch
               {{- end }}
       volumes:
       - name: config-volume

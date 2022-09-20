@@ -36,9 +36,9 @@ type GitProvider struct {
 }
 
 type GitInterfaceProvider interface {
-	AddToCommit(fileName, content string, ref interface{}) interface{}
-	DeleteToCommit(fileName string, ref interface{}) interface{}
-	CommitFiles(message string, files interface{}) error
+	AddToCommit(fileName, folderName, content string, ref interface{}) interface{}
+	DeleteToCommit(fileName, folderName string, ref interface{}) interface{}
+	CommitFiles(app, message, folderName string, files interface{}) error
 	ClusterWatcher(cid, app, cluster string, waitTime int) error
 }
 
@@ -121,7 +121,7 @@ func NewGitProvider(ctx context.Context, cid, app, cluster, level, namespace str
 	}
 
 	if strings.EqualFold(gitType, "github") {
-		p.gitInterface, err = emcogithub.NewGithub(p.Cid, p.App, p.Cluster, p.Url, p.Branch, p.UserName, p.RepoName, p.GitToken)
+		p.gitInterface, err = emcogithub.NewGithub(p.Cluster, p.Url, p.Branch, p.UserName, p.RepoName, p.GitToken)
 	} else {
 		p.gitInterface = emcogit2go.NewGit2Go(p.Url, p.Branch, p.UserName, p.RepoName, p.GitToken)
 	}
@@ -146,8 +146,9 @@ func (p *GitProvider) GetPath(t string) string {
 */
 func (p *GitProvider) Create(name string, ref interface{}, content []byte) (interface{}, error) {
 
+	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
 	path := p.GetPath("context") + name + ".yaml"
-	files := p.gitInterface.AddToCommit(path, string(content), ref)
+	files := p.gitInterface.AddToCommit(path, string(content), folderName, ref)
 	return files, nil
 }
 
@@ -158,7 +159,8 @@ func (p *GitProvider) Create(name string, ref interface{}, content []byte) (inte
 */
 func (p *GitProvider) Apply(path string, ref interface{}, content []byte) (interface{}, error) {
 
-	files := p.gitInterface.AddToCommit(path, string(content), ref)
+	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
+	files := p.gitInterface.AddToCommit(path, folderName, string(content), ref)
 	return files, nil
 
 }
@@ -170,7 +172,8 @@ func (p *GitProvider) Apply(path string, ref interface{}, content []byte) (inter
 */
 func (p *GitProvider) Delete(path string, ref interface{}, content []byte) (interface{}, error) {
 
-	files := p.gitInterface.DeleteToCommit(path, ref)
+	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
+	files := p.gitInterface.DeleteToCommit(path, folderName, ref)
 	return files, nil
 
 }
@@ -192,7 +195,8 @@ func (p *GitProvider) Get(name string, gvkRes []byte) ([]byte, error) {
 */
 func (p *GitProvider) Commit(ctx context.Context, ref interface{}) error {
 
-	err := p.gitInterface.CommitFiles("Commit for "+p.GetPath("context"), ref)
+	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
+	err := p.gitInterface.CommitFiles(p.App, "Commit for "+p.GetPath("context"), folderName, ref)
 	return err
 }
 
