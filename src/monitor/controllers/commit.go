@@ -179,6 +179,7 @@ func (c *GithubAccessClient) CommitFiles(ctx context.Context, branch, commitMess
 	log.Info("Obtaining user repo. ", log.Fields{})
 	userRepo, err := c.cl.gitProviderClient.UserRepositories().Get(ctx, userRepoRef)
 	if err != nil {
+		log.Error("Error in commiting the files", log.Fields{"err": err, "mergeBranch": mergeBranch, "commitMessage": commitMessage, "files": files})
 		return err
 	}
 	log.Info("UserRepo:", log.Fields{"UserRepo": userRepo})
@@ -191,6 +192,7 @@ func (c *GithubAccessClient) CommitFiles(ctx context.Context, branch, commitMess
 			log.Error("Error in commiting the files", log.Fields{"err": err, "mergeBranch": mergeBranch, "commitMessage": commitMessage, "files": files})
 		}
 		return err
+
 	}
 	log.Info("CommitResponse for userRepo:", log.Fields{"resp": resp})
 	return nil
