@@ -38,7 +38,7 @@ type GitInterfaceProvider interface {
 	AddToCommit(fileName, content string, ref interface{}) interface{}
 	DeleteToCommit(fileName string, ref interface{}) interface{}
 	CommitFiles(app, message string, files interface{}) error
-	ClusterWatcher(cid, app, cluster string, waitTime int) error
+	ClusterWatcher(ctx context.Context, cid, app, cluster string, waitTime int) error
 }
 
 /*
@@ -210,6 +210,6 @@ var waitTime int = 60
 // StartClusterWatcher watches for CR changes in git location
 // go routine starts and reads after waitTime
 // Thread exists when the AppContext is deleted
-func (p *GitProvider) StartClusterWatcher() error {
-	return p.gitInterface.ClusterWatcher(p.Cid, p.App, p.Cluster, waitTime)
+func (p *GitProvider) StartClusterWatcher(ctx context.Context) error {
+	return p.gitInterface.ClusterWatcher(ctx, p.Cid, p.App, p.Cluster, waitTime)
 }

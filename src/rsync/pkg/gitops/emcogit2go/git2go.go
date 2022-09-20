@@ -18,6 +18,8 @@ import (
 	gitUtils "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Git2go struct {
@@ -791,14 +793,23 @@ func commitMergeToMaster(repo *git.Repository, signature *git.Signature, message
 	return nil
 }
 
-func (p *Git2go) ClusterWatcher(cid, app, cluster string, waitTime int) error {
+func (p *Git2go) ClusterWatcher(ctx context.Context, cid, app, cluster string, waitTime int) error {
 
 	// foldername for status
 	folderName := "/tmp/" + cluster + "-status"
 	// Start thread to sync monitor CR
 	var lastCommitSHA *git.Oid
 	go func() error {
-		ctx := context.Background()
+		// This function is executed asynchronously, so we must create
+		// a new (not derived) context to prevent the context from
+		// being cancelled when the caller completes: a cancelled
+		// context will cause the below work to exit early.  A link is
+		// used so that the traces can be associated.
+		tracer := otel.Tracer("rsync")
+		ctx, span := tracer.Start(context.Background(), "StartClusterWatcher",
+			trace.WithLinks(trace.LinkFromContext(ctx)),
+		)
+		defer span.End()
 		for {
 			select {
 			case <-time.After(time.Duration(waitTime) * time.Second):
@@ -806,7 +817,7 @@ func (p *Git2go) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 					return ctx.Err()
 				}
 				// Check if AppContext doesn't exist then exit the thread
-				if _, err := utils.NewAppContextReference(cid); err != nil {
+				if _, err := utils.NewAppContextReference(ctx, cid); err != nil {
 					// Delete the Status CR updated by Monitor running on the cluster
 					log.Info("Deleting cluster StatusCR", log.Fields{})
 					p.DeleteClusterStatusCR(cid, app, cluster)
@@ -857,7 +868,7 @@ func (p *Git2go) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 							log.Error("", log.Fields{"error": err, "cluster": cluster, "resource": path})
 							return err
 						}
-						status.HandleResourcesStatus(cid, app, cluster, content)
+						status.HandleResourcesStatus(ctx, cid, app, cluster, content)
 					}
 
 					lastCommitSHA = latestCommitSHA

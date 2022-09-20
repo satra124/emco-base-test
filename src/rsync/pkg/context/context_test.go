@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"context"
+
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/context"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
+	contextUtils "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/utils"
 )
 
 func init() {
@@ -54,7 +56,7 @@ var TestCA CompositeApp = CompositeApp{
 
 func TestInstantiateTerminate(t *testing.T) {
 
-	cid, _ := CreateCompApp(context.Background(), TestCA)
+	cid, _ := contextUtils.CreateCompApp(context.Background(), TestCA)
 	con := NewProvider(cid)
 
 	testCases := []struct {
@@ -202,8 +204,8 @@ func TestUpdate(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			cid, _ := CreateCompApp(context.Background(), testCase.original)
-			ucid, _ := CreateCompApp(context.Background(), testCase.updated)
+			cid, _ := contextUtils.CreateCompApp(context.Background(), testCase.original)
+			ucid, _ := contextUtils.CreateCompApp(context.Background(), testCase.updated)
 			con := NewProvider(cid)
 
 			_ = HandleAppContext(context.Background(), cid, nil, InstantiateEvent, &con)
@@ -285,8 +287,8 @@ func TestRollbackUpdate(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.label, func(t *testing.T) {
-			cid, _ := CreateCompApp(context.Background(), original)
-			ucid, _ := CreateCompApp(context.Background(), updated)
+			cid, _ := contextUtils.CreateCompApp(context.Background(), original)
+			ucid, _ := contextUtils.CreateCompApp(context.Background(), updated)
 			con := NewProvider(cid)
 
 			_ = HandleAppContext(context.Background(), cid, nil, InstantiateEvent, &con)
@@ -316,7 +318,7 @@ func TestRollbackUpdate(t *testing.T) {
 
 func TestStop(t *testing.T) {
 
-	cid, _ := CreateCompApp(context.Background(), TestCA)
+	cid, _ := contextUtils.CreateCompApp(context.Background(), TestCA)
 	con := NewProvider(cid)
 
 	testCases := []struct {
@@ -354,7 +356,7 @@ func TestStop(t *testing.T) {
 
 func TestInstantiateRestart(t *testing.T) {
 
-	cid, _ := CreateCompApp(context.Background(), TestCA)
+	cid, _ := contextUtils.CreateCompApp(context.Background(), TestCA)
 	con := NewProvider(cid)
 
 	testCases := []struct {
@@ -388,7 +390,7 @@ func TestInstantiateRestart(t *testing.T) {
 
 func TestTerminateWithInstantiate(t *testing.T) {
 
-	cid, _ := CreateCompApp(context.Background(), TestCA)
+	cid, _ := contextUtils.CreateCompApp(context.Background(), TestCA)
 	con := NewProvider(cid)
 
 	testCases := []struct {
@@ -449,7 +451,7 @@ func TestAppDependency(t *testing.T) {
 		},
 	}
 
-	cid, _ := CreateCompApp(context.Background(), ca)
+	cid, _ := contextUtils.CreateCompApp(context.Background(), ca)
 	con := NewProvider(cid)
 
 	testCases := []struct {
@@ -513,7 +515,7 @@ func TestHooks(t *testing.T) {
 		},
 	}
 
-	cid, _ := CreateCompApp(context.Background(), ca)
+	cid, _ := contextUtils.CreateCompApp(context.Background(), ca)
 	con := NewProvider(cid)
 
 	testCases := []struct {
@@ -544,7 +546,7 @@ func TestHooks(t *testing.T) {
 
 func TestGetAllActiveContext(t *testing.T) {
 
-	cid, _ := CreateCompApp(context.Background(), TestCA)
+	cid, _ := contextUtils.CreateCompApp(context.Background(), TestCA)
 	_ = NewProvider(cid)
 
 	testCases := []struct {

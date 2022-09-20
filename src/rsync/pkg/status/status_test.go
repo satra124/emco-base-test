@@ -7,10 +7,10 @@ import (
 	rb "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/appcontext"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
-	con "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/context"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
+	contextUtils "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/utils"
 
 	"context"
 	"k8s.io/api/core/v1"
@@ -48,7 +48,7 @@ func TestAppReadyOnAllClusters(t *testing.T) {
 	if err != nil {
 		return
 	}
-	cid, _ := con.CreateCompApp(context.Background(), TestCA)
+	cid, _ := contextUtils.CreateCompApp(context.Background(), TestCA)
 
 	testCases := []struct {
 		label                  string

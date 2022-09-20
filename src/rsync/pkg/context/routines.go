@@ -16,6 +16,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
+	contextUtils "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/utils"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
@@ -119,7 +120,7 @@ func (c *Context) startMainThread(ctx context.Context, a interface{}, con Connec
 		return err
 	}
 	// Read AppContext into CompositeApp structure
-	c.ca, err = ReadAppContext(ctx, a)
+	c.ca, err = contextUtils.ReadAppContext(ctx, a)
 	if err != nil {
 		log.Error("Fatal! error reading appContext", log.Fields{"err": err})
 		return err
@@ -366,7 +367,7 @@ func (c *Context) appContextRoutine(callerCtx context.Context) {
 func (c *Context) updateDeletePhase(ctx context.Context, e AppContextQueueElement) error {
 
 	// Read Update AppContext into CompositeApp structure
-	uca, err := ReadAppContext(ctx, e.UCID)
+	uca, err := contextUtils.ReadAppContext(ctx, e.UCID)
 	if err != nil {
 		log.Error("Fatal! error reading appContext", log.Fields{"err": err})
 		return err
@@ -374,17 +375,17 @@ func (c *Context) updateDeletePhase(ctx context.Context, e AppContextQueueElemen
 	// Iterate over all the subapps and mark all apps, clusters and resources
 	// that shouldn't be deleted
 	for _, app := range c.ca.Apps {
-		foundApp := FindApp(uca, app.Name)
+		foundApp := contextUtils.FindApp(uca, app.Name)
 		// If app not found that will be deleted (skip false)
 		if foundApp {
 			// Check if any clusters are deleted
 			for _, cluster := range app.Clusters {
-				foundCluster := FindCluster(uca, app.Name, cluster.Name)
+				foundCluster := contextUtils.FindCluster(uca, app.Name, cluster.Name)
 				if foundCluster {
 					// Check if any resources are deleted
 					var resCnt int = 0
 					for _, res := range cluster.Resources {
-						foundRes := FindResource(uca, app.Name, cluster.Name, res.Name)
+						foundRes := contextUtils.FindResource(uca, app.Name, cluster.Name, res.Name)
 						if foundRes {
 							// If resource found in both appContext don't delete it
 							res.Skip = true
@@ -407,7 +408,7 @@ func (c *Context) updateDeletePhase(ctx context.Context, e AppContextQueueElemen
 // Iterate over the appcontext to mark apps/cluster/resources that doesn't need to be Modified
 func (c *Context) updateModifyPhase(ctx context.Context, e AppContextQueueElement) error {
 	// Read Update from AppContext into CompositeApp structure
-	uca, err := ReadAppContext(ctx, e.UCID)
+	uca, err := contextUtils.ReadAppContext(ctx, e.UCID)
 	if err != nil {
 		log.Error("Fatal! error reading appContext", log.Fields{"err": err})
 		return err
@@ -422,16 +423,16 @@ func (c *Context) updateModifyPhase(ctx context.Context, e AppContextQueueElemen
 	// Iterate over all the subapps and mark all apps, clusters and resources
 	// that match exactly and shouldn't be changed
 	for _, app := range c.ca.Apps {
-		foundApp := FindApp(uca, app.Name)
+		foundApp := contextUtils.FindApp(uca, app.Name)
 		if foundApp {
 			// Check if any clusters are modified
 			for _, cluster := range app.Clusters {
-				foundCluster := FindCluster(uca, app.Name, cluster.Name)
+				foundCluster := contextUtils.FindCluster(uca, app.Name, cluster.Name)
 				if foundCluster {
 					diffRes := false
 					// Check if any resources are added or modified
 					for _, res := range cluster.Resources {
-						foundRes := FindResource(uca, app.Name, cluster.Name, res.Name)
+						foundRes := contextUtils.FindResource(uca, app.Name, cluster.Name, res.Name)
 						if foundRes {
 							// Read the resource from both AppContext and Compare
 							cRes, _, err1 := c.acRef.GetRes(ctx, res.Name, app.Name, cluster.Name)

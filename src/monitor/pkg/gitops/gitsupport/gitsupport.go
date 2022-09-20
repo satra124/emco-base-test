@@ -4,6 +4,7 @@
 package gitsupport
 
 import (
+	"context"
 	"os"
 	"strings"
 
@@ -31,7 +32,7 @@ type GitInterfaceProvider interface {
 	AddToCommit(fileName, content string, ref interface{}) interface{}
 	DeleteToCommit(fileName string, ref interface{}) interface{}
 	CommitFiles(app, message string, files interface{}) error
-	ClusterWatcher(cid, app, cluster string, waitTime int) error
+	ClusterWatcher(ctx context.Context, cid, app, cluster string, waitTime int) error
 	CommitStatus(commitMessage, branchName, cid, app string, files interface{}) error
 }
 

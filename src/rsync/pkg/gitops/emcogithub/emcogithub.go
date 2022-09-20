@@ -18,6 +18,8 @@ import (
 
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -447,11 +449,9 @@ func CheckIfFileExists(ctx context.Context, c interface{}, userName, repoName, b
 
 }
 
-func (p *Github) ClusterWatcher(cid, app, cluster string, waitTime int) error {
-	// obtain the sha key for main
-	//obtain shaake
-	ctx := context.Background()
+func (p *Github) ClusterWatcher(ctx context.Context, cid, app, cluster string, waitTime int) error {
 
+	// obtain the sha key for main
 	latestSHA, err := GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, p.Branch, "")
 	if err != nil {
 		return err
@@ -467,7 +467,17 @@ func (p *Github) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 
 	// Start thread to sync monitor CR
 	go func() error {
-		ctx := context.Background()
+		// This function is executed asynchronously, so we must create
+		// a new (not derived) context to prevent the context from
+		// being cancelled when the caller completes: a cancelled
+		// context will cause the below work to exit early.  A link is
+		// used so that the traces can be associated.
+		tracer := otel.Tracer("rsync")
+		ctx, span := tracer.Start(context.Background(), "StartClusterWatcher",
+			trace.WithLinks(trace.LinkFromContext(ctx)),
+		)
+		defer span.End()
+
 		var lastCommitSHA string
 		for {
 			select {
@@ -476,10 +486,10 @@ func (p *Github) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 					return ctx.Err()
 				}
 				// Check if AppContext doesn't exist then exit the thread
-				if _, err := utils.NewAppContextReference(cid); err != nil {
+				if _, err := utils.NewAppContextReference(ctx, cid); err != nil {
 					// Delete the Status CR updated by Monitor running on the cluster
 					log.Info("Deleting cluster StatusCR", log.Fields{})
-					p.DeleteClusterStatusCR(cid, app, cluster)
+					p.DeleteClusterStatusCR(ctx, cid, app, cluster)
 					// AppContext deleted - Exit thread
 					return nil
 				}
@@ -511,7 +521,7 @@ func (p *Github) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 							log.Error("", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
 							return err
 						}
-						status.HandleResourcesStatus(cid, app, p.Cluster, content)
+						status.HandleResourcesStatus(ctx, cid, app, p.Cluster, content)
 					}
 					lastCommitSHA = latestCommitSHA
 				}
@@ -525,7 +535,7 @@ func (p *Github) ClusterWatcher(cid, app, cluster string, waitTime int) error {
 	return nil
 }
 
-func (p *Github) DeleteClusterStatusCR(cid, app, cluster string) error {
+func (p *Github) DeleteClusterStatusCR(ctx context.Context, cid, app, cluster string) error {
 
 	//Delete the CR from context folder
 	var ref interface{}
@@ -539,7 +549,7 @@ func (p *Github) DeleteClusterStatusCR(cid, app, cluster string) error {
 	// Delete the status branch
 	branch := p.Cluster + "-" + cid + "-" + app
 
-	ctx := context.Background()
+	// ctx := context.Background()
 
 	// Delete the branch
 	err = DeleteBranch(ctx, p.Client, p.UserName, p.RepoName, branch)
