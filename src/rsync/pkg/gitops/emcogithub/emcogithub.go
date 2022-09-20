@@ -13,7 +13,12 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	gogithub "github.com/google/go-github/v41/github"
+	"gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+
+	gitUtils "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/utils"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 )
 
 const (
@@ -24,6 +29,40 @@ const (
 type GithubClient struct {
 	gitProviderClient gitprovider.Client
 	gogithubClient    *gogithub.Client
+}
+
+type Github struct {
+	Url      string
+	Branch   string
+	UserName string
+	RepoName string
+	GitToken string
+	Cid      string
+	App      string
+	Cluster  string
+	Client   interface{}
+}
+
+func NewGithub(cid, app, cluster, url, branch, user, repo, token string) (*Github, error) {
+
+	g := Github{
+		Url:      url,
+		Branch:   branch,
+		UserName: user,
+		RepoName: repo,
+		GitToken: token,
+		Cid:      cid,
+		App:      app,
+		Cluster:  cluster,
+	}
+	client, err := CreateClient(user, token)
+	if err != nil {
+		log.Error("Error getting git client", log.Fields{"err": err})
+		return nil, err
+	}
+	g.Client = client
+
+	return &g, nil
 }
 
 /*
@@ -98,16 +137,19 @@ func CreateRepo(ctx context.Context, c interface{}, repoName string, userName st
 	params : context, github client, User Name, Repo Name, BranchName, Commit Message, files ([]gitprovider.CommitFile)
 	return : nil/error
 */
-func CommitFiles(ctx context.Context, c interface{}, userName, repoName, branch, commitMessage, appName string, files []gitprovider.CommitFile) error {
+//func (p *Github)CommitFiles(ctx context.Context, c interface{}, userName, repoName, branch, commitMessage, appName string, files []gitprovider.CommitFile) error {
+func (p *Github) CommitFiles(commitMessage string, files interface{}) error {
 
 	// obtain client
-	client := convertToClient(c)
+	client := convertToClient(p.Client)
 
 	n := 0
+	var ctx context.Context
+	ctx = context.Background()
 	for {
 		// obtain the sha key for main
 		//obtain sha
-		latestSHA, err := GetLatestCommitSHA(ctx, client, userName, repoName, branch, "")
+		latestSHA, err := GetLatestCommitSHA(ctx, client, p.UserName, p.RepoName, p.Branch, "")
 		if err != nil {
 			return err
 		}
@@ -116,11 +158,11 @@ func CommitFiles(ctx context.Context, c interface{}, userName, repoName, branch,
 		rn := ra.Int63n(maxrand)
 		id := fmt.Sprintf("%v", rn)
 
-		mergeBranch := appName + "-" + id
-		err = CreateBranch(ctx, client, latestSHA, userName, repoName, mergeBranch)
+		mergeBranch := p.App + "-" + id
+		err = CreateBranch(ctx, client, latestSHA, p.UserName, p.RepoName, mergeBranch)
 
 		// defer deletion of the created branch
-		defer DeleteBranch(ctx, client, userName, repoName, mergeBranch)
+		defer DeleteBranch(ctx, client, p.UserName, p.RepoName, mergeBranch)
 
 		if err != nil {
 			return err
@@ -128,7 +170,7 @@ func CommitFiles(ctx context.Context, c interface{}, userName, repoName, branch,
 
 		// commit the files to this new branch
 		// create repo reference
-		userRepoRef := getRepoRef(userName, repoName)
+		userRepoRef := getRepoRef(p.UserName, p.RepoName)
 
 		userRepo, err := client.gitProviderClient.UserRepositories().Get(ctx, userRepoRef)
 		if err != nil {
@@ -136,7 +178,7 @@ func CommitFiles(ctx context.Context, c interface{}, userName, repoName, branch,
 		}
 
 		//Commit file to this repo
-		resp, err := userRepo.Commits().Create(ctx, mergeBranch, commitMessage, files)
+		resp, err := userRepo.Commits().Create(ctx, mergeBranch, commitMessage, convertToCommitFile(files))
 		if err != nil {
 			log.Error("Error in commiting the files", log.Fields{"err": err, "mergeBranch": mergeBranch, "commitMessage": commitMessage, "files": files})
 			return err
@@ -144,7 +186,7 @@ func CommitFiles(ctx context.Context, c interface{}, userName, repoName, branch,
 		log.Debug("CommitResponse for userRepo:", log.Fields{"resp": resp})
 
 		// merge the branch to the main
-		err = mergeBranchToMain(ctx, client, userName, repoName, branch, mergeBranch)
+		err = mergeBranchToMain(ctx, client, p.UserName, p.RepoName, p.Branch, mergeBranch)
 
 		if err != nil {
 			// check error for merge conflict "409 Merge conflict"
@@ -211,13 +253,31 @@ func getRepoRef(userName string, repoName string) gitprovider.UserRepositoryRef 
 	return userRepoRef
 }
 
+func convertToCommitFile(ref interface{}) []gitprovider.CommitFile {
+	var exists bool
+	switch ref.(type) {
+	case []gitprovider.CommitFile:
+		exists = true
+	default:
+		exists = false
+	}
+	var rf []gitprovider.CommitFile
+	// Create rf is doesn't exist
+	if !exists {
+		rf = []gitprovider.CommitFile{}
+	} else {
+		rf = ref.([]gitprovider.CommitFile)
+	}
+	return rf
+}
+
 /*
 	Function to Add file to the commit
 	params : path , content, files (gitprovider commitfile array)
 	return : files (gitprovider commitfile array)
 */
-func Add(path string, content string, files []gitprovider.CommitFile) []gitprovider.CommitFile {
-	files = append(files, gitprovider.CommitFile{
+func (p *Github) Add(path, filename, content string, ref interface{}) interface{} {
+	files := append(convertToCommitFile(ref), gitprovider.CommitFile{
 		Path:    &path,
 		Content: &content,
 	})
@@ -230,8 +290,8 @@ func Add(path string, content string, files []gitprovider.CommitFile) []gitprovi
 	params : path, files (gitprovider commitfile array)
 	return : files (gitprovider commitfile array)
 */
-func Delete(path string, files []gitprovider.CommitFile) []gitprovider.CommitFile {
-	files = append(files, gitprovider.CommitFile{
+func (p *Github) Delete(path string, ref interface{}) interface{} {
+	files := append(convertToCommitFile(ref), gitprovider.CommitFile{
 		Path:    &path,
 		Content: nil,
 	})
@@ -391,4 +451,143 @@ func CheckIfFileExists(ctx context.Context, c interface{}, userName, repoName, b
 
 	return true, nil
 
+}
+
+func (p *Github) ClusterWatcher(cid, app, cluster string, waitTime int) error {
+	// obtain the sha key for main
+	//obtain shaake
+	ctx := context.Background()
+
+	latestSHA, err := GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, p.Branch, "")
+	if err != nil {
+		return err
+	}
+	// create branch for status
+	branch := cluster + "-" + cid + "-" + app
+	err = CreateBranch(ctx, p.Client, latestSHA, p.UserName, p.RepoName, branch)
+	if err != nil {
+		if !strings.Contains(err.Error(), "422 Reference already exists") {
+			return err
+		}
+	}
+
+	// Start thread to sync monitor CR
+	go func() error {
+		ctx := context.Background()
+		var lastCommitSHA string
+		for {
+			select {
+			case <-time.After(time.Duration(waitTime) * time.Second):
+				if ctx.Err() != nil {
+					return ctx.Err()
+				}
+				// Check if AppContext doesn't exist then exit the thread
+				if _, err := utils.NewAppContextReference(p.Cid); err != nil {
+					// Delete the Status CR updated by Monitor running on the cluster
+					log.Info("Deleting cluster StatusCR", log.Fields{})
+					p.DeleteClusterStatusCR(cid, app, cluster)
+					// AppContext deleted - Exit thread
+					return nil
+				}
+				//path := p.GetPath("status")
+				path := "clusters/" + cluster + "/" + "status" + "/" + cid + "/app/" + app + "/"
+				// branch to track
+				branch := p.Cluster + "-" + p.Cid + "-" + p.App
+
+				latestCommitSHA, err := GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, branch, path)
+				if err != nil {
+					log.Error("Error in obtaining latest commit SHA", log.Fields{"err": err})
+				}
+
+				if lastCommitSHA != latestCommitSHA {
+					// new commit get files
+					// Read file
+					log.Debug("New Status File, pulling files", log.Fields{"LatestSHA": latestCommitSHA, "LastSHA": lastCommitSHA})
+					c, err := GetFiles(ctx, p.Client, p.UserName, p.RepoName, branch, path)
+					if err != nil {
+						log.Debug("Status file not available", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
+						continue
+					}
+					//cp := c.([]*gitprovider.CommitFile)
+					if len(c) > 0 {
+						// Only one file expected in the location
+						content := &v1alpha1.ResourceBundleState{}
+						_, err := utils.DecodeYAMLData(*c[0].Content, content)
+						if err != nil {
+							log.Error("", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
+							return err
+						}
+						status.HandleResourcesStatus(p.Cid, p.App, p.Cluster, content)
+					}
+					lastCommitSHA = latestCommitSHA
+				}
+
+			// Check if the context is canceled
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+	}()
+	return nil
+}
+
+func (p *Github) DeleteClusterStatusCR(cid, app, cluster string) error {
+	// Delete the status CR
+	// branch to track
+	// branch := p.Cluster + "-" + p.Cid + "-" + p.App
+
+	// ctx := context.Background()
+
+	// // Delete the branch
+	// err := emcogit.DeleteBranch(ctx, p.Client, p.UserName, p.RepoName, branch, p.GitType)
+	// if err != nil {
+	// 	log.Error("Error in deleting branch", log.Fields{"err": err})
+	// 	return err
+	// }
+
+	//delete the dummy branch as well
+	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
+	// // // // open a repo
+	//obtain files to be delete
+	path := "clusters/" + cluster + "/context/" + cid + "/app/" + app + "/" + cid + "-" + app + ".yaml"
+
+	// files, err := emcogit2go.GetFilesToDelete(folderName, path)
+	// files, err := GetFilesToDelete(folderName, path)
+	// if err != nil {
+	// 	log.Error("Error in obtaining files to Delete", log.Fields{"path": path})
+	// }
+	check, err := gitUtils.Exists(folderName + "/" + path)
+	if err != nil {
+		return err
+	}
+	var ref interface{}
+	if check {
+		files := p.Delete(folderName+"/"+path, ref)
+		err := p.CommitFiles("Deleting status CR files "+path, files)
+		if err != nil {
+			log.Error("Error in commiting files to Delete", log.Fields{"path": path})
+		}
+	}
+	// if len(files) != 0 {
+	// 	// err = emcogit2go.CommitFiles(p.Url, "Deleting status CR files "+path, p.Branch, folderName, p.UserName, p.GitToken, files)
+	// 	err := p.CommitFiles("Deleting status CR files "+path, files)
+	// 	if err != nil {
+	// 		log.Error("Error in commiting files to Delete", log.Fields{"path": path})
+	// 	}
+	// }
+	// err = emcogit2go.DeleteBranch(repo, branch)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// err = emcogit2go.PushDeleteBranch(repo, branch)
+	// if err != nil {
+	// 	return err
+	// }
+	// remove the local folder
+	// err := os.RemoveAll(folderName)
+	// if err != nil {
+	// 	return err
+	// }
+	return nil
 }

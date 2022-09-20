@@ -7,18 +7,16 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync"
-	"time"
 
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 
-	git "github.com/libgit2/git2go/v33"
 	pkgerrors "github.com/pkg/errors"
-	v1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
+
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/db"
-	emcogit "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit"
+	//emcogit "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit"
+	emcogit2go "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogit2go"
+	emcogithub "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/emcogithub"
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
-	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 )
 
 type GitProvider struct {
@@ -33,7 +31,15 @@ type GitProvider struct {
 	Branch    string
 	RepoName  string
 	Url       string
-	Client    interface{}
+
+	gitInterface GitInterfaceProvider
+}
+
+type GitInterfaceProvider interface {
+	Add(path, fileName, content string, ref interface{}) interface{}
+	Delete(path string, ref interface{}) interface{}
+	CommitFiles(message string, files interface{}) error
+	ClusterWatcher(cid, app, cluster string, waitTime int) error
 }
 
 /*
@@ -108,12 +114,13 @@ func NewGitProvider(ctx context.Context, cid, app, cluster, level, namespace str
 		RepoName:  repoName,
 		Url:       "https://" + gitType + ".com/" + userName + "/" + repoName,
 	}
-	client, err := emcogit.CreateClient(userName, gitToken, gitType)
-	if err != nil {
-		log.Error("Error getting git client", log.Fields{"err": err})
-		return nil, err
+
+	if strings.EqualFold(gitType, "github") {
+		p.gitInterface, err = emcogithub.NewGithub(p.Cid, p.App, p.Cluster, p.Url, p.Branch, p.UserName, p.RepoName, p.GitToken)
+	} else {
+		p.gitInterface = emcogit2go.NewGit2Go(p.Url, p.Branch, p.UserName, p.RepoName, p.GitToken)
 	}
-	p.Client = client
+
 	return &p, nil
 }
 
@@ -137,7 +144,7 @@ func (p *GitProvider) Create(name string, ref interface{}, content []byte) (inte
 	path := p.GetPath("context") + name + ".yaml"
 	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
 	//files := emcogit2go.Add(folderName+"/"+path, path, string(content), ref)
-	files := Add(folderName+"/"+path, path, string(content), ref)
+	files := p.gitInterface.Add(folderName+"/"+path, path, string(content), ref)
 	return files, nil
 }
 
@@ -151,7 +158,7 @@ func (p *GitProvider) Apply(ctx context.Context, name string, ref interface{}, c
 	path := p.GetPath("context") + name + ".yaml"
 	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
 	//files := emcogit2go.Add(folderName+"/"+path, path, string(content), ref)
-	files := Add(folderName+"/"+path, path, string(content), ref)
+	files := p.gitInterface.Add(folderName+"/"+path, path, string(content), ref)
 	return files, nil
 
 }
@@ -166,7 +173,22 @@ func (p *GitProvider) Delete(name string, ref interface{}, content []byte) (inte
 	path := p.GetPath("context") + name + ".yaml"
 	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
 	//files := emcogit2go.Delete(folderName+"/"+path, path, ref)
-	files := Delete(folderName+"/"+path, path, ref)
+	files := p.gitInterface.Delete(folderName+"/"+path, ref)
+	return files, nil
+
+}
+
+/*
+	Function to add resource from the cluster
+	params : name string, ref interface{}, content []byte
+	return : interface{}, error
+*/
+func (p *GitProvider) Add(name string, fileName string, content string, ref interface{}) (interface{}, error) {
+	// TODO: FIXME
+	path := p.GetPath("context") + name + ".yaml"
+	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
+	//files := emcogit2go.Delete(folderName+"/"+path, path, ref)
+	files := p.gitInterface.Add(folderName+"/"+path, path, content, ref)
 	return files, nil
 
 }
@@ -188,24 +210,10 @@ func (p *GitProvider) Get(name string, gvkRes []byte) ([]byte, error) {
 */
 func (p *GitProvider) Commit(ctx context.Context, ref interface{}) error {
 
-	var exists bool
-	switch ref.(type) {
-	// case []emcogit2go.CommitFile:
-	case []CommitFile:
-		exists = true
-	default:
-		exists = false
-
-	}
-	// Check for rf
-	if !exists {
-		log.Error("Commit: No ref found", log.Fields{})
-		return nil
-	}
 	// appName := p.Cid + "-" + p.App
 	// folderName := "/tmp/" + p.UserName + "-" + p.RepoName
 	// err := emcogit2go.CommitFiles(p.Url, "Commit for "+p.GetPath("context"), p.Branch, folderName, p.UserName, p.GitToken, ref.([]emcogit2go.CommitFile))
-	err := p.CommitFiles("Commit for "+p.GetPath("context"), ref.([]CommitFile))
+	err := p.gitInterface.CommitFiles("Commit for "+p.GetPath("context"), ref)
 	return err
 }
 
@@ -220,168 +228,10 @@ func (p *GitProvider) IsReachable() error {
 
 // Wait time between reading git status (seconds)
 var waitTime int = 60
-var mutex = sync.Mutex{}
 
 // StartClusterWatcher watches for CR changes in git location
 // go routine starts and reads after waitTime
 // Thread exists when the AppContext is deleted
-func (p *GitProvider) StartClusterWatcher(ctx context.Context) error {
-	// obtain the sha key for main
-	//obtain shaake
-	// ctx := context.Background()
-
-	// latestSHA, err := emcogit.GetLatestCommitSHA(ctx, p.Client, p.UserName, p.RepoName, p.Branch, "", p.GitType)
-	// if err != nil {
-	// 	return err
-	// }
-	// // create branch for status
-	// branch := p.Cluster + "-" + p.Cid + "-" + p.App
-	// err = emcogit.CreateBranch(ctx, p.Client, latestSHA, p.UserName, p.RepoName, branch, p.GitType)
-	// if err != nil {
-	// 	if !strings.Contains(err.Error(), "422 Reference already exists") {
-	// 		return err
-	// 	}
-	// }
-
-	// foldername for status
-	folderName := "/tmp/" + p.Cluster + "-status"
-	// Start thread to sync monitor CR
-	var lastCommitSHA *git.Oid
-	go func() error {
-		ctx := context.Background()
-		for {
-			select {
-			case <-time.After(time.Duration(waitTime) * time.Second):
-				if ctx.Err() != nil {
-					return ctx.Err()
-				}
-				// Check if AppContext doesn't exist then exit the thread
-				if _, err := utils.NewAppContextReference(ctx, p.Cid); err != nil {
-					// Delete the Status CR updated by Monitor running on the cluster
-					log.Info("Deleting cluster StatusCR", log.Fields{})
-					p.DeleteClusterStatusCR(ctx)
-					// AppContext deleted - Exit thread
-					return nil
-				}
-				path := p.GetPath("status")
-				// branch to track
-				branch := p.Cluster
-
-				// // git pull
-				mutex.Lock()
-				err := p.GitPull(folderName, branch)
-				mutex.Unlock()
-
-				if err != nil {
-					log.Error("Error in Pulling Branch", log.Fields{"err": err})
-					continue
-				}
-
-				//obtain the latest commit SHA
-				mutex.Lock()
-				latestCommitSHA, err := GetLatestCommit(folderName, branch)
-				mutex.Unlock()
-				if err != nil {
-					log.Error("Error in obtaining latest commit SHA", log.Fields{"err": err})
-				}
-
-				if lastCommitSHA != latestCommitSHA || lastCommitSHA == nil {
-					log.Debug("New Status File, pulling files", log.Fields{"LatestSHA": latestCommitSHA, "LastSHA": lastCommitSHA})
-					// files, err := emcogit2go.GetFilesInPath(folderName + "/" + path)
-					files, err := GetFilesInPath(folderName + "/" + path)
-					if err != nil {
-						log.Debug("Status file not available", log.Fields{"error": err, "resource": path})
-						continue
-					}
-					log.Info("Files to track status", log.Fields{"files": files})
-
-					if len(files) > 0 {
-						// Only one file expected in the location
-						// fileContent, err := emcogit2go.GetFileContent(files[0])
-						fileContent, err := GetFileContent(files[0])
-						if err != nil {
-							log.Error("", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
-							return err
-						}
-						content := &v1alpha1.ResourceBundleState{}
-						_, err = utils.DecodeYAMLData(fileContent, content)
-						if err != nil {
-							log.Error("", log.Fields{"error": err, "cluster": p.Cluster, "resource": path})
-							return err
-						}
-						status.HandleResourcesStatus(ctx, p.Cid, p.App, p.Cluster, content)
-					}
-
-					lastCommitSHA = latestCommitSHA
-
-				}
-
-			// Check if the context is canceled
-			case <-ctx.Done():
-				return ctx.Err()
-			}
-		}
-	}()
-	return nil
-}
-
-// DeleteClusterStatusCR deletes the status CR provided by the monitor on the cluster
-func (p *GitProvider) DeleteClusterStatusCR(ctx context.Context) error {
-	// Delete the status CR
-	// branch to track
-	// branch := p.Cluster + "-" + p.Cid + "-" + p.App
-
-	// ctx := context.Background()
-
-	// // Delete the branch
-	// err := emcogit.DeleteBranch(ctx, p.Client, p.UserName, p.RepoName, branch, p.GitType)
-	// if err != nil {
-	// 	log.Error("Error in deleting branch", log.Fields{"err": err})
-	// 	return err
-	// }
-
-	//delete the dummy branch as well
-	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
-	// // // // open a repo
-	//obtain files to be delete
-	path := "clusters/" + p.Cluster + "/context/" + p.Cid + "/app/" + p.App + "/" + p.Cid + "-" + p.App + ".yaml"
-
-	// files, err := emcogit2go.GetFilesToDelete(folderName, path)
-	// files, err := GetFilesToDelete(folderName, path)
-	// if err != nil {
-	// 	log.Error("Error in obtaining files to Delete", log.Fields{"path": path})
-	// }
-	check, err := Exists(folderName + "/" + path)
-	if err != nil {
-		return err
-	}
-	if check {
-		files := Delete(folderName+"/"+path, path, []CommitFile{})
-		err := p.CommitFiles("Deleting status CR files "+path, files)
-		if err != nil {
-			log.Error("Error in commiting files to Delete", log.Fields{"path": path})
-		}
-	}
-	// if len(files) != 0 {
-	// 	// err = emcogit2go.CommitFiles(p.Url, "Deleting status CR files "+path, p.Branch, folderName, p.UserName, p.GitToken, files)
-	// 	err := p.CommitFiles("Deleting status CR files "+path, files)
-	// 	if err != nil {
-	// 		log.Error("Error in commiting files to Delete", log.Fields{"path": path})
-	// 	}
-	// }
-	// err = emcogit2go.DeleteBranch(repo, branch)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// err = emcogit2go.PushDeleteBranch(repo, branch)
-	// if err != nil {
-	// 	return err
-	// }
-	// remove the local folder
-	// err := os.RemoveAll(folderName)
-	// if err != nil {
-	// 	return err
-	// }
-	return nil
+func (p *GitProvider) StartClusterWatcher() error {
+	return p.gitInterface.ClusterWatcher(p.Cid, p.App, p.Cluster, waitTime)
 }

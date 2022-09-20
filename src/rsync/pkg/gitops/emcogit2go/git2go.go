@@ -2,25 +2,48 @@ package emcogit2go
 
 import (
 	"errors"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 
 	git "github.com/libgit2/git2go/v33"
+	v1alpha1 "gitlab.com/project-emco/core/emco-base/src/monitor/pkg/apis/k8splugin/v1alpha1"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
+	gitUtils "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/gitops/utils"
+	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/internal/utils"
+//	. "gitlab.com/project-emco/core/emco-base/src/rsync/pkg/types"
 )
+
+type Git2go struct {
+	Url      string
+	Branch   string
+	UserName string
+	RepoName string
+	GitToken string
+
+}
+
+func NewGit2Go(url, branch, user, repo, token string) *Git2go {
+
+	g := Git2go {
+		Url: url,
+		Branch: branch,
+		UserName: user,
+		RepoName: repo,
+		GitToken: token,
+	}
+	return &g
+}
 
 const (
 	maxrand = 0x7fffffffffffffff
 )
-
-var mutex = sync.Mutex{}
 
 func getCredCallBack(userName, token string) func(url string, username string, allowedTypes git.CredType) (*git.Credential, error) {
 	return func(url string, username string, allowedTypes git.CredType) (*git.Credential, error) {
@@ -83,16 +106,23 @@ func createFile(fileName string, content string) error {
 	return nil
 }
 
+var mutex = sync.Mutex{}
+
 // function to commit files to a branch
-func CommitFiles(url, message, branchName, folderName, userName, token string, files []CommitFile) error {
+func (p *Git2go) CommitFiles(message string, files interface{}) error {
 
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	var repo *git.Repository
 
+	url := p.Url
+	branchName := p.Branch
+	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
+	userName := p.UserName
+
 	//check if git repo exists, if not clone
-	check, err := Exists(folderName)
+	check, err := gitUtils.Exists(folderName)
 
 	if !check {
 		if err := os.Mkdir(folderName, os.ModePerm); err != nil {
@@ -139,8 +169,8 @@ func CommitFiles(url, message, branchName, folderName, userName, token string, f
 		log.Error("Error in obtaining the repo index", log.Fields{"err": err, "idx": idx})
 		return err
 	}
-
-	for _, file := range files {
+	f := convertToCommitFile(files)
+	for _, file := range f {
 		if file.Add {
 			idx, err = addToCommit(idx, *file.Path, *file.FileName, *file.Content)
 		} else {
@@ -184,7 +214,7 @@ func CommitFiles(url, message, branchName, folderName, userName, token string, f
 	}
 
 	//push branch to origin remote
-	err = PushBranch(repo, branchName, userName, token)
+	err = p.PushBranch(repo)
 	if err != nil {
 		return err
 	}
@@ -193,8 +223,13 @@ func CommitFiles(url, message, branchName, folderName, userName, token string, f
 }
 
 // function to push branch to remote origin
-func PushBranch(repo *git.Repository, branchName, userName, token string) error {
+func (p *Git2go) PushBranch(repo *git.Repository) error {
 	// push the branch to origin
+
+	branchName := p.Branch
+	userName := p.UserName
+	token := p.GitToken
+
 	remote, err := repo.Remotes.Lookup("origin")
 	if err != nil {
 		log.Error("Error in obtaining remote", log.Fields{"err": err, "branchName": branchName})
@@ -211,19 +246,6 @@ func PushBranch(repo *git.Repository, branchName, userName, token string) error 
 	}
 
 	return nil
-}
-
-//function to check if folder exists
-// exists returns whether the given file or directory exists
-func Exists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
 }
 
 // function to add file for commit
@@ -246,7 +268,7 @@ func addToCommit(idx *git.Index, path, fileName, contents string) (*git.Index, e
 func deleteFromCommit(idx *git.Index, path, fileName string) (*git.Index, error) {
 
 	// check if the file Exists
-	check, err := Exists(path)
+	check, err := gitUtils.Exists(path)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +286,7 @@ func deleteFromCommit(idx *git.Index, path, fileName string) (*git.Index, error)
 }
 
 // function to add file to commit files array
-func Add(path, fileName, content string, ref interface{}) []CommitFile {
+func (p *Git2go)Add(path, fileName, content string, ref interface{}) interface{} {
 	files := append(convertToCommitFile(ref), CommitFile{
 		Add:      true,
 		Path:     &path,
@@ -277,20 +299,20 @@ func Add(path, fileName, content string, ref interface{}) []CommitFile {
 }
 
 // function to delete file from commit files array
-func Delete(path, fileName string, ref interface{}) []CommitFile {
+func (p *Git2go)Delete(path string, ref interface{}) interface{} {
 	files := append(convertToCommitFile(ref), CommitFile{
 		Add:      false,
 		Path:     &path,
-		FileName: &fileName,
+		FileName: &path, // TODO: FixME
 	})
 
 	return files
 }
 
 /*
-	Helper function to convert interface to []gitprovider.CommitFile
+	Helper function to convert interface to []git2go.CommitFile
 	params: files interface{}
-	return: []gitprovider.CommitFile
+	return: []git2go.CommitFile
 */
 func convertToCommitFile(ref interface{}) []CommitFile {
 	var exists bool
@@ -349,8 +371,10 @@ func CreateBranch(folderName, branchName string) (*git.Branch, error) {
 }
 
 //function to pull branch
-func GitPull(url, folderName, branchName, userName string) error {
-	check, err := Exists(folderName)
+func (p *Git2go) GitPull(folderName, branchName string) error {
+	url := p.Url
+	userName := p.UserName
+	check, err := gitUtils.Exists(folderName)
 
 	if !check {
 		if err := os.Mkdir(folderName, os.ModePerm); err != nil {
@@ -651,7 +675,7 @@ func GetLatestCommit(path, branchName string) (*git.Oid, error) {
 
 	return headCommit, nil
 }
-
+/*
 //function to delete all files in a path
 func GetFilesToDelete(folderName, filePath string) ([]CommitFile, error) {
 	var files []CommitFile
@@ -673,7 +697,7 @@ func GetFilesToDelete(folderName, filePath string) ([]CommitFile, error) {
 
 	return files, err
 }
-
+*/
 // function to push branch to remote origin
 func PushDeleteBranch(repo *git.Repository, branchName, userName, token string) error {
 	// push the branch to origin
@@ -789,78 +813,149 @@ func commitMergeToMaster(repo *git.Repository, signature *git.Signature, message
 	return nil
 }
 
-// git pull using command
-func GitPullCMD(url, folderName, branchName string) error {
-	mutex.Lock()
-	defer mutex.Unlock()
-	// // // open a repo
-	check, err := Exists(folderName)
+func (p *Git2go)ClusterWatcher(cid, app, cluster string, waitTime int) error {
 
-	if !check {
-		if err := os.Mkdir(folderName, os.ModePerm); err != nil {
-			return err
-		}
-		// // clone the repo
-		_, err := git.Clone(url, folderName, &git.CloneOptions{CheckoutBranch: branchName, CheckoutOptions: git.CheckoutOptions{Strategy: git.CheckoutSafe}})
-		if err != nil {
-			return err
-		}
-	}
-	repo, err := git.OpenRepository(folderName)
-	if err != nil {
-		log.Error("Error in Opening the git repository", log.Fields{"err": err})
-		return err
-	}
-	// Locate remote
-	remote, err := repo.Remotes.Lookup("origin")
-	if err != nil {
-		log.Error("Error in looking up Origin", log.Fields{"err": err})
-		return err
-	}
+	// foldername for status
+	folderName := "/tmp/" + cluster + "-status"
+	// Start thread to sync monitor CR
+	var lastCommitSHA *git.Oid
+	go func() error {
+		ctx := context.Background()
+		for {
+			select {
+			case <-time.After(time.Duration(waitTime) * time.Second):
+				if ctx.Err() != nil {
+					return ctx.Err()
+				}
+				// Check if AppContext doesn't exist then exit the thread
+				if _, err := utils.NewAppContextReference(cid); err != nil {
+					// Delete the Status CR updated by Monitor running on the cluster
+					log.Info("Deleting cluster StatusCR", log.Fields{})
+					p.DeleteClusterStatusCR(cid, app, cluster)
+					// AppContext deleted - Exit thread
+					return nil
+				}
+				path := "clusters/" + cluster + "/" + "status" + "/" + cid + "/app/" + app + "/"
+				// branch to track
+				branch := cluster
 
-	// Fetch changes from remote
-	if err := remote.Fetch([]string{}, nil, ""); err != nil {
-		log.Error("Error in Fetching", log.Fields{"err": err})
-		return err
-	}
-	// // check if a local branch exist if not do a checkout
-	localBranch, err := repo.LookupBranch(branchName, git.BranchLocal)
-	// // No local branch, lets create one
-	if localBranch == nil || err != nil {
-		err = CheckoutBranchCMD(folderName, branchName)
-		if err != nil {
-			log.Error("Error in Fetching", log.Fields{"err": err})
+				// // git pull
+				mutex.Lock()
+				err := p.GitPull(folderName, branch)
+				mutex.Unlock()
+
+				if err != nil {
+					log.Error("Error in Pulling Branch", log.Fields{"err": err})
+					continue
+				}
+
+				//obtain the latest commit SHA
+				mutex.Lock()
+				latestCommitSHA, err := GetLatestCommit(folderName, branch)
+				mutex.Unlock()
+				if err != nil {
+					log.Error("Error in obtaining latest commit SHA", log.Fields{"err": err})
+				}
+
+				if lastCommitSHA != latestCommitSHA || lastCommitSHA == nil {
+					log.Debug("New Status File, pulling files", log.Fields{"LatestSHA": latestCommitSHA, "LastSHA": lastCommitSHA})
+					// files, err := emcogit2go.GetFilesInPath(folderName + "/" + path)
+					files, err := GetFilesInPath(folderName + "/" + path)
+					if err != nil {
+						log.Debug("Status file not available", log.Fields{"error": err, "resource": path})
+						continue
+					}
+					log.Info("Files to track status", log.Fields{"files": files})
+
+					if len(files) > 0 {
+						// Only one file expected in the location
+						// fileContent, err := emcogit2go.GetFileContent(files[0])
+						fileContent, err := GetFileContent(files[0])
+						if err != nil {
+							log.Error("", log.Fields{"error": err, "cluster": cluster, "resource": path})
+							return err
+						}
+						content := &v1alpha1.ResourceBundleState{}
+						_, err = utils.DecodeYAMLData(fileContent, content)
+						if err != nil {
+							log.Error("", log.Fields{"error": err, "cluster": cluster, "resource": path})
+							return err
+						}
+						status.HandleResourcesStatus(cid, app, cluster, content)
+					}
+
+					lastCommitSHA = latestCommitSHA
+
+				}
+
+			// Check if the context is canceled
+			case <-ctx.Done():
+				return ctx.Err()
+			}
 		}
-	}
-	// set head to point to the created branch
-	err = repo.SetHead("refs/heads/" + branchName)
-	if err != nil {
-		log.Error("Error in settting the head", log.Fields{"err": err, "branchName": branchName})
-		return err
-	}
-	cmd := exec.Command("git", "pull")
-	cmd.Dir = folderName
-	err = cmd.Run()
-	if err != nil {
-		return err
-	}
+	}()
 	return nil
 }
 
-//function to checkout branch using command
-func CheckoutBranchCMD(folderName, branchName string) error {
-	_, err := git.OpenRepository(folderName)
-	if err != nil {
-		return err
-	}
 
-	// using git command
-	cmd := exec.Command("git", "checkout", "-b", branchName, "origin/"+branchName)
-	cmd.Dir = folderName
-	err = cmd.Run()
+// DeleteClusterStatusCR deletes the status CR provided by the monitor on the cluster
+func (p *Git2go) DeleteClusterStatusCR(cid, app, cluster string) error {
+	// Delete the status CR
+	// branch to track
+	// branch := p.Cluster + "-" + p.Cid + "-" + p.App
+
+	// ctx := context.Background()
+
+	// // Delete the branch
+	// err := emcogit.DeleteBranch(ctx, p.Client, p.UserName, p.RepoName, branch, p.GitType)
+	// if err != nil {
+	// 	log.Error("Error in deleting branch", log.Fields{"err": err})
+	// 	return err
+	// }
+
+	//delete the dummy branch as well
+	folderName := "/tmp/" + p.UserName + "-" + p.RepoName
+	// // // // open a repo
+	//obtain files to be delete
+	path := "clusters/" + cluster + "/context/" + cid + "/app/" + app + "/" + cid + "-" + app + ".yaml"
+
+	// files, err := emcogit2go.GetFilesToDelete(folderName, path)
+	// files, err := GetFilesToDelete(folderName, path)
+	// if err != nil {
+	// 	log.Error("Error in obtaining files to Delete", log.Fields{"path": path})
+	// }
+	check, err := gitUtils.Exists(folderName + "/" + path)
 	if err != nil {
-		log.Error("Git checkout error", log.Fields{"err": err, "branchName": branchName})
 		return err
 	}
+	var ref interface{}
+	if check {
+		files := p.Delete(folderName+"/"+path, ref)
+		err := p.CommitFiles("Deleting status CR files "+path, files)
+		if err != nil {
+			log.Error("Error in commiting files to Delete", log.Fields{"path": path})
+		}
+	}
+	// if len(files) != 0 {
+	// 	// err = emcogit2go.CommitFiles(p.Url, "Deleting status CR files "+path, p.Branch, folderName, p.UserName, p.GitToken, files)
+	// 	err := p.CommitFiles("Deleting status CR files "+path, files)
+	// 	if err != nil {
+	// 		log.Error("Error in commiting files to Delete", log.Fields{"path": path})
+	// 	}
+	// }
+	// err = emcogit2go.DeleteBranch(repo, branch)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// err = emcogit2go.PushDeleteBranch(repo, branch)
+	// if err != nil {
+	// 	return err
+	// }
+	// remove the local folder
+	// err := os.RemoveAll(folderName)
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
