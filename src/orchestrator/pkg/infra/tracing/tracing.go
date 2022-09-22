@@ -19,10 +19,14 @@ import (
 )
 
 func createTracerProvider() (*tracesdk.TracerProvider, error) {
-	endpoint := "http://" + net.JoinHostPort(config.GetConfiguration().ZipkinIP, config.GetConfiguration().ZipkinPort) + "/api/v2/spans"
-	exp, err := zipkin.New(endpoint)
-	if err != nil {
-		return nil, err
+	var opts []tracesdk.TracerProviderOption
+	if config.GetConfiguration().ZipkinIP != "" {
+		endpoint := "http://" + net.JoinHostPort(config.GetConfiguration().ZipkinIP, config.GetConfiguration().ZipkinPort) + "/api/v2/spans"
+		exp, err := zipkin.New(endpoint)
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, tracesdk.WithBatcher(exp))
 	}
 	var ok bool
 	var name, namespace string
@@ -32,14 +36,11 @@ func createTracerProvider() (*tracesdk.TracerProvider, error) {
 	if namespace, ok = os.LookupEnv("POD_NAMESPACE"); !ok {
 		namespace = "default"
 	}
-	tp := tracesdk.NewTracerProvider(
-		tracesdk.WithBatcher(exp),
-		tracesdk.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceNameKey.String(name+"."+namespace),
-		)),
-	)
-	return tp, nil
+	opts = append(opts, tracesdk.WithResource(resource.NewWithAttributes(
+		semconv.SchemaURL,
+		semconv.ServiceNameKey.String(name+"."+namespace),
+	)))
+	return tracesdk.NewTracerProvider(opts...), nil
 }
 
 func InitializeTracer() error {

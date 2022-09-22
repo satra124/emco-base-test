@@ -98,7 +98,7 @@ func defaultConfiguration() *Configuration {
 		EtcdCert:               "",
 		EtcdKey:                "",
 		EtcdCAFile:             "",
-		ZipkinIP:               "127.0.0.1",
+		ZipkinIP:               "",
 		ZipkinPort:             "9411",
 		GrpcServerCert:         "",
 		GrpcServerKey:          "",

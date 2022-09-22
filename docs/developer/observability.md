@@ -23,6 +23,13 @@ $ kubectl label namespace emco istio-injection=enabled
 ### Install EMCO in the emco namespace
 Use the EMCO Helm chart to install EMCO in the emco namespace. The EMCO services will come up with Istio sidecars.
 
+Exporting tracing data is disabled by default. To enable, set `global.zipkinIp` as shown below (`global.zipkinPort` is optional, it defaults to 9411).
+```shell
+helm install emco -n emco emco/emco \
+  --set global.zipkinIp=zipkin.istio-system \
+  --set global.zipkinPort=9411
+```
+
 ## Access addon dashboards
 The Istio addon dashboards can be accessed at the following URLs in the cluster.
 
