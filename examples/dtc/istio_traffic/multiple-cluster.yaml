@@ -114,7 +114,7 @@ metadata :
 spec:
   kv:
     - istioIngressGatewayAddress : "192.168.121.15"
-    - istioIngressGatewayPort: "15443"
+    - istioIngressGatewayPort: "32001"
     - istioIngressGatewayInternalPort: "15443"
 ---
 #create project
