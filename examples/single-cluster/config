@@ -1,4 +1,4 @@
-DNS=false
+DNS=true
 HOST_IP=
 KUBE_PATH=
 IMAGE_REPOSITORY=
