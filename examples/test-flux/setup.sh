@@ -26,11 +26,17 @@ OUTPUT_DIR=output
 TIME_OUT=${TIME_OUT:-"60"}
 SYNC_INTERVAL=${SYNC_INTERVAL:-"60"}
 RETRY_INTERVAL=${RETRY_INTERVAL:-"60"}
+LOGICAL_CLOUD_LEVEL=${LOGICAL_CLOUD_LEVEL:-"admin"}
 
 function create_common_values {
     local output_dir=$1
     local host_ip=$2
 
+    if [ "$LOGICAL_CLOUD_LEVEL" = "standard" ]; then
+        LOGICAL_CLOUD="lc1"
+    else
+        LOGICAL_CLOUD="default"
+    fi
     create_apps $output_dir
     create_config_file $host_ip
 
@@ -40,6 +46,9 @@ function create_common_values {
     ClusterProvider: provider-flux
     ClusterLabel: edge-cluster
     AdminCloud: default
+    LogicalCloud: $LOGICAL_CLOUD
+    StandardNamespace: standard-lc-ns
+    StandardPermission: standard-permission
     CompositeApp: test-composite-app
     CompositeProfile: test-composite-profile
     GenericPlacementIntent: test-placement-intent
@@ -79,7 +88,19 @@ function create_common_values {
         Cluster:
           - cluster2
 
+
 NET
+
+echo "Generating prerequisites.yaml: common section"
+cp templates/prerequisites-common.yaml 00-prerequisites.yaml
+
+if [ "$LOGICAL_CLOUD_LEVEL" = "standard" ]; then
+echo "Generating prerequisites.yaml: Privileged Logical Cloud section"
+cat templates/prerequisites-lc-standard.yaml >> 00-prerequisites.yaml
+else
+echo "Generating prerequisites.yaml: Admin Logical Cloud section"
+cat templates/prerequisites-lc-admin.yaml >> 00-prerequisites.yaml
+fi
 }
 
 
@@ -91,6 +112,7 @@ function cleanup {
     rm -f *.tar.gz
     rm -f values.yaml
     rm -f emco-cfg.yaml
+    rm -f 00-prerequisites.yaml
     rm -rf $OUTPUT_DIR
 }
 
