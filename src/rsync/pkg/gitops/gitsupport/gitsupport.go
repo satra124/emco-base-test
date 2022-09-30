@@ -100,8 +100,8 @@ func NewGitProvider(ctx context.Context, cid, app, cluster, level, namespace str
 			continue
 		}
 	}
-	if len(gitType) <= 0 || len(gitToken) <= 0 || len(branch) <= 0 || len(userName) <= 0 || len(repoName) <= 0 || len(url) <= 0 {
-		log.Error("Missing information for Git", log.Fields{"gitType": gitType, "token": gitToken, "branch": branch, "userName": userName, "repoName": repoName, "url": url})
+	if len(gitToken) <= 0 || len(branch) <= 0 || len(userName) <= 0 || len(repoName) <= 0 || len(url) <= 0 {
+		log.Error("Missing information for Git", log.Fields{"token": gitToken, "branch": branch, "userName": userName, "repoName": repoName, "url": url})
 		return nil, pkgerrors.Errorf("Missing Information for Git")
 	}
 

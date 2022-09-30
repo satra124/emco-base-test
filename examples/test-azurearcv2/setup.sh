@@ -26,7 +26,6 @@ CLIENT_SECRET=${CLIENT_SECRET:-"oops"}
 SUB_ID=${SUB_ID:-"oops"}
 ARC_CLUSTER=${ARC_CLUSTER:-"oops"}
 ARC_RG=${ARC_RG:-"oops"}
-GIT_TYPE=${GIT_TYPE:-"oops"}
 GIT_BRANCH=${GIT_BRANCH:-"oops"}
 GIT_URL=${GIT_URL:-"oops"}
 TIME_OUT=${TIME_OUT:-"60"}
@@ -74,7 +73,6 @@ function create_common_values {
     GitToken: $GIT_TOKEN
     GitRepo: $GIT_REPO
     GitUrl: $GIT_URL
-    GitType: $GIT_TYPE
     GitBranch: $GIT_BRANCH
     GitResObj: GitObjectAzure
     ClientID: $CLIENT_ID

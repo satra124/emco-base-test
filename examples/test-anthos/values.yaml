@@ -12,7 +12,6 @@
     OvnPort: 9032
     DtcPort: 9048
     NpsPort: 9038
-    GitType: gitea
     GitObj: GitObject
     GitUser:
     GitToken: TOKEN_HERE

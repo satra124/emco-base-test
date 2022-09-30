@@ -75,6 +75,7 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-git-monitor
                   key: gittype
+                  optional: true
             - name: GIT_BRANCH
               valueFrom:
                 secretKeyRef:

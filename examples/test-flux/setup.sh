@@ -19,7 +19,6 @@ KUBE_PATH1=${KUBE_PATH1:-"oops"}
 GIT_USER=${GIT_USER:-"oops"}
 GIT_TOKEN=${GIT_TOKEN:-"oops"}
 GIT_REPO=${GIT_REPO:-"oops"}
-GIT_TYPE=${GIT_TYPE:-"oops"}
 GIT_BRANCH=${GIT_BRANCH:-"oops"}
 GIT_URL=${GIT_URL:-"oops"}
 OUTPUT_DIR=output
@@ -69,7 +68,6 @@ function create_common_values {
     GitToken: $GIT_TOKEN
     GitRepo: $GIT_REPO
     GitUrl: $GIT_URL
-    GitType: $GIT_TYPE
     GitBranch: $GIT_BRANCH
     TimeOut: $TIME_OUT
     SyncInterval: $SYNC_INTERVAL

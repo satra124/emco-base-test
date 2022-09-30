@@ -101,7 +101,7 @@ metadata:
   name: {{ $.GitObj}}
 spec:
   kv:
-  - gitType: {{ $.GitType }}
+  #- gitType: github  # Uncomment to use Github REST APIs
   - userName: {{ $.GitUser }}
   - gitToken:  {{ $.GitToken }}
   - repoName: {{ $.GitRepo }}
