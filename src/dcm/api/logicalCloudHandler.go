@@ -316,8 +316,11 @@ func (h logicalCloudHandler) terminateHandler(w http.ResponseWriter, r *http.Req
 	lc, err := h.client.Get(ctx, project, name)
 	if err != nil {
 		apiErr := apierror.HandleErrors(vars, err, nil, apiErrors)
-		http.Error(w, apiErr.Message, apiErr.Status)
-		return
+		if apiErr.Message != "No Cluster References associated" {
+			http.Error(w, apiErr.Message, apiErr.Status)
+			return
+		}
+		log.Warn("Proceeding to terminate Logical Cloud even though Cluster References no longer exist", log.Fields{"logicalcloud": name})
 	}
 
 	// Check if any DIGs are associated to this logical cloud before attempting any termination
