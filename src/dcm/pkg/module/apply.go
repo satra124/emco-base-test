@@ -344,7 +344,7 @@ func createUserCSR(logicalcloud common.LogicalCloud, pkData string) (string, str
 	}
 
 	userName := logicalcloud.Specification.User.UserName
-	name := strings.Join([]string{logicalcloud.MetaData.Name, "-user-csr"}, "")
+	name := strings.Join([]string{logicalcloud.MetaData.Name, "-", logicalcloud.Specification.NameSpace, "-user-csr"}, "")
 
 	csrTemplate := x509.CertificateRequest{Subject: pkix.Name{CommonName: userName}}
 
