@@ -5,10 +5,10 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/client_golang v1.11.1
 	github.com/stretchr/testify v1.8.0
-	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-20220613182525-5b48099794c6
-	gitlab.com/project-emco/core/emco-base/src/rsync v0.0.0-00010101000000-000000000000
+	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-20221110205714-0f9537606800
+	gitlab.com/project-emco/core/emco-base/src/rsync v0.0.0-20221110205714-0f9537606800
 	gitlab.com/project-emco/core/emco-base/src/workflowmgr v0.0.0-20220512034944-f292095c1792
 	go.opentelemetry.io/otel v1.8.0
 	go.temporal.io/api v1.7.0
@@ -34,8 +34,7 @@ require (
 	github.com/containerd/containerd v1.5.9 // indirect
 	github.com/containerd/continuity v0.1.0 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
-	github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e // indirect
-	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
+	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/cli v20.10.11+incompatible // indirect
@@ -136,9 +135,11 @@ require (
 	github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yourbasic/graph v0.0.0-20210606180040-8ecfec1c2869 // indirect
-	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-00010101000000-000000000000 // indirect
-	gitlab.com/project-emco/core/emco-base/src/monitor v0.0.0-00010101000000-000000000000 // indirect
-	go.etcd.io/etcd v3.3.25+incompatible // indirect
+	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-20221110205714-0f9537606800 // indirect
+	gitlab.com/project-emco/core/emco-base/src/monitor v0.0.0-20221110205714-0f9537606800 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.5 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.5 // indirect
+	go.etcd.io/etcd/client/v3 v3.5.5 // indirect
 	go.mongodb.org/mongo-driver v1.9.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo v0.33.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.28.0 // indirect
@@ -160,7 +161,7 @@ require (
 	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220308174144-ae0e22291548 // indirect
-	google.golang.org/grpc v1.44.0 // indirect
+	google.golang.org/grpc v1.49.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
@@ -197,8 +198,7 @@ replace (
 	gitlab.com/project-emco/core/emco-base/src/rsync => ../rsync
 	gitlab.com/project-emco/core/emco-base/src/workflowmgr => ../workflowmgr
 	gitlab.com/project-emco/core/emco-base/src/workflowmgr/pkg/module => ../workflowmgr/pkg/module
-	go.etcd.io/etcd => go.etcd.io/etcd v0.5.0-alpha.5.0.20200819165624-17cef6e3e9d5 // 17cef6e3e9d5 is the SHA for git tag v3.4.12
-	google.golang.org/grpc => google.golang.org/grpc v1.28.0
+
 )
 
 go 1.17
