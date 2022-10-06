@@ -16,7 +16,7 @@ image: emco-policy
 imageTag:
 pullPolicy: Always
 args: ""
-command: "./run_policy"
+command: "./sacontroller"
 workingDir: /opt/emco/policy
 
 # flag to enable debugging - application support required

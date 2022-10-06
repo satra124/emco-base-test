@@ -6,7 +6,7 @@ replace (
 	gitlab.com/project-emco/core/emco-base/src/clm => ../clm
 	gitlab.com/project-emco/core/emco-base/src/monitor => ../monitor
 	gitlab.com/project-emco/core/emco-base/src/orchestrator => ../orchestrator
-	gitlab.com/project-emco/core/emco-base/src/policy => ../policy/sacontroller
+	gitlab.com/project-emco/core/emco-base/src/policy => ../policy
 	gitlab.com/project-emco/core/emco-base/src/rsync => ../rsync
 )
 
