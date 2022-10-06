@@ -20,6 +20,7 @@ import (
 	"gitlab.com/project-emco/core/emco-base/src/rsync/pkg/status"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // decodeYAML reads a YAMl []byte to extract the Kubernetes object definition
@@ -128,7 +129,7 @@ func getClusterResources(rbData rb.ResourceBundleStateStatus, qType, qOutput str
 		}
 		if updateResourceList(resourceList, r, qType) {
 			count++
-		} else {
+		} else if markAsNotPresent(r.Gvk) {
 			updateNotPresentCount(false, cnts)
 		}
 	}
@@ -150,7 +151,7 @@ func getClusterResources(rbData rb.ResourceBundleStateStatus, qType, qOutput str
 		}
 		if updateResourceList(resourceList, r, qType) {
 			count++
-		} else {
+		} else if markAsNotPresent(r.Gvk) {
 			updateNotPresentCount(false, cnts)
 		}
 	}
@@ -172,7 +173,7 @@ func getClusterResources(rbData rb.ResourceBundleStateStatus, qType, qOutput str
 		}
 		if updateResourceList(resourceList, r, qType) {
 			count++
-		} else {
+		} else if markAsNotPresent(r.Gvk) {
 			updateNotPresentCount(false, cnts)
 		}
 	}
@@ -194,7 +195,7 @@ func getClusterResources(rbData rb.ResourceBundleStateStatus, qType, qOutput str
 		}
 		if updateResourceList(resourceList, r, qType) {
 			count++
-		} else {
+		} else if markAsNotPresent(r.Gvk) {
 			updateNotPresentCount(false, cnts)
 		}
 	}
@@ -216,7 +217,7 @@ func getClusterResources(rbData rb.ResourceBundleStateStatus, qType, qOutput str
 		}
 		if updateResourceList(resourceList, r, qType) {
 			count++
-		} else {
+		} else if markAsNotPresent(r.Gvk) {
 			updateNotPresentCount(false, cnts)
 		}
 	}
@@ -238,7 +239,7 @@ func getClusterResources(rbData rb.ResourceBundleStateStatus, qType, qOutput str
 		}
 		if updateResourceList(resourceList, r, qType) {
 			count++
-		} else {
+		} else if markAsNotPresent(r.Gvk) {
 			updateNotPresentCount(false, cnts)
 		}
 	}
@@ -260,7 +261,7 @@ func getClusterResources(rbData rb.ResourceBundleStateStatus, qType, qOutput str
 		}
 		if updateResourceList(resourceList, r, qType) {
 			count++
-		} else {
+		} else if markAsNotPresent(r.Gvk) {
 			updateNotPresentCount(false, cnts)
 		}
 	}
@@ -282,7 +283,7 @@ func getClusterResources(rbData rb.ResourceBundleStateStatus, qType, qOutput str
 		}
 		if updateResourceList(resourceList, r, qType) {
 			count++
-		} else {
+		} else if markAsNotPresent(r.Gvk) {
 			updateNotPresentCount(false, cnts)
 		}
 	}
@@ -306,7 +307,7 @@ func getClusterResources(rbData rb.ResourceBundleStateStatus, qType, qOutput str
 		}
 		if updateResourceList(resourceList, r, qType) {
 			count++
-		} else {
+		} else if markAsNotPresent(r.Gvk) {
 			updateNotPresentCount(false, cnts)
 		}
 	}
@@ -372,6 +373,24 @@ func keepResource(r string, rList []string) bool {
 		if r == res {
 			return true
 		}
+	}
+	return false
+}
+
+// markAsNotPresent - only identify key resources that are tracked as NotPresent
+// This will help to avoid false NotReady status queries due to some resources not
+// being tracked by the monitor process.
+func markAsNotPresent(gvk schema.GroupVersionKind) bool {
+	switch gvk {
+	case schema.GroupVersionKind{Version: "v1", Kind: "ConfigMap"},
+		schema.GroupVersionKind{Version: "v1", Kind: "Service"},
+		schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "DaemonSet"},
+		schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
+		schema.GroupVersionKind{Group: "batch", Version: "v1", Kind: "Job"},
+		schema.GroupVersionKind{Version: "v1", Kind: "Pod"},
+		schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "StatefulSet"},
+		schema.GroupVersionKind{Group: "certificates.k8s.io", Version: "v1", Kind: "CertificateSigningRequest"}:
+		return true
 	}
 	return false
 }
@@ -544,10 +563,10 @@ func getAppContextResources(ctx context.Context, ac, sac appcontext.AppContext, 
 			r.DeployedStatus = fmt.Sprintf("%v", rstatus.Status)
 			cnt := statusCnts[rstatus.Status]
 			statusCnts[rstatus.Status] = cnt + 1
-		} else if qType == "ready" {
+		} else if qType == "ready" && markAsNotPresent(r.Gvk) {
 			r.ReadyStatus = "NotPresent"
 			updateNotPresentCount(true, clusterStatusCnts)
-		} else { // qType is "cluster" - deprecated
+		} else if markAsNotPresent(r.Gvk) { // qType is "cluster" - deprecated
 			r.ClusterStatus = "NotPresent"
 			updateNotPresentCount(true, clusterStatusCnts)
 		}
