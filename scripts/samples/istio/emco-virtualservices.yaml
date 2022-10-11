@@ -66,7 +66,7 @@ spec:
         regex: /v2/projects/.+/composite-apps/[^\/]*\/[^\/]*/deployment-intent-groups/[^\/]*/generic-placement-intents/[^\/]*/app-intents
     - uri:
         regex: /v2/projects/.+/composite-apps/[^\/]*\/[^\/]*/deployment-intent-groups/[^\/]*/generic-placement-intents/[^\/]*/app-intents/[^\/]*
-          
+
     route:
     - destination:
         port:
@@ -358,7 +358,27 @@ spec:
   http:
   - match:
     - uri:
-        prefix: /mesh/auth_callback        
+        prefix: /mesh/auth_callback
     route:
     - destination:
         host: orchestrator
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: vs-gitea
+  namespace: emco
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - emco-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api/v1
+    route:
+    - destination:
+        port:
+          number: 3000
+        host: emco-services-gitea-http.emco.svc.cluster.local
