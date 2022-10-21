@@ -31,11 +31,11 @@ function create_common_values {
     ProjectName: proj-depend-1
     ClusterProvider: provider-depend
     ClusterLabel: edge-cluster
-    AdminCloud: default
+    LogicalCloud: default
     CompositeApp: test-composite-app
     CompositeProfile: test-composite-profile
     GenericPlacementIntent: test-placement-intent
-    DeploymentIntent: test-deployment-intent
+    DeploymentIntentGroup: test-deployment-intent
     Intent: intent
     RsyncPort: 30431
     GacPort: 30433

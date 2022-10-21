@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022 Intel Corporation
+
+---
+#creating composite app entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ .ProjectName }}/composite-apps
+metadata :
+  name: {{ .CompositeApp }}
+spec:
+  compositeAppVersion: v1
+
+{{- range $index, $app := .Applist }}
+---
+#adding app to the composite app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $.CompositeApp }}/v1/apps
+metadata :
+  name: {{ $app.Name }}
+file:
+  {{ $.PackagesPath }}/{{ $app.Name }}.tar.gz
+{{- end }}
+
+---
+#creating composite profile entry
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ .ProjectName }}/composite-apps/{{ .CompositeApp }}/v1/composite-profiles
+metadata :
+  name: {{ .CompositeProfile }}
+
+{{- range $index, $app := .Applist }}
+---
+#adding app profiles to the composite profile
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $.CompositeApp }}/v1/composite-profiles/{{ $.CompositeProfile }}/profiles
+metadata :
+  name: {{ $app.Name }}-profile
+spec:
+  app: {{ $app.Name }}
+file:
+  {{ $.PackagesPath }}/{{ $app.Name }}_profile.tar.gz
+{{- end }}
+
+---
+#adding dependency to the app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $.CompositeApp }}/v1/apps/{{ $.APP1}}/dependency
+metadata :
+  name: {{ $.APP2 }}
+spec:
+  app: {{ $.APP2 }}
+  opStatus: Ready
+  wait: 10
+
+---
+#adding dependency to the app
+version: emco/v2
+resourceContext:
+  anchor: projects/{{ $.ProjectName }}/composite-apps/{{ $.CompositeApp }}/v1/apps/{{ $.APP2}}/dependency
+metadata :
+  name: {{ $.APP3 }}
+spec:
+  app: {{ $.APP3 }}
+  opStatus: Ready
+  wait: 10
