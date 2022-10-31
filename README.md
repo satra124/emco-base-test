@@ -173,7 +173,7 @@ See the [EMCO Helm Tutorial](deployments/helm/Tutorial_Helm.md) for additional i
 
 ### From source
 
-If you wish to build and deploy EMCO from source and/or customize/build local Helm charts, check [EMCO Build & Deploy](docs/design/emco-design.md).
+If you wish to build and deploy EMCO from source and/or customize/build local Helm charts, check [EMCO Build & Deploy](docs/BUILD.md).
 
 ### Client/CLI
 
