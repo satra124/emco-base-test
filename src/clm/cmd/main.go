@@ -10,7 +10,9 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"gitlab.com/project-emco/core/emco-base/src/clm/api"
+	"gitlab.com/project-emco/core/emco-base/src/clm/pkg/metrics"
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
@@ -33,6 +35,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	prometheus.MustRegister(metrics.CLPGauge)
+	prometheus.MustRegister(metrics.ClusterGauge)
+
 	server, err := controller.NewControllerServer("clm",
 		api.NewRouter(nil),
 		nil)
@@ -50,6 +55,7 @@ func main() {
 		close(connectionsClose)
 	}()
 
+	metrics.Start()
 	err = server.ListenAndServe()
 	if err != nil {
 		log.Error("Server failed", log.Fields{"Error": err})

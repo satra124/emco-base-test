@@ -1,13 +1,14 @@
 module gitlab.com/project-emco/core/emco-base/src/dtc
 
 require (
-	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.11.0
 	github.com/stretchr/testify v1.8.0
 	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-00010101000000-000000000000
+	go.opentelemetry.io/otel v1.8.0
 )
 
 replace (

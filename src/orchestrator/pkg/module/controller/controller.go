@@ -42,10 +42,12 @@ type ControllerSpec struct {
 	Priority int    `json:"priority"`
 }
 
-const MinControllerPriority = 1
-const MaxControllerPriority = 1000000
-const CONTROLLER_TYPE_ACTION string = "action"
-const CONTROLLER_TYPE_PLACEMENT string = "placement"
+const (
+	MinControllerPriority            = 1
+	MaxControllerPriority            = 1000000
+	CONTROLLER_TYPE_ACTION    string = "action"
+	CONTROLLER_TYPE_PLACEMENT string = "placement"
+)
 
 var CONTROLLER_TYPES = [...]string{CONTROLLER_TYPE_ACTION, CONTROLLER_TYPE_PLACEMENT}
 
@@ -101,16 +103,15 @@ func NewControllerClient(name, tag, group string) *ControllerClient {
 
 // CreateController a new collection based on the Controller
 func (mc *ControllerClient) CreateController(ctx context.Context, m Controller, mayExist bool) (Controller, error) {
-
 	log.Info("CreateController .. start", log.Fields{"Controller": m, "exists": mayExist})
 
-	//Construct the composite key to select the entry
+	// Construct the composite key to select the entry
 	key := ControllerKey{
 		ControllerName:  m.Metadata.Name,
 		ControllerGroup: mc.tagGroup,
 	}
 
-	//Check if this Controller already exists
+	// Check if this Controller already exists
 	_, err := mc.GetController(ctx, m.Metadata.Name)
 	if err == nil && !mayExist {
 		return Controller{}, pkgerrors.New("Controller already exists")
@@ -130,8 +131,7 @@ func (mc *ControllerClient) CreateController(ctx context.Context, m Controller, 
 
 // GetController returns the Controller for corresponding name
 func (mc *ControllerClient) GetController(ctx context.Context, name string) (Controller, error) {
-
-	//Construct the composite key to select the entry
+	// Construct the composite key to select the entry
 	key := ControllerKey{
 		ControllerName: name,
 	}
@@ -156,8 +156,7 @@ func (mc *ControllerClient) GetController(ctx context.Context, name string) (Con
 
 // GetControllers returns all the  Controllers that are registered
 func (mc *ControllerClient) GetControllers(ctx context.Context) ([]Controller, error) {
-
-	//Construct the composite key to select the entry
+	// Construct the composite key to select the entry
 	key := ControllerKey{
 		ControllerName:  "",
 		ControllerGroup: mc.tagGroup,
@@ -184,8 +183,7 @@ func (mc *ControllerClient) GetControllers(ctx context.Context) ([]Controller, e
 
 // DeleteController the  Controller from database
 func (mc *ControllerClient) DeleteController(ctx context.Context, name string) error {
-
-	//Construct the composite key to select the entry
+	// Construct the composite key to select the entry
 	key := ControllerKey{
 		ControllerName:  name,
 		ControllerGroup: mc.tagGroup,

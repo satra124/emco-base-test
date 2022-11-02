@@ -39,6 +39,8 @@ spec:
         imagePullPolicy: {{ .Values.global.pullPolicy | default .Values.pullPolicy }}
         name: {{ include "common.name" . }}
         env:
+        - name: EMCO_METRICS_POLLING_INTERVAL_SECS
+          value: "{{ .Values.global.metricsPollingIntervalSecs }}"
         {{- $userProxy := .Values | default dict }}
         {{- if $userProxy.noProxyHosts }}
         - name: NO_PROXY

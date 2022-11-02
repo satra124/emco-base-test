@@ -11,8 +11,10 @@ import (
 	controller "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
 )
 
-var moduleClient *module.Client
-var moduleController *controller.ControllerClient
+var (
+	moduleClient     *module.Client
+	moduleController *controller.ControllerClient
+)
 
 // For the given client and testClient, if the testClient is not null and
 // implements the client manager interface corresponding to client, then
@@ -62,7 +64,6 @@ func setClient(client, testClient interface{}) interface{} {
 
 // NewRouter creates a router that registers the various urls that are supported
 func NewRouter(testClient interface{}) *mux.Router {
-
 	moduleClient = module.NewClient()
 
 	router := mux.NewRouter()

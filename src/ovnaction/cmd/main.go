@@ -6,25 +6,28 @@ package main
 import (
 	"context"
 	"math/rand"
-	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	"github.com/gorilla/handlers"
+	"github.com/prometheus/client_golang/prometheus"
 	register "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/grpc"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/config"
 	contextDb "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/contextdb"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/controller"
 	"gitlab.com/project-emco/core/emco-base/src/ovnaction/api"
 	"gitlab.com/project-emco/core/emco-base/src/ovnaction/pkg/grpc/contextupdateserver"
+	"gitlab.com/project-emco/core/emco-base/src/ovnaction/pkg/metrics"
 )
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	err := db.InitializeDatabaseConnection(context.Background(), "emco")
+	ctx := context.Background()
+
+	err := db.InitializeDatabaseConnection(ctx, "emco")
 	if err != nil {
 		log.Error("Unable to initialize mongo database connection", log.Fields{"Error": err})
 		os.Exit(1)
@@ -35,35 +38,39 @@ func main() {
 		os.Exit(1)
 	}
 
-	httpRouter := api.NewRouter(nil)
-	loggedRouter := handlers.LoggingHandler(os.Stdout, httpRouter)
-	log.Info("Starting Network Customization Manager", log.Fields{"Port": config.GetConfiguration().ServicePort})
-
-	httpServer := &http.Server{
-		Handler: loggedRouter,
-		Addr:    ":" + config.GetConfiguration().ServicePort,
+	grpcServer, err := register.NewGrpcServer("ovnaction", "OVNACTION_NAME", 9032,
+		register.RegisterContextUpdateService, contextupdateserver.NewContextupdateServer())
+	if err != nil {
+		log.Error("Unable to create gRPC server", log.Fields{"Error": err})
+		os.Exit(1)
 	}
 
-	go func() {
-		err := register.StartGrpcServer("ovnaction", "OVNACTION_NAME", 9032,
-			register.RegisterContextUpdateService, contextupdateserver.NewContextupdateServer())
-		if err != nil {
-			log.Error("GRPC server failed to start", log.Fields{"Error": err})
-			os.Exit(1)
-		}
-	}()
+	prometheus.MustRegister(metrics.NetworkControllerIntentGauge)
+	prometheus.MustRegister(metrics.WorkloadIntentGauge)
+	prometheus.MustRegister(metrics.WorkloadInterfaceIntentGauge)
+
+	log.Info("Starting Network Customization Manager", log.Fields{"Port": config.GetConfiguration().ServicePort})
+
+	server, err := controller.NewControllerServer("ovnaction",
+		api.NewRouter(nil),
+		grpcServer)
+	if err != nil {
+		log.Error("Unable to create server", log.Fields{"Error": err})
+		os.Exit(1)
+	}
 
 	connectionsClose := make(chan struct{})
 	go func() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
 		<-c
-		httpServer.Shutdown(context.Background())
+		server.Shutdown(ctx)
 		close(connectionsClose)
 	}()
 
-	err = httpServer.ListenAndServe()
+	metrics.Start()
+	err = server.ListenAndServe()
 	if err != nil {
-		log.Error("HTTP server failed", log.Fields{"Error": err})
+		log.Error("Server failed", log.Fields{"Error": err})
 	}
 }

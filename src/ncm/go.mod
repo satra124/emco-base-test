@@ -2,12 +2,13 @@ module gitlab.com/project-emco/core/emco-base/src/ncm
 
 require (
 	github.com/ghodss/yaml v1.0.0
-	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.2.0
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.11.0
 	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-00010101000000-000000000000
 	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-00010101000000-000000000000
+	go.opentelemetry.io/otel v1.8.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.23.3
 )
