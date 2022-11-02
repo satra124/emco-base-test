@@ -19,6 +19,7 @@ import (
 	"github.com/pkg/errors"
 	"gitlab.com/project-emco/core/emco-base/src/genericactioncontroller/api"
 	"gitlab.com/project-emco/core/emco-base/src/genericactioncontroller/pkg/module"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common/emcoerror"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
 )
 
@@ -57,7 +58,10 @@ func (m *mockCustomizationManager) CreateCustomization(ctx context.Context, cust
 	}
 
 	if iExists && failIfExists { // customization already exists
-		return module.Customization{}, iExists, errors.New("Customization already exists")
+		return module.Customization{}, iExists, emcoerror.NewEmcoError(
+			module.CustomizationAlreadyExists,
+			emcoerror.Conflict,
+		)
 	}
 
 	if iExists && !failIfExists { // customization already exists. update the customization
@@ -90,7 +94,10 @@ func (m *mockCustomizationManager) DeleteCustomization(ctx context.Context,
 		}
 	}
 
-	return errors.New("db Remove resource not found") // customization does not exist
+	return emcoerror.NewEmcoError(
+		"the requested resource not found",
+		emcoerror.NotFound,
+	) // customization does not exist
 }
 
 func (m *mockCustomizationManager) GetAllCustomization(ctx context.Context,
@@ -122,7 +129,10 @@ func (m *mockCustomizationManager) GetCustomization(ctx context.Context,
 		}
 	}
 
-	return module.Customization{}, errors.New("Customization not found")
+	return module.Customization{}, emcoerror.NewEmcoError(
+		module.CustomizationNotFound,
+		emcoerror.NotFound,
+	)
 }
 
 func (m *mockCustomizationManager) GetCustomizationContent(ctx context.Context,
@@ -162,7 +172,7 @@ var _ = Describe("Test create customization handlers",
 					entry:      "request body validation",
 					input:      customizationInput(""), // create an empty customization payload
 					result:     mockCustomization{},
-					err:        errors.New("customization name may not be empty\ncluster specific may not be empty\nscope may not be empty\ncluster provider may not be empty\nmode may not be empty\n"),
+					err:        errors.New("customization name may not be emptycluster specific may not be emptyscope may not be emptycluster provider may not be emptymode may not be empty"),
 					statusCode: http.StatusBadRequest,
 					client: &mockCustomizationManager{
 						Err:   nil,
@@ -185,10 +195,13 @@ var _ = Describe("Test create customization handlers",
 			),
 			Entry("customization already exists",
 				test{
-					entry:      "customization already exists",
-					input:      customizationInput("testCustomization-1"),
-					result:     mockCustomization{},
-					err:        errors.New("customization already exists\n"),
+					entry:  "customization already exists",
+					input:  customizationInput("testCustomization-1"),
+					result: mockCustomization{},
+					err: emcoerror.NewEmcoError(
+						module.CustomizationAlreadyExists,
+						emcoerror.Conflict,
+					),
 					statusCode: http.StatusConflict,
 					client: &mockCustomizationManager{
 						Err:   nil,
@@ -229,8 +242,11 @@ var _ = Describe("Test get customization handlers",
 					entry:      "customization not found",
 					name:       "nonExistingCustomization",
 					statusCode: http.StatusNotFound,
-					err:        errors.New("customization not found\n"),
-					result:     mockCustomization{},
+					err: emcoerror.NewEmcoError(
+						module.CustomizationNotFound,
+						emcoerror.NotFound,
+					),
+					result: mockCustomization{},
 					client: &mockCustomizationManager{
 						Err:   nil,
 						Items: populateCustomizationTestData(),
@@ -309,7 +325,7 @@ var _ = Describe("Test update customization handlers",
 					name:       "testCustomization",
 					input:      customizationInput(""), // create an empty customization payload
 					result:     mockCustomization{},
-					err:        errors.New("customization name may not be empty\ncluster specific may not be empty\nscope may not be empty\ncluster provider may not be empty\nmode may not be empty\n"),
+					err:        errors.New("customization name may not be emptycluster specific may not be emptyscope may not be emptycluster provider may not be emptymode may not be empty"),
 					statusCode: http.StatusBadRequest,
 					client: &mockCustomizationManager{
 						Err:   nil,
@@ -376,8 +392,11 @@ var _ = Describe("Test delete customization handlers",
 					entry:      "db remove customization not found",
 					name:       "nonExistingCustomization",
 					statusCode: http.StatusNotFound,
-					err:        errors.New("The requested resource not found\n"),
-					result:     mockCustomization{},
+					err: emcoerror.NewEmcoError(
+						"the requested resource not found",
+						emcoerror.NotFound,
+					),
+					result: mockCustomization{},
 					client: &mockCustomizationManager{
 						Err:   nil,
 						Items: populateCustomizationTestData(),
@@ -721,7 +740,7 @@ func validateCustomizationResponse(res *http.Response, t test) {
 	Expect(res.StatusCode).To(Equal(t.statusCode))
 
 	if t.err != nil {
-		b := string(data)
+		b := strings.Replace(string(data), "\n", "", -1) // replace the new line at the end
 		Expect(b).To(Equal(t.err.Error()))
 		return
 	}

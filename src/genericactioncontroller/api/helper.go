@@ -6,7 +6,6 @@ package api
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,6 +15,7 @@ import (
 	"strings"
 
 	"gitlab.com/project-emco/core/emco-base/src/genericactioncontroller/pkg/module"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common/emcoerror"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/validation"
 	k8s "k8s.io/apimachinery/pkg/util/validation"
@@ -29,37 +29,46 @@ type file struct {
 }
 
 // validateRequestBody validate the request body before storing it in the database
-func validateRequestBody(r io.Reader, v interface{}, jsonSchema string) (int, error) {
+func validateRequestBody(r io.Reader, v interface{}, jsonSchema string) error {
 	err := json.NewDecoder(r).Decode(&v)
 	switch {
 	case err == io.EOF:
 		log.Error("Empty request body",
 			log.Fields{
 				"Error": err.Error()})
-		return http.StatusBadRequest, errors.New("empty request body")
+		return emcoerror.NewEmcoError(
+			"empty request body",
+			emcoerror.BadRequest,
+		)
 	case err != nil:
 		log.Error("Error decoding the request body",
 			log.Fields{
 				"Error": err.Error()})
-		return http.StatusUnprocessableEntity, errors.New("error decoding the request body")
+		return emcoerror.NewEmcoError(
+			"error decoding the request body",
+			emcoerror.UnprocessableEntity,
+		)
 	}
 
 	// validate the payload for the required values
 	if err = validateData(v); err != nil {
-		return http.StatusBadRequest, err
+		return err
 	}
 
 	// ensure that the request body matches the schema defined in the JSON file
-	err, code := validation.ValidateJsonSchemaData(jsonSchema, v)
+	err, _ = validation.ValidateJsonSchemaData(jsonSchema, v)
 	if err != nil {
 		log.Error("Json schema validation failed",
 			log.Fields{
 				"JsonSchema": jsonSchema,
 				"Error":      err.Error()})
-		return code, err
+		return emcoerror.NewEmcoError(
+			err.Error(),
+			emcoerror.BadRequest,
+		)
 	}
 
-	return 0, nil
+	return nil
 }
 
 // validateData validate the payload for the required values
@@ -75,12 +84,16 @@ func validateData(i interface{}) error {
 		log.Error("Invalid payload",
 			log.Fields{
 				"Type": p})
-		return errors.New("invalid payload")
+
+		return emcoerror.NewEmcoError(
+			"invalid payload",
+			emcoerror.BadRequest,
+		)
 	}
 }
 
 // parseFile read the content from each file and returns a base64 encoded value
-func parseFile(fileHeader []*multipart.FileHeader) ([]file, int, error) {
+func parseFile(fileHeader []*multipart.FileHeader) ([]file, error) {
 	var files []file
 	for _, fh := range fileHeader {
 		mpf, err := fh.Open()
@@ -89,7 +102,10 @@ func parseFile(fileHeader []*multipart.FileHeader) ([]file, int, error) {
 				log.Fields{
 					"Name":  fh.Filename,
 					"Error": err})
-			return nil, http.StatusUnprocessableEntity, fmt.Errorf("failed to open the file %s", fh.Filename)
+			return nil, emcoerror.NewEmcoError(
+				fmt.Sprintf("failed to open the file %s", fh.Filename),
+				emcoerror.UnprocessableEntity,
+			)
 		}
 
 		defer mpf.Close()
@@ -100,7 +116,10 @@ func parseFile(fileHeader []*multipart.FileHeader) ([]file, int, error) {
 				log.Fields{
 					"Name":  fh.Filename,
 					"Error": err})
-			return nil, http.StatusUnprocessableEntity, fmt.Errorf("failed to read the file %s", fh.Filename)
+			return nil, emcoerror.NewEmcoError(
+				fmt.Sprintf("failed to read the file %s", fh.Filename),
+				emcoerror.UnprocessableEntity,
+			)
 		}
 		if len(data) > 0 {
 			f := file{
@@ -111,7 +130,7 @@ func parseFile(fileHeader []*multipart.FileHeader) ([]file, int, error) {
 		}
 	}
 
-	return files, 0, nil
+	return files, nil
 }
 
 // sendResponse sends an application/json response to the client
@@ -245,7 +264,10 @@ func validateContent(data []byte) error {
 		log.Error("Invalid object to validate",
 			log.Fields{
 				"Object": object})
-		return errors.New("invalid object to validate")
+		return emcoerror.NewEmcoError(
+			"invalid object to validate",
+			emcoerror.BadRequest,
+		)
 	}
 
 	if err = validateObjectVersionKind(fields); err != nil {
@@ -265,32 +287,47 @@ func validateObjectVersionKind(fields map[string]interface{}) error {
 	if apiVersion == nil {
 		log.Error("apiVersion not set",
 			log.Fields{})
-		return errors.New("apiVersion not set")
+		return emcoerror.NewEmcoError(
+			"apiVersion not set",
+			emcoerror.BadRequest,
+		)
 	}
 	gv, ok := apiVersion.(string)
 	if !ok {
 		log.Error("apiVersion is not string type",
 			log.Fields{
 				"apiVersion": apiVersion})
-		return errors.New("apiVersion is not string type")
+		return emcoerror.NewEmcoError(
+			"apiVersion is not string type",
+			emcoerror.BadRequest,
+		)
 	}
 	if len(gv) == 0 {
 		log.Error("apiVersion may not be empty",
 			log.Fields{})
-		return errors.New("apiVersion may not be empty")
+		return emcoerror.NewEmcoError(
+			"apiVersion may not be empty",
+			emcoerror.BadRequest,
+		)
 	}
 
 	kind := fields["kind"]
 	if kind == nil {
 		log.Error("kind not set",
 			log.Fields{})
-		return errors.New("kind not set")
+		return emcoerror.NewEmcoError(
+			"kind not set",
+			emcoerror.BadRequest,
+		)
 	}
 	if _, ok := kind.(string); !ok {
 		log.Error("kind is not string type",
 			log.Fields{
 				"kind": kind})
-		return errors.New("kind is not string type")
+		return emcoerror.NewEmcoError(
+			"kind is not string type",
+			emcoerror.BadRequest,
+		)
 	}
 
 	return nil
@@ -302,7 +339,10 @@ func validateObjectMetadata(fields map[string]interface{}) error {
 	if metadata == nil {
 		log.Error("metadata not set",
 			log.Fields{})
-		return errors.New("metadata not set")
+		return emcoerror.NewEmcoError(
+			"metadata not set",
+			emcoerror.BadRequest,
+		)
 	}
 
 	data, ok := metadata.(map[string]interface{})
@@ -310,14 +350,19 @@ func validateObjectMetadata(fields map[string]interface{}) error {
 		log.Error("Invalid metadata",
 			log.Fields{
 				"metadata": metadata})
-		return errors.New("invalid metadata")
+		return emcoerror.NewEmcoError("invalid metadata",
+			emcoerror.BadRequest,
+		)
 	}
 
 	name := data["name"]
 	if name == nil {
 		log.Error("Resource name not set",
 			log.Fields{})
-		return errors.New("resource name not set")
+		return emcoerror.NewEmcoError(
+			"resource name not set",
+			emcoerror.BadRequest,
+		)
 	}
 
 	n, ok := name.(string)
@@ -325,12 +370,18 @@ func validateObjectMetadata(fields map[string]interface{}) error {
 		log.Error("Resource name is not string type",
 			log.Fields{
 				"Name": name})
-		return errors.New("resource name is not string type")
+		return emcoerror.NewEmcoError(
+			"resource name is not string type",
+			emcoerror.BadRequest,
+		)
 	}
 	if len(n) == 0 {
 		log.Error("Resource name may not be empty",
 			log.Fields{})
-		return errors.New("resource name may not be empty")
+		return emcoerror.NewEmcoError(
+			"resource name may not be empty",
+			emcoerror.BadRequest,
+		)
 	}
 
 	return nil
@@ -367,8 +418,10 @@ func validateKey(key string, keys map[string]string) error {
 			log.Fields{
 				"Key":   key,
 				"Error": strings.Join(errs, "\n")})
-		return fmt.Errorf("%s is not a valid key name for a ConfigMap or Secret",
-			key)
+		return emcoerror.NewEmcoError(
+			fmt.Sprintf("%s is not a valid key name for a ConfigMap or Secret", key),
+			emcoerror.BadRequest,
+		)
 	}
 	// check for duplicate key
 	if _, exists := keys[key]; exists {
@@ -376,7 +429,10 @@ func validateKey(key string, keys map[string]string) error {
 			log.Fields{
 				"Key":   key,
 				"Error": "A key with the name already exists in Data"})
-		return fmt.Errorf("a key with the name %s already exists in Data", key)
+		return emcoerror.NewEmcoError(
+			fmt.Sprintf("a key with the name %s already exists in Data", key),
+			emcoerror.BadRequest,
+		)
 	}
 
 	return nil

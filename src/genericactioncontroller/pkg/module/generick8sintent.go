@@ -9,7 +9,7 @@ import (
 
 	"context"
 
-	"github.com/pkg/errors"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common/emcoerror"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/db"
 	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/module/types"
 )
@@ -84,7 +84,10 @@ func (g *GenericK8sIntentClient) CreateGenericK8sIntent(ctx context.Context, gki
 
 	if gkiExists &&
 		failIfExists {
-		return GenericK8sIntent{}, gkiExists, errors.New("GenericK8sIntent already exists")
+		return GenericK8sIntent{}, gkiExists, emcoerror.NewEmcoError(
+			GenericK8sIntentAlreadyExists,
+			emcoerror.Conflict,
+		)
 	}
 
 	if err = db.DBconn.Insert(ctx, g.db.storeName, key, nil, g.db.tagMeta, gki); err != nil {
@@ -112,7 +115,10 @@ func (g *GenericK8sIntentClient) GetGenericK8sIntent(ctx context.Context, intent
 	}
 
 	if len(value) == 0 {
-		return GenericK8sIntent{}, errors.New("GenericK8sIntent not found")
+		return GenericK8sIntent{}, emcoerror.NewEmcoError(
+			GenericK8sIntentNotFound,
+			emcoerror.NotFound,
+		)
 	}
 
 	if value != nil {
@@ -123,7 +129,10 @@ func (g *GenericK8sIntentClient) GetGenericK8sIntent(ctx context.Context, intent
 		return gki, nil
 	}
 
-	return GenericK8sIntent{}, errors.New("Unknown Error")
+	return GenericK8sIntent{}, emcoerror.NewEmcoError(
+		emcoerror.UnknownErrorMessage,
+		emcoerror.Unknown,
+	)
 }
 
 // GetAllGenericK8sIntents returns all the GenericK8sIntents

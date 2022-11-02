@@ -5,7 +5,6 @@ package api
 
 import (
 	"bytes"
-	"errors"
 	"mime"
 	"net/http"
 	"net/url"
@@ -13,7 +12,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"gitlab.com/project-emco/core/emco-base/src/genericactioncontroller/pkg/module"
-	"gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/apierror"
+	"gitlab.com/project-emco/core/emco-base/src/orchestrator/common/emcoerror"
 	log "gitlab.com/project-emco/core/emco-base/src/orchestrator/pkg/infra/logutils"
 )
 
@@ -45,7 +44,7 @@ func (h customizationHandler) handleCustomizationDelete(w http.ResponseWriter, r
 	vars := _cVars(mux.Vars(r))
 	if err := h.client.DeleteCustomization(ctx, vars.customization, vars.project, vars.compositeApp,
 		vars.version, vars.deploymentIntentGroup, vars.intent, vars.resource); err != nil {
-		apiErr := apierror.HandleErrors(mux.Vars(r), err, nil, apiErrors)
+		apiErr := emcoerror.HandleAPIError(err)
 		http.Error(w, apiErr.Message, apiErr.Status)
 		return
 	}
@@ -61,7 +60,7 @@ func (h customizationHandler) handleCustomizationGet(w http.ResponseWriter, r *h
 		customizations, err := h.client.GetAllCustomization(ctx, vars.project, vars.compositeApp,
 			vars.version, vars.deploymentIntentGroup, vars.intent, vars.resource)
 		if err != nil {
-			apiErr := apierror.HandleErrors(mux.Vars(r), err, nil, apiErrors)
+			apiErr := emcoerror.HandleAPIError(err)
 			http.Error(w, apiErr.Message, apiErr.Status)
 			return
 		}
@@ -72,7 +71,7 @@ func (h customizationHandler) handleCustomizationGet(w http.ResponseWriter, r *h
 	customization, err := h.client.GetCustomization(ctx, vars.customization, vars.project, vars.compositeApp,
 		vars.version, vars.deploymentIntentGroup, vars.intent, vars.resource)
 	if err != nil {
-		apiErr := apierror.HandleErrors(mux.Vars(r), err, nil, apiErrors)
+		apiErr := emcoerror.HandleAPIError(err)
 		http.Error(w, apiErr.Message, apiErr.Status)
 		return
 	}
@@ -80,7 +79,7 @@ func (h customizationHandler) handleCustomizationGet(w http.ResponseWriter, r *h
 	content, err := h.client.GetCustomizationContent(ctx, vars.customization, vars.project, vars.compositeApp,
 		vars.version, vars.deploymentIntentGroup, vars.intent, vars.resource)
 	if err != nil {
-		apiErr := apierror.HandleErrors(mux.Vars(r), err, nil, apiErrors)
+		apiErr := emcoerror.HandleAPIError(err)
 		http.Error(w, apiErr.Message, apiErr.Status)
 		return
 	}
@@ -148,8 +147,9 @@ func (h customizationHandler) createOrUpdateCustomization(w http.ResponseWriter,
 	// the multipart/form-data should contain the key `metadata` with customization payload as the value
 	data := bytes.NewBuffer([]byte(r.FormValue("metadata")))
 	// validate the request body before storing it in the database
-	if code, err := validateRequestBody(data, &customization, CustomizationSchemaJson); err != nil {
-		http.Error(w, err.Error(), code)
+	if err := validateRequestBody(data, &customization, CustomizationSchemaJson); err != nil {
+		apiErr := emcoerror.HandleAPIError(err)
+		http.Error(w, apiErr.Message, apiErr.Status)
 		return
 	}
 
@@ -166,9 +166,10 @@ func (h customizationHandler) createOrUpdateCustomization(w http.ResponseWriter,
 	fileHeaders := form.File["files"]
 	if len(fileHeaders) > 0 {
 		// parse each customization file attached in the request
-		files, code, err := parseFile(fileHeaders)
+		files, err := parseFile(fileHeaders)
 		if err != nil {
-			http.Error(w, err.Error(), code)
+			apiErr := emcoerror.HandleAPIError(err)
+			http.Error(w, apiErr.Message, apiErr.Status)
 			return
 		}
 
@@ -194,7 +195,7 @@ func (h customizationHandler) createOrUpdateCustomization(w http.ResponseWriter,
 		vars.project, vars.compositeApp, vars.version, vars.deploymentIntentGroup, vars.intent, vars.resource,
 		methodPost)
 	if err != nil {
-		apiErr := apierror.HandleErrors(mux.Vars(r), err, customization, apiErrors)
+		apiErr := emcoerror.HandleAPIError(err)
 		http.Error(w, apiErr.Message, apiErr.Status)
 		return
 	}
@@ -278,7 +279,10 @@ func validateCustomization(customization module.Customization) error {
 	}
 
 	if len(err) > 0 {
-		return errors.New(strings.Join(err, "\n"))
+		return emcoerror.NewEmcoError(
+			strings.Join(err, "\n"),
+			emcoerror.BadRequest,
+		)
 	}
 
 	return nil
@@ -336,7 +340,10 @@ func validateCustomizationData(customization module.Customization) error {
 	}
 
 	if len(err) > 0 {
-		return errors.New(strings.Join(err, "\n"))
+		return emcoerror.NewEmcoError(
+			strings.Join(err, "\n"),
+			emcoerror.BadRequest,
+		)
 	}
 
 	return nil
