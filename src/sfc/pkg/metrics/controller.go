@@ -65,7 +65,7 @@ func do(ctx context.Context) {
 				fields := fields
 				fields["dig"] = dig.MetaData.Name
 
-				sfcs, err := client.SfcIntent.GetAllSfcIntents(proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name)
+				sfcs, err := client.SfcIntent.GetAllSfcIntents(ctx, proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name)
 				if err != nil {
 					log.Error(err.Error(), fields)
 					continue
@@ -79,7 +79,7 @@ func do(ctx context.Context) {
 						sfc.Spec.ChainType,
 						sfc.Spec.Namespace,
 					).Set(1)
-					links, err := client.SfcLinkIntent.GetAllSfcLinkIntents(proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name, sfc.Metadata.Name)
+					links, err := client.SfcLinkIntent.GetAllSfcLinkIntents(ctx, proj.MetaData.Name, app.Metadata.Name, app.Spec.Version, dig.MetaData.Name, sfc.Metadata.Name)
 					if err != nil {
 						log.Error(err.Error(), fields)
 						continue
