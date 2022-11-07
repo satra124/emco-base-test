@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2020 Intel Corporation
+# Copyright (c) 2021 Intel Corporation
 
----
 #Terminate the app installed on the clusters.
 version: emco/v2
 resourceContext:
