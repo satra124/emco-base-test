@@ -15,29 +15,26 @@ Following are the list of files that need to be added/updated followed by thorou
 ### Docker-compose.yml:
 • Look for the correct ports to be added as part of docker service and update file accordingly for new service in root/deployments/docker/docker-compose.yml file
 
-
 ### Config.json for new microservice:
 • Avoid adding hardcoded ips inside root/src/<service>/config.json
 
 ### Helm Templates:
-• Under deployments/helm/emcoCI/templates
--> Update configmap.yaml with config values from src/service/config.json file
--> Update deployment.yaml with correct ports , volume mounts, binary file details
--> Update service.yaml with correct ports 
+• Under deployments/helm/emcoBase
+-> Create a chart for the new service, using deployments/helm/emcoBase/common/templates where possible
+-> Add chart to dependencies in deployments/helm/emcoBase/emco-services/Chart.yaml and update version of emco-services chart
 
 ### Scripts:
-
 In scripts/deploy_emco.sh, add a new line to push the new service's image to the container registry:
 
 ```
  push_to_registry <service-name> ${TAG}
 
 ```
+
 ### EMCO-CFG configs:
 Under root/src/tools/emcoctl/examples
 
 * Update emco-cfg.yaml, emco-cfg-local.yaml and emco-cfg-remote.yaml for new service,host and port
-
 
 * After updating the code, please use the 
   [local install tutorial](../user/Tutorial_Local_Install.md) and the

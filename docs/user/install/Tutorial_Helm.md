@@ -3,8 +3,6 @@ SPDX-License-Identifier: Apache-2.0
 Copyright (c) 2019-2020 Intel Corporation
 ```
 
-**NOTE**: The helmcharts for CI are located in the `deployments/helm/emcoBase` folder and only this version is referenced in the top-level Makefile. The helmcharts in the `deployments/helm/emcoCI` folder are not actively maintained and are included for legacy purposes.
-
 # Getting Started
 This document describes how to efficiently get started with EMCO install using Helm Package.
 
