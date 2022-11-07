@@ -275,6 +275,12 @@ Install flux using the fluxctl instructions. (https://fluxcd.io/docs/installatio
 $ flux bootstrap github --owner=$OWNER --repository=$REPO --branch=main --path=./clusters/provider1flux+cluster2 --personal
 ```
 
+For gitea server,
+```
+$ flux bootstrap git --url=ssh://git@<HOST IP>:<Istio SSH NodePort>/<UserName>/<RepoName>.git --branch=main --path=./clusters/provider-flux+cluster2 --ca-file=<Path for Root CA crt> --private-key-file=<Path for SSH private Key>
+```
+> NOTE: The Root CA certificate is used for creating self signed certificates.
+
 On the edge cluster that supports Flux v2 install monitor like the example below. Note the name of the cluster. That name should match the name provided above.
 
 ```

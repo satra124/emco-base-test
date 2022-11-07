@@ -3,14 +3,14 @@
 function get_variables {
     user_name=emco
     ip=$HOST_IP
-    port=$(kubectl get svc -n emco | grep gitea-http | awk -F[\:\/] '{print $2}')
+    read -p 'Ingress Port: ' port
     password=emco@pass
     token_name="gitea_token"
-    url="http://"$ip":"$port
+    url="https://"$ip":"$port
 }
 
 function get_token {
-token=$(curl -H "Content-Type: application/json" -d "{\"name\":\"$token_name\"}" -u $user_name:$password $url/api/v1/users/$user_name/tokens | jq -r '.sha1')
+token=$(curl -k -H "Content-Type: application/json" -d "{\"name\":\"$token_name\"}" -u $user_name:$password $url/api/v1/users/$user_name/tokens | jq -r '.sha1')
 }
 
 function create_repo {
@@ -39,7 +39,7 @@ function delete_token {
     end_point=$url"/api/v1/users/"$user_name"/tokens/"$token_name
     cred=$user_name":"$password
     cred_base64="$(echo -n $cred | base64)"
-    curl -X 'DELETE' "$end_point" -H 'accept: application/json' -H "authorization: Basic $cred_base64"
+    curl -k -X 'DELETE' "$end_point" -H 'accept: application/json' -H "authorization: Basic $cred_base64"
 }
 
 function create_user {
@@ -49,7 +49,7 @@ function create_user {
    read -sp 'Password: ' passvar; echo
    cred=$user_name":"$password
    cred_base64="$(echo -n $cred | base64)"
-   output=$(curl -X 'POST'   "$end_point"   -H 'accept: application/json'   -H "authorization: Basic $cred_base64"   -H 'Content-Type: application/json'   -d "{
+   output=$(curl -k -X 'POST'   "$end_point"   -H 'accept: application/json'   -H "authorization: Basic $cred_base64"   -H 'Content-Type: application/json'   -d "{
   \"email\": \"$emailvar\",
   \"full_name\": \"$uservar\",
   \"login_name\": \"$uservar\",
@@ -91,7 +91,7 @@ function upload_key {
    end_point=$url"/api/v1/admin/users/"$uservar"/keys"
    cred=$user_name":"$password
    cred_base64="$(echo -n $cred | base64)"
-   output=$(curl -X 'POST'   "$end_point"   -H 'accept: application/json'   -H "authorization: Basic $cred_base64"   -H 'Content-Type: application/json'   -d "{
+   output=$(curl -k -X 'POST'   "$end_point"   -H 'accept: application/json'   -H "authorization: Basic $cred_base64"   -H 'Content-Type: application/json'   -d "{
   \"key\": \"$public_key_string\",
   \"read_only\": true,
   \"title\": \"$keyvar\"
@@ -130,3 +130,4 @@ case "$1" in
     "upload_key" ) upload_key ;;
     *) usage ;;
 esac
+

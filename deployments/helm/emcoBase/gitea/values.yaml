@@ -106,9 +106,8 @@ service:
   ## @param service.ssh.loadBalancerSourceRanges Source range filter for ssh loadbalancer
   ## @param service.ssh.annotations SSH service annotations
   ssh:
-    type: ClusterIP
-    port: 22
-    clusterIP: None
+    type: NodePort
+    port: 2022
     loadBalancerIP:
     nodePort:
     externalTrafficPolicy:

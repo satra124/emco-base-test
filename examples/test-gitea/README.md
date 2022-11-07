@@ -54,3 +54,47 @@ User can login to their account using the `UserName` and `Password` set during t
 ### Repository Page
 Repository is created for the user with a default README.md.
 ![Screenshot](images/gitea_repo.PNG)
+
+## Uploading SSH Key
+
+In order to connect to the gitea server through `SSH`, the user must upload the `SSH` public key to the server. These keys must be unique for each user. The script can upload existing keys as well as create and upload new keys to the gitea server using the `upload_key` option.
+
+### Create New key and upload to gitea server
+
+```
+vagrant@emco:~/git/go/src/EMCO_LAB_MAIN/emco-base/examples/test-gitea$ ./gitea.sh upload_key
+UserName: emcouser
+KeyName: emcouser-ssh-key
+Create New Key (y/N) y
+New Key FilePath: /home/vagrant/.ssh
+
+Generating public/private rsa key pair.
+<Output from SSH Key creation>
+Your identification has been saved in /home/vagrant/.ssh/emcouser-ssh-key
+Your public key has been saved in /home/vagrant/.ssh/emcouser-ssh-key.pub
+
+Public Key uploaded for User:  emcouser
+
+```
+`UserName` is the unique user name, `KeyName` is the name we want to store the ssh public key in Gitea, and to create a new SSH key pair, input `y` to the `Create New Key` option. In the `New Key FilePath` option, specify the path to the system where the keys should be stored. The script will use the key name provided in the `KeyName` step to generate the private-public key pair. Once the keys are generated they are uploaded to the gitea server.
+
+### Upload existing key to the gitea server
+
+```
+vagrant@emco:~/git/go/src/EMCO_LAB_MAIN/emco-base/examples/test-gitea$ ./gitea.sh upload_key
+UserName: emcouser
+KeyName: emcouser-key-2
+Create New Key (y/N) N
+Key FilePath: /home/vagrant/.ssh/emcouser-key.pub
+
+Public Key uploaded for User:  emcouser
+```
+To upload an existing ssh public key input `N` to the `Create New Key` option. In the `New Key FilePath` provide the path to the existing ssh public key, the script will then upload the public key to the gitea server.
+
+### SSH keys Page
+Both keys uploaded are uploaded to the gitea server for user `emcouser`.
+![Screenshot](images/gitea_ssh_key.PNG)
+
+## Gitea with Istio
+
+To use Istio with Gitea, follow the steps mentioned in https://gitlab.com/project-emco/core/emco-base/-/blob/main/docs/design/dtc_istio_support.md to install and setup Istio. Once Gitea is depolyed with the Istio side cars apply emco-virtualservices.yaml from https://gitlab.com/project-emco/core/emco-base/-/blob/main/scripts/samples/istio/emco-virtualservices.yaml . With the gitea-istio.sh script, follow the steps above to set up the user, repo, and upload key. This script uses the istio-ingressgateway ip and ports for interacting with gitea.

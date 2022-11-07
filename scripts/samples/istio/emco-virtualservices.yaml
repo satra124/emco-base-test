@@ -377,8 +377,20 @@ spec:
   - match:
     - uri:
         prefix: /api/v1
+    - uri:
+        regex: /.+/(.+).git
+    - uri:
+        regex: /.+/(.+).git/.*
     route:
     - destination:
         port:
           number: 3000
-        host: emco-services-gitea-http.emco.svc.cluster.local
+        host: emco-services-gitea-http # The "emco-services" prefix should match tag used during helm install
+  tcp:
+  - match:
+    - port: 2022
+    route:
+    - destination:
+        host: emco-services-gitea-ssh # The "emco-services" prefix should match tag used during helm install
+        port:
+          number: 2022
