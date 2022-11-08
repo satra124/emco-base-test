@@ -54,6 +54,14 @@ service:
   externalPort: 9042
   nodePort: 42
 
+serviceInternal:
+  type: NodePort
+  name: hpaac
+  portName: hpaac-service
+  internalPort: 9041
+  externalPort: 9041
+  nodePort: 41
+
 ingress:
   enabled: false
 
@@ -75,3 +83,9 @@ resources:
       cpu: 10m
       memory: 100Mi
   unlimited: {}
+
+podAnnotations:
+  # The metrics use the same port as the service
+  prometheus.io/path: /metrics
+  prometheus.io/port: "9041"
+  prometheus.io/scrape: "true"
