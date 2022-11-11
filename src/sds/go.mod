@@ -6,11 +6,11 @@ require (
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
 	github.com/pkg/errors v0.9.1
-	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-20221110205714-0f9537606800
-	gitlab.com/project-emco/core/emco-base/src/dtc v0.0.0-20221109195320-917f44201821
-	gitlab.com/project-emco/core/emco-base/src/monitor v0.0.0-20221110205714-0f9537606800
-	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-20221110205714-0f9537606800
-	gitlab.com/project-emco/core/emco-base/src/rsync v0.0.0-20221110205714-0f9537606800
+	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-00010101000000-000000000000
+	gitlab.com/project-emco/core/emco-base/src/dtc v0.0.0-00010101000000-000000000000
+	gitlab.com/project-emco/core/emco-base/src/monitor v0.0.0-00010101000000-000000000000
+	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-00010101000000-000000000000
+	gitlab.com/project-emco/core/emco-base/src/rsync v0.0.0-00010101000000-000000000000
 	go.opentelemetry.io/otel v1.8.0
 	go.opentelemetry.io/otel/trace v1.8.0
 	gopkg.in/yaml.v2 v2.4.0

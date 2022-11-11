@@ -7,7 +7,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.1
 	github.com/stretchr/testify v1.8.0
-	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-20221110205714-0f9537606800
+	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-00010101000000-000000000000
 	go.opentelemetry.io/otel v1.8.0
 )
 
@@ -122,9 +122,9 @@ require (
 	github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	github.com/yourbasic/graph v0.0.0-20210606180040-8ecfec1c2869 // indirect
-	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-20221110205714-0f9537606800 // indirect
-	gitlab.com/project-emco/core/emco-base/src/monitor v0.0.0-20221110205714-0f9537606800 // indirect
-	gitlab.com/project-emco/core/emco-base/src/rsync v0.0.0-20221110205714-0f9537606800 // indirect
+	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-00010101000000-000000000000 // indirect
+	gitlab.com/project-emco/core/emco-base/src/monitor v0.0.0-00010101000000-000000000000 // indirect
+	gitlab.com/project-emco/core/emco-base/src/rsync v0.0.0-00010101000000-000000000000 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.5 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.5 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.5 // indirect

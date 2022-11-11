@@ -2,13 +2,14 @@ module gitlab.com/project-emco/core/emco-base/src/swc
 
 require (
 	github.com/pkg/errors v0.9.1
-	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-20221110205714-0f9537606800
-	gitlab.com/project-emco/core/emco-base/src/dtc v0.0.0-20221109195320-917f44201821
-	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-20221110205714-0f9537606800
+	gitlab.com/project-emco/core/emco-base/src/clm v0.0.0-00010101000000-000000000000
+	gitlab.com/project-emco/core/emco-base/src/dtc v0.0.0-00010101000000-000000000000
+	gitlab.com/project-emco/core/emco-base/src/orchestrator v0.0.0-00010101000000-000000000000
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
+	cloud.google.com/go v0.99.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
@@ -40,7 +41,7 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	gitlab.com/project-emco/core/emco-base/src/rsync v0.0.0-20221110205714-0f9537606800 // indirect
+	gitlab.com/project-emco/core/emco-base/src/rsync v0.0.0-00010101000000-000000000000 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.5 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.5 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.5 // indirect
