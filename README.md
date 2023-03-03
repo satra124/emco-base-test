@@ -13,7 +13,7 @@
     - [From source](#from-source)
     - [Client/CLI](#clientcli)
 
-## Overview
+## EMCO Overview
 
 The Edge Multi-Cluster Orchestrator (EMCO) is a software framework for
 intent-based deployment of cloud-native applications to a set of Kubernetes
