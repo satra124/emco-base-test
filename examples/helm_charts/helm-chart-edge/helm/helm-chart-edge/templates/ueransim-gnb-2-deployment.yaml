@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-gnb-lz-svc
+  labels:
+    app: ueransim-gnb-lz
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: gnb-sctp
+      port: 38412
+      targetPort: 38412
+      protocol: TCP
+  selector:
+    app: ueransim-gnb-lz
+---    
+apiVersion: apps/v1 # for tags before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-simulator-gnb-localzone
+  labels:
+    app: ueransim-gnb-lz
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ueransim-gnb-lz
+  template:
+    metadata:
+      labels:
+        mode: simulator
+        app: ueransim-gnb-lz
+    spec:
+      serviceAccountName: {{ .Release.Name }}-k8s-wait-for
+      {{- if .Values.LZnodeSelector}}
+      nodeSelector: {{- .Values.LZnodeSelector | toYaml | nindent 8 }}
+      {{- end }}
+      initContainers:      
+      - name: wait-for-amf
+        image: {{ .Values.k8swait.repository }}:{{ .Values.k8swait.tag }}
+        imagePullPolicy: {{ .Values.k8swait.pullPolicy }}
+        command: ["/bin/bash", "-c", "until nc -z -v {{ .Values.k8swait.serviceHost }} {{ .Values.k8swait.servicePort }}; do echo waiting for amf; sleep 2; done"]
+      containers:
+      - name: ueransim-gnb
+        image: "{{ .Values.ueransim.repository }}:{{ .Values.ueransim.tag }}"
+        imagePullPolicy: {{ .Values.ueransim.pullPolicy }}        
+        command: ["/bin/sh", "-c"]
+        args:
+        - sleep 10;
+          apt-get update && apt-get install iputils-ping iproute2 -y;
+          cp -rf /tmp/gnb.yaml /UERANSIM/build/open5gs-gnb.yaml;
+          sed -i "s/gnbLocalIP/$MY_POD_IP/g" /UERANSIM/build/open5gs-gnb.yaml;          
+          ./nr-gnb -c open5gs-gnb.yaml;
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: ueransim-gnb-config
+          mountPath: /tmp/gnb.yaml
+          subPath: gnb.yaml
+        env:
+        - name: MY_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+      volumes:
+        - name: ueransim-gnb-config
+          configMap:
+            name: ueransim-config
+      {{- if .Values.nodeSelector}}
+      nodeSelector: {{- .Values.nodeSelector | toYaml | nindent 8 }}
+      {{- end }}           

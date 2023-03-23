@@ -208,10 +208,10 @@ persistence:
   existingClaim:
   size: 2Gi
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   labels: {}
   annotations: {}
-  storageClass:
+  storageClass: sc-gp2
   subPath:
 
 ## @param extraVolumes Additional volumes to mount to the Gitea statefulset
@@ -426,7 +426,7 @@ postgresql:
   persistence:
     size: 1Gi
     accessModes:
-      - ReadWriteMany
+      - ReadWriteOnce
   volumePermissions:
     enabled: true
 

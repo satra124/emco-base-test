@@ -22,8 +22,11 @@ mongo:
   sdnctlPrefix: emco
   persistence:
     enabled: true
+    size: 3Gi
     mountPath: /opt
     mountSubPath: "emco/mongo/data"
+    accessModes:
+      - ReadWriteMany
   disableNfsProvisioner: true
 
 # etcd chart overrides for emco
@@ -32,11 +35,12 @@ etcd:
   persistence:
     enabled: true
     accessModes:
-      - ReadWriteMany
-    size: 1Gi
+      - ReadWriteOnce
+    size: 8Gi
     mountPath: /opt
     mountSubPath: "emco/etcd/data"
     volumeReclaimPolicy: Retain
+    driver: ebs.csi.aws.com
   volumePermissions:
     enabled: true
 

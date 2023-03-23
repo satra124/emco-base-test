@@ -45,7 +45,7 @@ function create_common_values {
     GenericPlacementIntent: test-placement-intent
     DeploymentIntent: test-deployment-intent
     Intent: intent
-    RsyncPort: 30431
+    RsyncPort: 9031
     GacPort: 30433
     OvnPort: 30432
     DtcPort: 30448

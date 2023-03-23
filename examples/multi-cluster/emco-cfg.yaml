@@ -1,0 +1,24 @@
+  orchestrator:
+    host: a48737b51c8b34836aff54f99d7db83f-77b433295a1b6f4d.elb.us-west-2.amazonaws.com
+    port: 30415
+    statusPort: 30416
+  clm:
+    host: a48737b51c8b34836aff54f99d7db83f-77b433295a1b6f4d.elb.us-west-2.amazonaws.com
+    port: 30461
+  ncm:
+    host: a48737b51c8b34836aff54f99d7db83f-77b433295a1b6f4d.elb.us-west-2.amazonaws.com
+    port: 30481
+    statusPort: 30482
+  ovnaction:
+    host: a48737b51c8b34836aff54f99d7db83f-77b433295a1b6f4d.elb.us-west-2.amazonaws.com
+    port: 30451
+  dcm:
+    host: a48737b51c8b34836aff54f99d7db83f-77b433295a1b6f4d.elb.us-west-2.amazonaws.com
+    port: 30477
+    statusPort: 30478
+  gac:
+    host: a48737b51c8b34836aff54f99d7db83f-77b433295a1b6f4d.elb.us-west-2.amazonaws.com
+    port: 30420
+  dtc:
+   host: a48737b51c8b34836aff54f99d7db83f-77b433295a1b6f4d.elb.us-west-2.amazonaws.com
+   port: 30418

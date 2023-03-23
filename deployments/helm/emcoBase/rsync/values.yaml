@@ -24,7 +24,7 @@ workingDir: /opt/emco/rsync
 mountMongoSecret: true
 
 # flag to enable debugging - application support required
-debugEnabled: false
+debugEnabled: true
 
 # application configuration is via config files
 

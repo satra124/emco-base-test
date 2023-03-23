@@ -1,0 +1,7 @@
+open5gs_upf:
+  service:
+    type: ClusterIP
+    port: 8805
+    targetPort: 8805
+    selector:
+      epc-mode: upf

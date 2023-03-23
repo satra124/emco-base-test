@@ -1,0 +1,7 @@
+open5gs_amf:
+  service:
+    type: ClusterIP
+    port: 38412
+    targetPort: 38412
+    selector:
+      epc-mode: amf

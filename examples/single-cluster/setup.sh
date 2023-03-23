@@ -138,10 +138,10 @@ fi
 
 if [ "$DNS" = "true" ]; then
 echo "Replacing controller addresses with hostnames, since DNS service reachability (via internal port) is enabled"
-perl -p0i -e 's/rsync\nspec:\n  host: {{.HostIP}}/rsync\nspec:\n  host: rsync/' prerequisites.yaml
-perl -p0i -e 's/dtc\nspec:\n  host: {{.HostIP}}/dtc\nspec:\n  host: dtc/' prerequisites.yaml
-perl -p0i -e 's/nps\nspec:\n  host: {{.HostIP}}/nps\nspec:\n  host: nps/' prerequisites.yaml
-perl -p0i -e 's/ovnaction\nspec:\n  host: {{.HostIP}}/ovnaction\nspec:\n  host: ovnaction/' test-vfw-deployment.yaml
+perl -p0i -e 's/rsync\nspec:\n  host\: \{\{.HostIP\}\}/rsync\nspec:\n  host: rsync/' prerequisites.yaml
+perl -p0i -e 's/dtc\nspec:\n  host\: \{\{.HostIP\}\}/dtc\nspec:\n  host: dtc/' prerequisites.yaml
+perl -p0i -e 's/nps\nspec:\n  host\: \{\{.HostIP\}\}/nps\nspec:\n  host: nps/' prerequisites.yaml
+perl -p0i -e 's/ovnaction\nspec:\n  host\: \{\{.HostIP\}\}/ovnaction\nspec:\n  host: ovnaction/' test-vfw-deployment.yaml
 fi
 
 }

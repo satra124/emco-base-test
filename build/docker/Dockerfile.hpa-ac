@@ -19,6 +19,7 @@ RUN chown emco:emco . -R
 
 COPY --chown=emco ./hpa-ac ./
 COPY --chown=emco ./config.json ./
+COPY --chown=emco ./ref-schemas ./ref-schemas
 
 USER emco
 

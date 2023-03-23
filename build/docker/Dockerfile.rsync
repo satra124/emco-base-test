@@ -11,13 +11,17 @@ ARG EMCO_SHA
 ARG EMCO_VERSION
 ENV EMCO_META_EMCO_SHA=${EMCO_SHA}
 ENV EMCO_META_EMCO_VERSION=${EMCO_VERSION}
-ENV LD_LIBRARY_PATH=/opt/emco
+ENV LD_LIBRARY_PATH=/opt/emco:/usr/local/aws-cli/v2/dist
 
 WORKDIR /opt/emco/rsync
-
-COPY ./rsync ./
-COPY ./config.json ./
-
-
+RUN addgroup -S emco && adduser -S -G emco emco && chown emco:emco . -R
+COPY --chown=emco ./rsync ./
+COPY --chown=emco ./config.json ./
+COPY --chown=emco ./ref-schemas ./ref-schemas
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install
+USER emco
+RUN aws eks update-kubeconfig --name emco-management && aws eks update-kubeconfig --name emco-workload-1
+RUN rm -rf ./aws
 ENTRYPOINT "./rsync"
-

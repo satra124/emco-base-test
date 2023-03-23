@@ -10,6 +10,9 @@ FROM ${BASEDOCKERREPO}${GIT_SERVICE_IMAGE_NAME}:${GIT_SERVICE_IMAGE_VERSION}
 ENV LD_LIBRARY_PATH=/opt/emco
 WORKDIR /opt/emco/monitor
 
-COPY ./monitor ./
+COPY  ./monitor ./
+COPY  ./config.json ./
+COPY  ./ref-schemas ./ref-schemas
+
 
 ENTRYPOINT "./monitor"

@@ -67,11 +67,12 @@ ifndef TAG
   endif
 endif
 
-ifeq ($(BUILD_BASE),true)
-	export BASEDOCKERREPO=${EMCODOCKERREPO}
-else
-	export BASEDOCKERREPO=registry.gitlab.com/project-emco/core/emco-base/
-endif
+# ifeq ($(BUILD_BASE),true)
+# 	export BASEDOCKERREPO=${EMCODOCKERREPO}
+# else
+# 	export BASEDOCKERREPO=registry.gitlab.com/project-emco/core/emco-base/
+# endif
+export BASEDOCKERREPO=${EMCODOCKERREPO}
 
 clean-all:
 	@echo "Cleaning artifacts"
@@ -92,10 +93,11 @@ pre-compile: clean
 	@echo "Setting up pre-requisites"
 	@for m in $(MODS); do \
 	    mkdir -p bin/$$m;  \
-	    ARGS=""; CJ="src/$$m/config.json"; JS="src/$$m/json-schemas"; RS="src/$$m/ref-schemas"; \
+	    ARGS=""; CJ="src/$$m/config.json"; JS="src/$$m/json-schemas"; RS="src/$$m/ref-schemas"; SS="src/$$m/aws"; \
 	    [ -f $$CJ ] && ARGS="$$ARGS $$CJ"; \
 	    [ -d $$JS ] && ARGS="$$ARGS $$JS"; \
 	    [ -d $$RS ] && ARGS="$$ARGS $$RS"; \
+	    [ -d $$SS ] && ARGS="$$ARGS $$SS"; \
 	    [ -z "$$ARGS" ] || cp -r $$ARGS bin/$$m; \
 	 done
 	@echo "    Done."
@@ -109,7 +111,7 @@ compile: pre-compile
 
 deploy-compile: check-env
 	@echo "Building microservices within Docker build container"
-	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo ${BASEDOCKERREPO}${BUILD_BASE_IMAGE_NAME}:${BUILD_BASE_IMAGE_VERSION} /bin/sh -c "cd /repo; git config --global --add safe.directory /repo; make compile"
+	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HELM_VERSION=${HELM_VERSION} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo ${BASEDOCKERREPO}${BUILD_BASE_IMAGE_NAME}:${BUILD_BASE_IMAGE_VERSION} /bin/sh -c "cd /repo; git config --global --add safe.directory /repo; make compile"
 	@echo "    Done."
 
 # Modules that follow naming conventions are done in a loop, rest later
@@ -131,7 +133,7 @@ build-containers:
 
 deploy: check-env deploy-compile build-containers
 	@echo "Creating helm charts. Pushing microservices to registry & copying docker-compose files if BUILD_CAUSE set to DEV_TEST"
-	@docker run --env USER=${USER} --env BASEDOCKERREPO=${BASEDOCKERREPO} --env EMCODOCKERREPO=${EMCODOCKERREPO} --env MAINDOCKERREPO=${MAINDOCKERREPO} --env BUILD_CAUSE=${BUILD_CAUSE} --env BRANCH=${BRANCH} --env TAG=${TAG} --env EMCOSRV_RELEASE_TAG=${EMCOSRV_RELEASE_TAG} --rm --user `id -u`:`id -g` --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache -v `pwd`:/repo ${BASEDOCKERREPO}${BUILD_BASE_IMAGE_NAME}:${BUILD_BASE_IMAGE_VERSION} /bin/sh -c "cd /repo/scripts ; bash deploy_emco.sh"
+	@docker run --env USER=${USER} --env BASEDOCKERREPO=${BASEDOCKERREPO} --env EMCODOCKERREPO=${EMCODOCKERREPO} --env MAINDOCKERREPO=${MAINDOCKERREPO} --env BUILD_CAUSE=${BUILD_CAUSE} --env BRANCH=${BRANCH} --env TAG=${TAG} --env HELM_VERSION=${HELM_VERSION} --env EMCOSRV_RELEASE_TAG=${EMCOSRV_RELEASE_TAG} --rm --user `id -u`:`id -g` --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache -v `pwd`:/repo ${BASEDOCKERREPO}${BUILD_BASE_IMAGE_NAME}:${BUILD_BASE_IMAGE_VERSION} /bin/sh -c "cd /repo/scripts ; bash deploy_emco.sh"
 	@MODS=`echo ${MODS} | sed 's/ovnaction/ovn/;s/genericactioncontroller/gac/;s/orchestrator/orch/;'` ./scripts/push_to_registry.sh
 	@echo "    Done."
 
@@ -166,7 +168,7 @@ build-base:
 
 develop-compile: check-env
 	@echo "Building microservices for development within Docker build container with GOPATH set"
-	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo ${BASEDOCKERREPO}${BUILD_BASE_IMAGE_NAME}:${BUILD_BASE_IMAGE_VERSION} /bin/sh -c "cd /repo; make compile"
+	docker run --rm --user `id -u`:`id -g` --env MODS="${MODS}" --env GO111MODULE --env XDG_CACHE_HOME=/tmp/.cache --env BRANCH=${BRANCH} --env TAG=${TAG} --env HELM_VERSION=${HELM_VERSION} --env HTTP_PROXY=${HTTP_PROXY} --env HTTPS_PROXY=${HTTPS_PROXY} --env GOPATH=/repo/bin -v `pwd`:/repo ${BASEDOCKERREPO}${BUILD_BASE_IMAGE_NAME}:${BUILD_BASE_IMAGE_VERSION} /bin/sh -c "cd /repo; make compile"
 	@echo "    Done."
 
 develop: develop-compile build-containers

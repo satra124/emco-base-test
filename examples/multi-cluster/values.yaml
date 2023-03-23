@@ -1,0 +1,28 @@
+PackagesPath: output
+ProjectName: proj-multi-1
+ClusterProvider: provider-multi
+ClusterLabel: edge-cluster
+AdminCloud: default
+CompositeApp: test-composite-app
+CompositeProfile: test-composite-profile
+GenericPlacementIntent: test-placement-intent
+DeploymentIntent: test-deployment-intent
+Intent: intent
+RsyncPort: 9031
+GacPort: 30433
+OvnPort: 30432
+DtcPort: 30448
+NpsPort: 30438
+HostIP: a48737b51c8b34836aff54f99d7db83f-77b433295a1b6f4d.elb.us-west-2.amazonaws.com
+Clusters:
+  - Name: cluster1
+    KubeConfig: /home/ubuntu/environment/Emco-Lab/emco-workload-config
+  - Name: cluster2
+    KubeConfig: /home/ubuntu/environment/Emco-Lab/emco-edge-config
+Applist:
+  - Name: helm-chart-central
+    Cluster:
+      - cluster1
+  - Name: helm-chart-edge
+    Cluster:
+      - cluster2

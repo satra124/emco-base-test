@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-mongo-ue-init
+  labels:
+    epc-mode: job
+data:
+  ue-init.sh: |
+     wget https://github.com/open5gs/open5gs/raw/main/misc/db/open5gs-dbctl
+     chmod +x open5gs-dbctl
+     if ./open5gs-dbctl --db_uri=mongodb://{{ .Release.Name }}-mongodb-svc/open5gs showfiltered | grep -w {{ .Values.ueransim.ue1.imsi }}; then
+          echo "UE {{ .Values.ueransim.ue1.imsi }} exists, proceeding to delete"
+          ./open5gs-dbctl --db_uri=mongodb://{{ .Release.Name }}-mongodb-svc/open5gs remove {{ .Values.ueransim.ue1.imsi }}
+          ./open5gs-dbctl --db_uri=mongodb://{{ .Release.Name }}-mongodb-svc/open5gs add_ue_with_slice {{ .Values.ueransim.ue1.imsi }} {{ .Values.ueransim.ue1.secKey }} {{ .Values.ueransim.ue1.op }} {{ .Values.regionDnn }} {{ .Values.config.sst }} {{ .Values.config.sd }};
+     else
+          echo "UE {{ .Values.ueransim.ue1.imsi }} does not exist in the DB, proceeding to add it"
+          ./open5gs-dbctl --db_uri=mongodb://{{ .Release.Name }}-mongodb-svc/open5gs add_ue_with_slice {{ .Values.ueransim.ue1.imsi }} {{ .Values.ueransim.ue1.secKey }} {{ .Values.ueransim.ue1.op }} {{ .Values.regionDnn }} {{ .Values.config.sst }} {{ .Values.config.sd }};
+     fi
+     
+     if ./open5gs-dbctl --db_uri=mongodb://{{ .Release.Name }}-mongodb-svc/open5gs showfiltered | grep -w {{ .Values.ueransim.ue2.imsi }}; then
+          echo "UE {{ .Values.ueransim.ue2.imsi }} exists, proceeding to delete"
+          ./open5gs-dbctl --db_uri=mongodb://{{ .Release.Name }}-mongodb-svc/open5gs remove {{ .Values.ueransim.ue2.imsi }}    
+          ./open5gs-dbctl --db_uri=mongodb://{{ .Release.Name }}-mongodb-svc/open5gs add_ue_with_slice {{ .Values.ueransim.ue2.imsi }} {{ .Values.ueransim.ue2.secKey }} {{ .Values.ueransim.ue2.op }} {{ .Values.localzoneDnn }} {{ .Values.config.sst }} {{ .Values.config.sd }};
+     else
+          echo "UE {{ .Values.ueransim.ue2.imsi }} does not exist in the DB, proceeding to add it"
+          ./open5gs-dbctl --db_uri=mongodb://{{ .Release.Name }}-mongodb-svc/open5gs add_ue_with_slice {{ .Values.ueransim.ue2.imsi }} {{ .Values.ueransim.ue2.secKey }} {{ .Values.ueransim.ue2.op }} {{ .Values.localzoneDnn }} {{ .Values.config.sst }} {{ .Values.config.sd }};
+     fi

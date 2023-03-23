@@ -1,0 +1,51 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-simulator-localzone-ue
+  labels:
+    app: localzone-ueransim-ue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: localzone-ueransim-ue
+  template:
+    metadata:
+      labels:
+        mode: simulator
+        app: localzone-ueransim-ue
+    spec:
+      serviceAccountName: {{ .Release.Name }}-k8s-wait-for    
+      {{- if .Values.LZnodeSelector}}
+      nodeSelector: {{- .Values.LZnodeSelector | toYaml | nindent 8 }}
+      {{- end }}
+      initContainers:
+      - name: wait-for-gnb
+        image: "{{ .Values.k8swait.repository }}:{{ .Values.k8swait.tag }}"
+        imagePullPolicy: {{ .Values.k8swait.pullPolicy }}
+        command: ["/bin/bash", "-c"]
+        args:
+          - "sleep 30"
+          - "pod"
+          - "-lapp=ueransim-gnb-lz"
+      containers:
+      - name: ueransim-ue
+        image: "{{ .Values.ueransim.repository }}:{{ .Values.ueransim.tag }}"
+        imagePullPolicy: {{ .Values.ueransim.pullPolicy }}        
+        command: ["/bin/sh", "-c"]
+        args:
+        - cp -rf /tmp/ue-2.yaml /UERANSIM/build/open5gs-ue.yaml;
+          gnbIP=$(getent hosts {{ .Release.Name }}-gnb-lz-svc | awk '{ print $1 }');
+          sed -i "s/gNBpodIP/$gnbIP/g" /UERANSIM/build/open5gs-ue.yaml;
+          sleep 5;
+          ./nr-ue -c open5gs-ue.yaml;
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: ueransim-ue-config
+          mountPath: /tmp/ue-2.yaml
+          subPath: ue-2.yaml
+      volumes:
+        - name: ueransim-ue-config
+          configMap:
+            name: ueransim-config

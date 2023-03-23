@@ -8,7 +8,7 @@ resourceContext:
 metadata :
   name: ovnaction
 spec:
-  host: {{.HostIP}}
+  host: ovnaction
   port: {{.OvnPort}}
   type: "action"
   priority: 1

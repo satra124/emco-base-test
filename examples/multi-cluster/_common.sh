@@ -19,6 +19,8 @@ monitor_folder=../../deployments/helm
 nginx_folder=../helm_charts/nginx
 kube_prometheus_stack_folder=../helm_charts/kube-prometheus-stack
 profiles_folder=../profiles
+helm_chart_central_folder=../helm_charts/helm-chart-central
+helm_chart_edge_folder=../helm_charts/helm-chart-edge
 
 function create_apps {
     local output_dir=$1
@@ -45,7 +47,11 @@ function create_apps {
     tar -czf $output_dir/monitor.tar.gz -C $monitor_folder monitor
     tar -czf $output_dir/nginx.tar.gz -C $nginx_folder/helm .
     tar -czf $output_dir/nginx_profile.tar.gz -C $firewall_folder/profile manifest.yaml override_values.yaml
-    tar -czf output/monitor_profile.tar.gz -C $profiles_folder/default/profile .
+    tar -czf $output_dir/monitor_profile.tar.gz -C $profiles_folder/default/profile .
+    tar -czf $output_dir/helm-chart-central.tar.gz -C $helm_chart_central_folder/helm .
+    tar -czf $output_dir/helm-chart-central_profile.tar.gz -C $helm_chart_central_folder/profile .
+    tar -czf $output_dir/helm-chart-edge.tar.gz -C $helm_chart_edge_folder/helm .
+    tar -czf $output_dir/helm-chart-edge_profile.tar.gz -C $helm_chart_edge_folder/profile .
 }
 
 function create_values_yaml_one_cluster {
@@ -72,6 +78,8 @@ function create_values_yaml_one_cluster {
     App3: operator
     App4: http-client
     App5: http-server
+    App6: helm_chart_central
+    App7: helm_chart_edge
     AppMonitor: monitor
     KubeConfig: $kube_path
     HelmApp1: $output_dir/kube-prometheus-stack.tar.gz
@@ -79,6 +87,8 @@ function create_values_yaml_one_cluster {
     HelmApp3: $output_dir/operator.tar.gz
     HelmApp4: $output_dir/http-client.tar.gz
     HelmApp5: $output_dir/http-server.tar.gz
+    HelmApp6: $output_dir/helm-chart-central.tar.gz
+    HelmApp7: $output_dir/helm-chart-edge.tar.gz
     HelmAppMonitor: $output_dir/monitor.tar.gz
     HelmAppFirewall: $output_dir/firewall.tar.gz
     HelmAppPacketgen: $output_dir/packetgen.tar.gz
@@ -89,10 +99,12 @@ function create_values_yaml_one_cluster {
     ProfileApp3: $output_dir/operator_profile.tar.gz
     ProfileApp4: $output_dir/http-client_profile.tar.gz
     ProfileApp5: $output_dir/http-server_profile.tar.gz
+    ProfileApp6: $output_dir/helm-chart-central_profile.tar.gz
+    ProfileApp7: $output_dir/helm-chart-edge_profile.tar.gz
     CompositeProfile: collection-composite-profile
     GenericPlacementIntent: collection-placement-intent
     DeploymentIntent: collection-deployment-intent-group
-    RsyncPort: 30431
+    RsyncPort: 9031
     CompositeAppGac: gac-composite-app
     GacIntent: collectd-gac-intent
     CompositeAppDtc: dtc-composite-app
